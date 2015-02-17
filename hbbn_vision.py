@@ -85,22 +85,34 @@ predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
 
 ###### LOOP #######
 
+# weights initilization
+weight=0.0
+currentWeight=0.0
+
+# some variables
+if(cap1.isOpened() & cap2.isOpened()):
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
+    
+    frame1Rows = frame1.shape[0]
+    frame1Cols = frame1.shape[1]
+    frame2Rows = frame2.shape[0]
+    frame2Cols = frame2.shape[1]
+else:
+    raise NameError('Cannot extract images from video')    
+
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
-
 
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
     frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
     
+    
+    
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
-
-    
-    # weights initilization
-    weight=0.0
-    currentWeight=0.0
 
     # update weights
     for index, row in data.iterrows():
@@ -112,16 +124,15 @@ while(cap1.isOpened() & cap2.isOpened()):
         # find row in DB and change weight value
         currentWeight = row['weights'] 
        
-       
         #NEWWAY: if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
-        Var_V1 = (np.abs(image_1_t_0.item(i,j)-image_1_t_1.item(i,j)))
+        Var_V1 = np.abs(image_1_t_0.item(i,j)-image_1_t_1.item(i,j))
 
         if(Var_V1==0):
             weight = expit(currentWeight - beta)
         else:
-            Var_V2 = (np.abs(image_2_t_0.item(k,l)-image_2_t_1.item(k,l)))            
+            Var_V2 = np.abs(image_2_t_0.item(k,l)-image_2_t_1.item(k,l))            
             if(Var_V2==0):
                 weight = expit(currentWeight - beta)
             else:
@@ -132,22 +143,28 @@ while(cap1.isOpened() & cap2.isOpened()):
         
         
         ## NEWWAY: take advantadge of loop to update maps
-        predictor_image_1.itemset((i,j), predictor_image_1.item(i,j)+image_2_t_0.item(k,l)*weight)
-        predictor_image_2.itemset((k,l), predictor_image_2.item(k,l)+image_1_t_0.item(i,j)*weight)
+        currPix1 = predictor_image_1.item(i,j)
+        currPix2 = predictor_image_2.item(k,l)
+        predictor_image_1.itemset( (i,j), currPix1 + image_2_t_0.item(k,l)*weight )
+        predictor_image_2.itemset( (k,l), currPix2 + image_1_t_0.item(i,j)*weight )
 
    
-
-                    
-    big_predictor_image_1 = cv2.resize(predictor_image_1,(200, 200), interpolation = cv2.INTER_NEAREST)
-    big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
-
+   #update previous image
     image_1_t_1 = image_1_t_0.copy()
     image_2_t_1 = image_2_t_0.copy()
 
-    data.to_csv('data.csv')
+    ## showing images
+    # original size
+    #big_predictor_image_1 = cv2.resize(predictor_image_1,(frame1Cols, frame1Rows), interpolation = cv2.INTER_NEAREST)
+    #big_predictor_image_2 = cv2.resize(predictor_image_2,(frame2Cols, frame2Rows), interpolation = cv2.INTER_NEAREST)
+
+    # smaller size
+    big_predictor_image_1 = cv2.resize(predictor_image_1,(200, 200), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
+
     
-    cv2.imshow('frame1',frame1)
-    cv2.imshow('frame2',frame2)
+#    cv2.imshow('frame1',frame1)
+#    cv2.imshow('frame2',frame2)
     cv2.imshow('Predictor 1',big_predictor_image_1)
     cv2.imshow('Predictor 2',big_predictor_image_2)
     if cv2.waitKey(1) & 0xFF == ord('q'):
