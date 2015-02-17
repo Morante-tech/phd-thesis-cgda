@@ -11,8 +11,21 @@ to relate both images. After training (in fact, it is online, so I should say
 import numpy as np
 import cv2
 import pandas as pd
-from scipy.special import expit
 
+
+################################################
+################################################
+def limit(x):
+    if(x<=0):
+        return 0
+    elif(x>=1):
+        return 1
+    else:
+        return x
+      
+################################################
+################################################
+    
 #params
 ROWS_1 = 10
 COLS_1 = 10
@@ -109,8 +122,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
     frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
     
-    
-    
+        
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
@@ -130,15 +142,16 @@ while(cap1.isOpened() & cap2.isOpened()):
         Var_V1 = np.abs(image_1_t_0.item(i,j)-image_1_t_1.item(i,j))
 
         if(Var_V1==0):
-            weight = expit(currentWeight - beta)
+            weight = limit(currentWeight - beta)
         else:
             Var_V2 = np.abs(image_2_t_0.item(k,l)-image_2_t_1.item(k,l))            
             if(Var_V2==0):
-                weight = expit(currentWeight - beta)
+                weight = limit(currentWeight - beta)
             else:
-                weight = expit(currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta)
+                weight = limit(currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta)
         
         #assign new weight to cell in DB
+        #print currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta
         row['weights']=weight
         
         
@@ -170,3 +183,5 @@ while(cap1.isOpened() & cap2.isOpened()):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
         break
+    
+    
