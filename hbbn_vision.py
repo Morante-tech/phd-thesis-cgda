@@ -109,13 +109,13 @@ while(cap1.isOpened() & cap2.isOpened()):
         k=row['X_2']
         l=row['Y_2']
         
-        Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
-        Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
-    
+        Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))
+        Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))
+
         # find row in DB and change weight value
         currentWeight = row['weights'] 
 
-        weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
+        weight = expit(currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta)
         row['weights']=weight
         
         #take advantadge of loop to update maps
