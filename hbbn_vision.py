@@ -72,16 +72,17 @@ join=[]
 ###### LOOP #######
 
 # Load an color image in grayscale
-big_image_1_t_0 = cv2.imread('lat.jpg',0)
-big_image_2_t_0 = cv2.imread('front.jpg',0)
+big_image_1_t_0 = cv2.imread('images/lat.jpg',0)
+big_image_2_t_0 = cv2.imread('images/front.jpg',0)
 
 # note the changed axis in opencv
 image_1_t_0  = cv2.resize(big_image_1_t_0,(COLS_1, ROWS_1), interpolation = cv2.INTER_LINEAR)
 image_2_t_0  = cv2.resize(big_image_2_t_0,(COLS_2, ROWS_2), interpolation = cv2.INTER_LINEAR)
 
+
 #temporal
-big_image_1_t_1 = cv2.imread('lat_b.jpg',0)
-big_image_2_t_1 = cv2.imread('front_b.jpg',0)
+big_image_1_t_1 = cv2.imread('images/lat_b.jpg',0)
+big_image_2_t_1 = cv2.imread('images/front_b.jpg',0)
 
 # note the changed axis in opencv
 image_1_t_1  = cv2.resize(big_image_1_t_1,(COLS_1, ROWS_1), interpolation = cv2.INTER_LINEAR)
@@ -122,13 +123,15 @@ for i in range(ROWS_1):
                 #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
                 
                 #take advantadge of loop to update maps
-                predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
                 predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
+                predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
          
-         
-cv2.imshow('Predictor 1',predictor_image_1)
-cv2.imshow('Predictor 2',predictor_image_2)
-cv2.waitKey(1)
+big_predictor_image_1 = cv2.resize(predictor_image_1,(400, 400), interpolation = cv2.INTER_NEAREST)
+big_predictor_image_2 = cv2.resize(predictor_image_2,(400, 400), interpolation = cv2.INTER_NEAREST)
+
+cv2.imshow('Predictor 1',big_predictor_image_1)
+cv2.imshow('Predictor 2',big_predictor_image_2)
+cv2.waitKey()
 cv2.destroyAllWindows()
 ######## help
 
