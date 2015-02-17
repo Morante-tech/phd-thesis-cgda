@@ -31,23 +31,8 @@ data = pd.DataFrame(index=np.arange(numberOfRows),
                     columns=colsNames, 
                     data=0)
 
-### LOOP ####
 
-# Load an color image in grayscale
-big_image_1_t_0 = cv2.imread('lat.jpg',0)
-big_image_2_t_0 = cv2.imread('front.jpg',0)
-
-image_1_t_0  = cv2.resize(big_image_1_t_0,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
-image_2_t_0  = cv2.resize(big_image_2_t_0,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
-
-#temporal
-big_image_1_t_1 = cv2.imread('lat_b.jpg',0)
-big_image_2_t_1 = cv2.imread('front_b.jpg',0)
-
-image_1_t_1  = cv2.resize(big_image_1_t_1,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
-image_2_t_1  = cv2.resize(big_image_2_t_1,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
-
-##### filling data
+##### filling initial data
 
 ## first column
 repetitionsROWS_1 =  COLS_1 * ROWS_2 * COLS_2 
@@ -84,7 +69,36 @@ join = join*ROWS_1*COLS_1*ROWS_2
 data['Y_2']=join
 
 
-################################################
+###### LOOP #######
+
+# Load an color image in grayscale
+big_image_1_t_0 = cv2.imread('lat.jpg',0)
+big_image_2_t_0 = cv2.imread('front.jpg',0)
+
+image_1_t_0  = cv2.resize(big_image_1_t_0,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
+image_2_t_0  = cv2.resize(big_image_2_t_0,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
+
+#temporal
+big_image_1_t_1 = cv2.imread('lat_b.jpg',0)
+big_image_2_t_1 = cv2.imread('front_b.jpg',0)
+
+image_1_t_1  = cv2.resize(big_image_1_t_1,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
+image_2_t_1  = cv2.resize(big_image_2_t_1,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
+
+
+
+#doesnt work yet
+weight=0
+for i in range(ROWS_1):
+    for j in range(COLS_1):
+        for k in range(ROWS_2):
+            for l in range(COLS_2):
+                print (i,j,k,l)
+                Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
+                Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
+                weight = expit(weight + alpha * Var_V1 * Var_V2 - beta)
+
+         
 ######## help
 
 ##
