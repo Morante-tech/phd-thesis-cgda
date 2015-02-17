@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Author: Santiago Morante
+Robotics Lab. Universidad Carlos III de Madrid
 
-This is a temporary script file.
+About: This file (when finished) captures two videos, and trains weights
+to relate both images. After training (in fact, it is online, so I should say
+'when enough time has passed') it can predict movements between cameras.
 """
 
 import numpy as np
@@ -12,52 +15,77 @@ from scipy.special import expit
 
 
 #params
-ROWS_1 = 3
+ROWS_1 = 2
 COLS_1 = 3
-ROWS_2 = 2
-COLS_2 = 2
+ROWS_2 = 3
+COLS_2 = 3
 
 alpha = 1
 beta =0.01
 
 # create dataframe
-#colsNames = ['X_1', 'Y_1', 'X_2', 'Y_2', 'weights']
+colsNames = ['X_1', 'Y_1', 'X_2', 'Y_2', 'weights']
 
-numberOfRows = ( ROWS_1 * COLS_1 * ROWS_2 * COLS_2 )
-#data = pd.DataFrame(index=np.arange(numberOfRows), columns=colsNames, data=0)
-data = pd.DataFrame(index=np.arange(numberOfRows), columns=['weights'],data=0.0)
+numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2 
+data = pd.DataFrame(index=np.arange(numberOfRows), 
+                    columns=colsNames, 
+                    data=0)
 
 ### LOOP ####
 
 # Load an color image in grayscale
-big_image_1_t_0 = cv2.imread('uno.jpg',0)
-big_image_2_t_0 = cv2.imread('dos.jpg',0)
+big_image_1_t_0 = cv2.imread('lat.jpg',0)
+big_image_2_t_0 = cv2.imread('front.jpg',0)
 
 image_1_t_0  = cv2.resize(big_image_1_t_0,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
 image_2_t_0  = cv2.resize(big_image_2_t_0,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
 
 #temporal
-image_1_t_1 = cv2.imread('uno_b.jpg',0)
-image_2_t_1 = cv2.imread('dos_b.jpg',0)
+big_image_1_t_1 = cv2.imread('lat_b.jpg',0)
+big_image_2_t_1 = cv2.imread('front_b.jpg',0)
+
+image_1_t_1  = cv2.resize(big_image_1_t_1,(ROWS_1, COLS_1), interpolation = cv2.INTER_LINEAR)
+image_2_t_1  = cv2.resize(big_image_2_t_1,(ROWS_2, COLS_2), interpolation = cv2.INTER_LINEAR)
+
+##### filling data
+
+## first column
+repetitionsROWS_1 =  COLS_1 * ROWS_2 * COLS_2 
+join=[]
+for i in range(ROWS_1):
+    join = join + [i]*repetitionsROWS_1
+data['X_1']=join
+
+## second column
+repetitionsCOLS_1 =  repetitionsROWS_1 / COLS_1 
+join=[]
+for i in range(COLS_1):
+        join = join + [i]*repetitionsCOLS_1
+join = join*ROWS_1
+        
+data['Y_1']=join
+
+## third column
+repetitionsROWS_2 =  repetitionsCOLS_1 / ROWS_2 
+join=[]
+for i in range(ROWS_2):
+        join = join + [i]*repetitionsROWS_2
+join = join*ROWS_1*COLS_1
+        
+data['X_2']=join
+
+## fourth column
+repetitionsCOLS_2 =  repetitionsROWS_2 / COLS_2 
+join=[]
+for i in range(COLS_2):
+        join = join + [i]*repetitionsCOLS_2
+join = join*ROWS_1*COLS_1*ROWS_2
+        
+data['Y_2']=join
 
 
-indexDB = 0
-weight  = 0
-
-
-
-
-for l in range(COLS_2):
-    for k in range(ROWS_2):
-        for j in range(COLS_1):
-            for i in range(ROWS_1):
-                Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
-                Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
-                weight = expit(weight + alpha * Var_V1 * Var_V2 - beta)
-                data['weights'][indexDB]=weight
-                indexDB +=1
-
-
+################################################
+######## help
 
 ##
 #cv2.imshow('uno',image_1_t_0)
