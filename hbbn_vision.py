@@ -15,10 +15,10 @@ from scipy.special import expit
 from itertools import product
 
 #params
-ROWS_1 = 2
-COLS_1 = 2
-ROWS_2 = 4
-COLS_2 = 4
+ROWS_1 = 7
+COLS_1 = 7
+ROWS_2 = 7
+COLS_2 = 7
 
 alpha = 0.1
 beta =0.001
@@ -36,6 +36,7 @@ numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2
 data = pd.DataFrame(index=np.arange(numberOfRows), 
                     columns=colsNames, 
                     data=0)
+
 
 
 ##### filling initial data
@@ -76,6 +77,10 @@ data['Y_2']=join
 join=[]
 #######
 
+# optional: convert first 4 columns to factors (aka categories)
+#data[['X_1', 'Y_1', 'X_2', 'Y_2']] = data[['X_1', 'Y_1', 'X_2', 'Y_2']].astype(object)
+
+
 ## some neccesary initialization
 
 image_1_t_1  =  np.zeros((COLS_1, ROWS_1), np.uint8) # image 1 previous time
@@ -102,30 +107,6 @@ while(cap1.isOpened() & cap2.isOpened()):
     weight=0.0
     currentWeight=0.0
 
-#   OLD WAY        
-#    # update weights
-#    for i in range(ROWS_1):
-#        for j in range(COLS_1):
-#            for k in range(ROWS_2):
-#                for l in range(COLS_2):
-#                    # compute variations in image values
-#                    Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
-#                    Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
-#    
-#                    # find row in DB and change weight value
-#                    currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
-#                   # print "current weight::", currentWeight
-#                    weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
-#                    #print "weight::", weight
-#                    data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']=weight
-#                    #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
-#                    
-#                    #take advantadge of loop to update maps
-#                    predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
-#                    predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
-
-
-
     # update weights
     for (i,j,k,l) in product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2)):
         # compute variations in image values
@@ -133,18 +114,21 @@ while(cap1.isOpened() & cap2.isOpened()):
         Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
     
         # find row in DB and change weight value
-        currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
-       # print "current weight::", currentWeight
+        #currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+        rowSelected = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l)]
+        currentWeight = rowSelected['weights'] 
+
         weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
-        #print "weight::", weight
         data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']=weight
+        
+        
         #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
         
         #take advantadge of loop to update maps
         predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
         predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
                     
-    big_predictor_image_1 = cv2.resize(predictor_image_1,(400, 400), interpolation = cv2.INTER_LINEAR)
+    big_predictor_image_1 = cv2.resize(predictor_image_1,(400, 400), interpolation = cv2.INTER_NEAREST)
     big_predictor_image_2 = cv2.resize(predictor_image_2,(400, 400), interpolation = cv2.INTER_NEAREST)
 
     image_1_t_1 = image_1_t_0.copy()
