@@ -12,16 +12,16 @@ import numpy as np
 import cv2
 import pandas as pd
 from scipy.special import expit
-
+from itertools import product
 
 #params
-ROWS_1 = 4
-COLS_1 = 4
+ROWS_1 = 2
+COLS_1 = 2
 ROWS_2 = 4
 COLS_2 = 4
 
-alpha = 1
-beta =0.01
+alpha = 0.1
+beta =0.001
 
 # video
 
@@ -78,10 +78,10 @@ join=[]
 
 ## some neccesary initialization
 
-image_1_t_1  =  np.zeros((COLS_1, ROWS_1), np.uint8) 
-image_2_t_1  =  np.zeros((COLS_2, ROWS_2), np.uint8) 
-
-
+image_1_t_1  =  np.zeros((COLS_1, ROWS_1), np.uint8) # image 1 previous time
+image_2_t_1  =  np.zeros((COLS_2, ROWS_2), np.uint8) # image 2 previous time
+predictor_image_1 = np.zeros((ROWS_1,COLS_1), np.uint8)#first predictor map 1
+predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
 
 ###### LOOP #######
 
@@ -89,52 +89,62 @@ while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
 
-    frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 
     # note the changed axis in opencv
-    image_1_t_0  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_LINEAR)
-    image_2_t_0  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_LINEAR)
-
+    frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1))
+    frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2))
     
+    image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
+    image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
+
     
     # weights initilization
     weight=0.0
     currentWeight=0.0
-    
-    # predictor maps
-    predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8)
-    predictor_image_1 = np.zeros((ROWS_1,COLS_1), np.uint8)
-    
+
+#   OLD WAY        
+#    # update weights
+#    for i in range(ROWS_1):
+#        for j in range(COLS_1):
+#            for k in range(ROWS_2):
+#                for l in range(COLS_2):
+#                    # compute variations in image values
+#                    Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
+#                    Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
+#    
+#                    # find row in DB and change weight value
+#                    currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+#                   # print "current weight::", currentWeight
+#                    weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
+#                    #print "weight::", weight
+#                    data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']=weight
+#                    #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+#                    
+#                    #take advantadge of loop to update maps
+#                    predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
+#                    predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
+
+
+
     # update weights
-    for i in range(ROWS_1):
-        for j in range(COLS_1):
-            for k in range(ROWS_2):
-                for l in range(COLS_2):
-                    # compute variations in image values
-                    Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
-                    Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
-    #                print 'k,l', k,l
-    #                print 'image_2_t_0[k,l],image_2_t_1[k,l]', image_2_t_0[k,l], image_2_t_1[k,l]
-    #                print 'image_2_t_0[k,l]-image_2_t_1[k,l]', image_2_t_0[k,l]-image_2_t_1[k,l]
-    #                print 'Var_2::', Var_V2
-                    
-                    # compute weight
-                    #weight = expit(weight + alpha * Var_V1 * Var_V2 - beta)
+    for (i,j,k,l) in product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2)):
+        # compute variations in image values
+        Var_V1 = (np.abs(image_1_t_0[i,j]-image_1_t_1[i,j]))/255.0
+        Var_V2 = (np.abs(image_2_t_0[k,l]-image_2_t_1[k,l]))/255.0
     
-                    # find row in DB and change weight value
-                    currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
-                   # print "current weight::", currentWeight
-                    weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
-                    #print "weight::", weight
-                    data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']=weight
-                    #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+        # find row in DB and change weight value
+        currentWeight = data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+       # print "current weight::", currentWeight
+        weight = expit(currentWeight + alpha * Var_V1 * Var_V2 - beta)
+        #print "weight::", weight
+        data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']=weight
+        #print 'current weight 2::', data.loc[(data.X_1 == i) & (data.Y_1 == j) & (data.X_2 == k) & (data.Y_2 == l), 'weights']
+        
+        #take advantadge of loop to update maps
+        predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
+        predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
                     
-                    #take advantadge of loop to update maps
-                    predictor_image_1[i,j] +=  image_2_t_0[k,l]*weight
-                    predictor_image_2[k,l] +=  image_1_t_0[i,j]*weight
-             
-    big_predictor_image_1 = cv2.resize(predictor_image_1,(400, 400), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_1 = cv2.resize(predictor_image_1,(400, 400), interpolation = cv2.INTER_LINEAR)
     big_predictor_image_2 = cv2.resize(predictor_image_2,(400, 400), interpolation = cv2.INTER_NEAREST)
 
     image_1_t_1 = image_1_t_0.copy()
@@ -146,20 +156,5 @@ while(cap1.isOpened() & cap2.isOpened()):
     cv2.imshow('Predictor 1',big_predictor_image_1)
     cv2.imshow('Predictor 2',big_predictor_image_2)
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
         break
-###########################
-        
-# Load an color image in grayscale
-#big_image_1_t_0 = cv2.imread('images/lat.jpg',0)
-#big_image_2_t_0 = cv2.imread('images/front.jpg',0)
-
-
-
-#temporal
-#big_image_1_t_1 = cv2.imread('images/lat_b.jpg',0)
-#big_image_2_t_1 = cv2.imread('images/front_b.jpg',0)
-
-# note the changed axis in opencv
-#image_1_t_1  = cv2.resize(big_image_1_t_1,(COLS_1, ROWS_1), interpolation = cv2.INTER_LINEAR)
-#image_2_t_1  = cv2.resize(big_image_2_t_1,(COLS_2, ROWS_2), interpolation = cv2.INTER_LINEAR)
-
