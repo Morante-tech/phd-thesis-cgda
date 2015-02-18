@@ -28,9 +28,9 @@ def limit(x):
     
 #params
 ROWS_1 = 10
-COLS_1 = 10
+COLS_1 = 8
 ROWS_2 = 10
-COLS_2 = 10
+COLS_2 = 8
 
 alpha = 0.2
 beta =0.001
@@ -39,7 +39,6 @@ beta =0.001
 
 cap1 = cv2.VideoCapture('videos/video.mp4')
 cap2 = cv2.VideoCapture('videos/video.mp4')
-
 
 # create dataframe
 numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2 
@@ -105,14 +104,20 @@ error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
 
 
 ###### LOOP #######
-### weights initilization
+### loop params initilization
 weight=0.0
 currentWeight=0.0
+prev_i=-1
+prev_j=-1
+prev_k=-1
+prev_l=-1
+newFrame=False
 
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
-
+    newFrame=True
+    
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
     frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
@@ -131,36 +136,48 @@ while(cap1.isOpened() & cap2.isOpened()):
         # find row in DB and change weight value
         currentWeight = row['weights'] 
        
-        #NEWWAY: if no variation in any of the images, we cannot predict relation
+        #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
-        Var_V1 = np.abs(image_1_t_0.item(i,j)-image_1_t_1.item(i,j))
+       
+       # we only make calculation of variation if something has changed
+       # either a new frame, or the indexes
+        if(i!=prev_i or j!=prev_j or newFrame==True):
+            Var_V1 = np.abs(image_1_t_0.item(i,j)-image_1_t_1.item(i,j))
 
         if(Var_V1==0):
             weight = limit(currentWeight - beta)
         else:
-            Var_V2 = np.abs(image_2_t_0.item(k,l)-image_2_t_1.item(k,l))            
+            if(k!=prev_k or l!=prev_l or newFrame==True):
+                Var_V2 = np.abs(image_2_t_0.item(k,l)-image_2_t_1.item(k,l))            
             if(Var_V2==0):
                 weight = limit(currentWeight - beta)
             else:
                 weight = limit(currentWeight + (alpha * Var_V1 * Var_V2 / 255.0) - beta)
         
         #assign new weight to cell in DB
-        #print currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta
         row['weights']=weight
         
         
-        ## NEWWAY: take advantadge of loop to update maps
+        ## take advantadge of loop to update maps
         currPix1 = predictor_image_1.item(i,j)
         currPix2 = predictor_image_2.item(k,l)
         predictor_image_1.itemset( (i,j), currPix1 + image_2_t_0.item(k,l)*weight )
         predictor_image_2.itemset( (k,l), currPix2 + image_1_t_0.item(i,j)*weight )
+        
+        #update indexes
+        prev_i=i
+        prev_j=j
+        prev_k=k
+        prev_l=l
+        newFrame=False
 
-   
    #update previous image
     image_1_t_1 = image_1_t_0.copy()
     image_2_t_1 = image_2_t_0.copy()
-
+#########################################################
+#####   END LOOP   #####################
+    
     #### PREDICTOR MAPS ######
     # original size
 #    big_predictor_image_1 = cv2.resize(predictor_image_1,(frame1Cols, frame1Rows), interpolation = cv2.INTER_NEAREST)
