@@ -10,7 +10,6 @@ to relate both images. After training (in fact, it is online, so I should say
 
 import numpy as np
 import cv2
-#import pandas as pd
 import itertools
 
 ################################################
@@ -36,26 +35,17 @@ alpha = 0.2
 beta =0.001
 
 # video
-
 cap1 = cv2.VideoCapture('videos/video.mp4')
 cap2 = cv2.VideoCapture('videos/video.mp4')
 
-# create dataframe
-numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2 
-
-#data = pd.DataFrame(index=np.arange(numberOfRows), 
-#                    columns=['X_1', 'Y_1', 'X_2', 'Y_2', 'weights'],
-#                    data=0)
-                    
+# create dictionary (hash table)
 data={}
 combos = itertools.product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2))
 
 #### filling initial data
-
 for x in combos:
    theKey = str(x[0]) + " " + str(x[1]) + " " + str(x[2]) + " " + str(x[3])
    data[theKey]=0
-
 ######################################
 
 
@@ -115,22 +105,10 @@ while(cap1.isOpened() & cap2.isOpened()):
         k=int(chainStr[2])  # X_2
         l=int(chainStr[3])  # Y_2
 
-        try: 
-            image_1_t_0.item(i,j)
-            image_2_t_0.item(k,l)
-          #  print 'yes'
-        except IndexError:  
-            #update indexes
-            prev_i=i
-            prev_j=j
-            prev_k=k
-            prev_l=l
-            newFrame=False
-          #  print 'no'
-            continue
         # find row in DB and change weight value
         currentWeight = value 
-        #print 'here'
+
+
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
@@ -179,15 +157,15 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     # smaller size
     big_predictor_image_1 = cv2.resize(predictor_image_1,(200, 200), interpolation = cv2.INTER_NEAREST)
-    big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
+  #  big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
-    cv2.imshow('Predictor 2',big_predictor_image_2)
+  #  cv2.imshow('Predictor 2',big_predictor_image_2)
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1', frame1)
-    cv2.imshow('Frame 2', frame2)
+   # cv2.imshow('Frame 2', frame2)
     
     #### ERROR MAPS ######
 #    resized_original_1 = cv2.resize(image_1_t_0, (frame1Cols,frame1Rows), interpolation = cv2.INTER_NEAREST)
