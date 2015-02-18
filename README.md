@@ -1,3 +1,3 @@
 # hebbian-vision
 
-The best performance currently correspond to hebbian_vision_image.py
+The best performance currently corresponds to hebbian_vision_image.py
