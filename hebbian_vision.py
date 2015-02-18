@@ -27,10 +27,10 @@ def limit(x):
 ################################################
     
 #params
-ROWS_1 = 10
-COLS_1 = 8
-ROWS_2 = 10
-COLS_2 = 8
+ROWS_1 = 15
+COLS_1 = 15
+ROWS_2 = 15
+COLS_2 = 15
 
 alpha = 0.2
 beta =0.001
