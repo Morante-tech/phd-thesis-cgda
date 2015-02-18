@@ -24,13 +24,13 @@ def limit(y):
 ################################################
     
 #params
-ROWS_1 = 25
-COLS_1 = 25
-ROWS_2 = 25
-COLS_2 = 25
+ROWS_1 = 15
+COLS_1 = 15
+ROWS_2 = 15
+COLS_2 = 15
 
-alpha = 0.2
-beta =0.001
+alpha = 0.0000185
+beta =0.0001
 
 # video
 cap1 = cv2.VideoCapture('videos/video.mp4')
@@ -122,8 +122,8 @@ while(cap1.isOpened() & cap2.isOpened()):
         data[key]=weight
 
         ## take advantadge of loop to update maps
-        predictor_image_1.itemset( (i,j), predictor_image_1.item(i,j) + image_2_t_0.item(k,l)*weight )
-        predictor_image_2.itemset( (k,l), predictor_image_2.item(k,l) + image_1_t_0.item(i,j)*weight )
+        predictor_image_1.itemset( (i,j), np.clip(predictor_image_1.item(i,j) + image_2_t_0.item(k,l)*weight,0,255) )
+        predictor_image_2.itemset( (k,l), np.clip(predictor_image_2.item(k,l) + image_1_t_0.item(i,j)*weight,0,255) )
         
    #update previous image
     image_1_t_1 = image_1_t_0.copy()

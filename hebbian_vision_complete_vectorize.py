@@ -18,7 +18,7 @@ COLS_1 = 20
 ROWS_2 = 20
 COLS_2 = 20
 
-alpha = 0.03
+alpha = 0.00005
 beta =0.0001
 
 # video
@@ -78,7 +78,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
         # find row in DB and change currentweight value
-        currentWeight = data[i*ROWS_2:(i+1)*ROWS_2 , j*COLS_2:(j+1)*COLS_2]
+        currentWeight = data[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
 
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
@@ -89,16 +89,16 @@ while(cap1.isOpened() & cap2.isOpened()):
         subElem3 = cv2.subtract(subElem2,beta)
         weight = np.clip(subElem3, 0, 1)
         #assign new weight to cell in DB
-        data[i*ROWS_2:(i+1)*ROWS_2 , j*COLS_2:(j+1)*COLS_2]=weight.copy()
+        data[i*ROWS_2:(i+1)*ROWS_2 , j*COLS_2:(j+1)*COLS_2]=weight
 
         ## take advantadge of loop to update maps
 
-        #subElem4_1 = np.multiply(image_1_t_0, weight)
-        subElem4_2 = np.multiply(image_2_t_0, data[i*ROWS_2:(i+1)*ROWS_2 , j*COLS_2:(j+1)*COLS_2]).astype(np.uint8)
-        temp_predictor_image2 = cv2.add(predictor_image_2 , subElem4_2)        
+        #subElem4_1 = np.multiply(image_2_t_0, weight)
+        subElem4_2 = np.multiply(image_1_t_0, weight).astype(np.uint8)
+        predictor_image_2 = cv2.add(predictor_image_2 , subElem4_2)        
         
         #predictor_image_1 = cv2.add(predictor_image_1 , data[i*ROWS_1:(i+1)*ROWS_1 , j*COLS_1:(j+1)*COLS_1], dtype=np.uint8 )
-        predictor_image_2 = temp_predictor_image2
+        #predictor_image_2 = temp_predictor_image2
 
         #predictor_image_1.itemset( (i,j), predictor_image_1.item(i,j) + image_2_t_0.item(k,l)*weight )
         #predictor_image_2.itemset( (k,l), predictor_image_2.item(k,l) + image_1_t_0.item(i,j)*weight )
