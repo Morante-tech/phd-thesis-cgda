@@ -10,7 +10,7 @@ to relate both images. After training (in fact, it is online, so I should say
 
 import numpy as np
 import cv2
-import itertools
+from itertools import product
 
 ################################################
 ################################################
@@ -26,10 +26,10 @@ def limit(x):
 ################################################
     
 #params
-ROWS_1 = 50
-COLS_1 = 50
-ROWS_2 = 50
-COLS_2 = 50
+ROWS_1 = 10
+COLS_1 = 10
+ROWS_2 = 10
+COLS_2 = 10
 
 alpha = 0.2
 beta =0.001
@@ -40,7 +40,12 @@ cap2 = cv2.VideoCapture('videos/video.mp4')
 
 # create dictionary (hash table)
 data={}
-combos = itertools.product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2))
+ROWS_1_list = range(ROWS_1)
+COLS_1_list = range(COLS_1)
+ROWS_2_list = range(ROWS_2)
+COLS_2_list = range(COLS_2)
+
+combos = product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
 
 #### filling initial data
 for x in combos:

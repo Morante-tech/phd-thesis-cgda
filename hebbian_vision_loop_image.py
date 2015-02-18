@@ -10,7 +10,7 @@ to relate both images. After training (in fact, it is online, so I should say
 
 import numpy as np
 import cv2
-import itertools
+from itertools import product
 
 ################################################
 ################################################
@@ -45,7 +45,7 @@ COLS_1_list = range(COLS_1)
 ROWS_2_list = range(ROWS_2)
 COLS_2_list = range(COLS_2)
 
-combos = itertools.product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
+combos = product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
 
 #### filling initial data
 for x in combos:
@@ -87,6 +87,7 @@ prev_j=-1
 prev_k=-1
 prev_l=-1
 newFrame=False
+############################
 
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
@@ -97,19 +98,17 @@ while(cap1.isOpened() & cap2.isOpened()):
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
     frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
     
-        
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
     # update weights
-    for (i,j,k,l) in itertools.product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list):
+    for (i,j,k,l) in product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list):
         tempKey = str(i) + " " + str(j) + " " + str(k) + " " + str(l)
         currentWeight = data[tempKey] 
 
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
-       
        # we only make calculation of variation if something has changed
        # either a new frame, or the indexes
         if(i!=prev_i or j!=prev_j or newFrame==True):
