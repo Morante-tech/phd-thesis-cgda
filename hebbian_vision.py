@@ -128,13 +128,14 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     # update weights
     for index, row in data.iterrows():
-        i=row['X_1']
-        j=row['Y_1']
-        k=row['X_2']
-        l=row['Y_2']
+        vals= row.values
+        i=vals[0]  # X_1
+        j=vals[1]  # Y_1
+        k=vals[2]  # X_2
+        l=vals[3]  # Y_2
         
         # find row in DB and change weight value
-        currentWeight = row['weights'] 
+        currentWeight = vals[4] 
        
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
@@ -156,8 +157,7 @@ while(cap1.isOpened() & cap2.isOpened()):
                 weight = limit(currentWeight + (alpha * Var_V1 * Var_V2 / 255.0) - beta)
         
         #assign new weight to cell in DB
-        row['weights']=weight
-        
+        vals[4]=weight
         
         ## take advantadge of loop to update maps
         currPix1 = predictor_image_1.item(i,j)
