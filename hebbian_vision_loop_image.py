@@ -21,7 +21,6 @@ def limit(x):
         return 1
     else:
         return x
-      
 ################################################
 ################################################
     
@@ -39,11 +38,14 @@ beta =0.001
 cap1 = cv2.VideoCapture('videos/video.mp4')
 cap2 = cv2.VideoCapture('videos/video.mp4')
 
-# create dataframe
-numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2 
-                  
+# create dataframe                  
 data={}
-combos = itertools.product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2))
+ROWS_1_list = range(ROWS_1)
+COLS_1_list = range(COLS_1)
+ROWS_2_list = range(ROWS_2)
+COLS_2_list = range(COLS_2)
+
+combos = itertools.product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
 
 #### filling initial data
 for x in combos:
@@ -100,9 +102,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
     # update weights
-
-    for (i,j,k,l) in itertools.product(range(ROWS_1), range(COLS_1), range(ROWS_2), range(COLS_2)):
-
+    for (i,j,k,l) in itertools.product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list):
         tempKey = str(i) + " " + str(j) + " " + str(k) + " " + str(l)
         currentWeight = data[tempKey] 
 
