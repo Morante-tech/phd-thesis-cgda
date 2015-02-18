@@ -48,47 +48,37 @@ data = pd.DataFrame(index=np.arange(numberOfRows),
                     columns=['X_1', 'Y_1', 'X_2', 'Y_2', 'weights'],
                     data=0)
                     
-# converting types to save space                    
-data[['X_1', 'Y_1', 'X_2', 'Y_2']] = data[['X_1', 'Y_1', 'X_2', 'Y_2']].astype('int32')
-data['weights'] = data['weights'].astype('float16')
+
 
 #### filling initial data
 ## first column
-repetitionsROWS_1 =  COLS_1 * ROWS_2 * COLS_2 
 join=[]
 for i in range(ROWS_1):
-    join = join + [i]*repetitionsROWS_1
+    join += [i] * COLS_1 * ROWS_2 * COLS_2
 data['X_1']=join
 
 ## second column
-repetitionsCOLS_1 =  repetitionsROWS_1 / COLS_1 
 join=[]
 for i in range(COLS_1):
-        join = join + [i]*repetitionsCOLS_1
-join = join*ROWS_1
-        
-data['Y_1']=join
+        join += [i] * ROWS_2 * COLS_2 
+data['Y_1']=join*ROWS_1
 
 ## third column
-repetitionsROWS_2 =  repetitionsCOLS_1 / ROWS_2 
 join=[]
 for i in range(ROWS_2):
-        join = join + [i]*repetitionsROWS_2
-join = join*ROWS_1*COLS_1
-        
-data['X_2']=join
+        join += [i]* COLS_2
+data['X_2']=join*ROWS_1*COLS_1
 
 ## fourth column
-repetitionsCOLS_2 =  repetitionsROWS_2 / COLS_2 
 join=[]
 for i in range(COLS_2):
-        join = join + [i]*repetitionsCOLS_2
-join = join*ROWS_1*COLS_1*ROWS_2
-        
-data['Y_2']=join
-join=[]
-#######
+        join += [i]
+data['Y_2']=join*ROWS_1*COLS_1*ROWS_2
+######################################
 
+# converting types to save space                    
+data[['X_1', 'Y_1', 'X_2', 'Y_2']] = data[['X_1', 'Y_1', 'X_2', 'Y_2']].astype('int32')
+data['weights'] = data['weights'].astype('float16')
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
