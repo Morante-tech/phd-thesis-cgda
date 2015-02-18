@@ -32,8 +32,8 @@ COLS_1 = 10
 ROWS_2 = 10
 COLS_2 = 10
 
-alpha = 0.1
-beta =0.0001
+alpha = 0.2
+beta =0.001
 
 # video
 
@@ -89,20 +89,8 @@ data['Y_2']=join
 join=[]
 #######
 
-## some neccesary initialization
 
-image_1_t_1  =  np.zeros((COLS_1, ROWS_1), np.uint8) # image 1 previous time
-image_2_t_1  =  np.zeros((COLS_2, ROWS_2), np.uint8) # image 2 previous time
-predictor_image_1 = np.zeros((ROWS_1,COLS_1), np.uint8)#first predictor map 1
-predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
-
-###### LOOP #######
-
-# weights initilization
-weight=0.0
-currentWeight=0.0
-
-# some variables
+##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
@@ -113,6 +101,23 @@ if(cap1.isOpened() & cap2.isOpened()):
     frame2Cols = frame2.shape[1]
 else:
     raise NameError('Cannot extract images from video')    
+######################################################
+    
+## some neccesary initialization
+image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
+image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
+
+predictor_image_1 = np.zeros((ROWS_1,COLS_1), np.uint8)#first predictor map 1
+predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
+
+error_image_1 = np.zeros((frame1Rows,frame1Cols), np.uint8)#first error map 1
+error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
+
+
+###### LOOP #######
+### weights initilization
+weight=0.0
+currentWeight=0.0
 
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
@@ -148,7 +153,7 @@ while(cap1.isOpened() & cap2.isOpened()):
             if(Var_V2==0):
                 weight = limit(currentWeight - beta)
             else:
-                weight = limit(currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta)
+                weight = limit(currentWeight + (alpha * Var_V1 * Var_V2 / 255.0) - beta)
         
         #assign new weight to cell in DB
         #print currentWeight + alpha * (Var_V1 * Var_V2) / 255.0 - beta
@@ -166,20 +171,34 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_1_t_1 = image_1_t_0.copy()
     image_2_t_1 = image_2_t_0.copy()
 
-    ## showing images
+    #### PREDICTOR MAPS ######
     # original size
-    #big_predictor_image_1 = cv2.resize(predictor_image_1,(frame1Cols, frame1Rows), interpolation = cv2.INTER_NEAREST)
+#    big_predictor_image_1 = cv2.resize(predictor_image_1,(frame1Cols, frame1Rows), interpolation = cv2.INTER_NEAREST)
     #big_predictor_image_2 = cv2.resize(predictor_image_2,(frame2Cols, frame2Rows), interpolation = cv2.INTER_NEAREST)
 
     # smaller size
     big_predictor_image_1 = cv2.resize(predictor_image_1,(200, 200), interpolation = cv2.INTER_NEAREST)
-    big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
+    #big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
 
-    
-#    cv2.imshow('frame1',frame1)
-#    cv2.imshow('frame2',frame2)
+    #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
-    cv2.imshow('Predictor 2',big_predictor_image_2)
+    #cv2.imshow('Predictor 2',big_predictor_image_2)
+
+    #### SHOW ORIGINAL IMAGES ######
+    cv2.imshow('Frame 1', frame1)
+#    cv2.imshow('Frame 2', frame2)
+    
+    #### ERROR MAPS ######
+#    resized_original_1 = cv2.resize(image_1_t_0, (frame1Cols,frame1Rows), interpolation = cv2.INTER_NEAREST)
+#    error_image_1 = abs( big_predictor_image_1 - resized_original_1 )
+#    
+#    resized_original_2 = cv2.resize(image_2_t_0, (frame2Cols,frame2Rows), interpolation = cv2.INTER_NEAREST)
+#    error_image_2 = abs( big_predictor_image_2 - resized_original_2 )
+    #### SHOW ERROR IMAGES ######
+#    cv2.imshow('Error 1', error_image_1)
+#    cv2.imshow('Error 2', error_image_2)
+
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
         break
