@@ -24,10 +24,10 @@ def limit(y):
 ################################################
     
 #params
-ROWS_1 = 25
-COLS_1 = 25
-ROWS_2 = 25
-COLS_2 = 25
+ROWS_1 = 20
+COLS_1 = 20
+ROWS_2 = 20
+COLS_2 = 20
 
 alpha = 0.2
 beta =0.001
@@ -95,10 +95,13 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     Var_V1 = cv2.absdiff(image_1_t_0, image_1_t_1)
     Var_V2 = cv2.absdiff(image_2_t_0, image_2_t_1) 
+    
     # update weights
     for (i,j,k,l) in product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list):
-        tempKey = str(i) + " " + str(j) + " " + str(k) + " " + str(l)
-        currentWeight = data[tempKey] 
+        key = str(i) + " " + str(j) + " " + str(k) + " " + str(l)
+        
+        # find row in DB and change currentweight value        
+        currentWeight = data[key] 
 
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
@@ -112,14 +115,11 @@ while(cap1.isOpened() & cap2.isOpened()):
             weight = limit(currentWeight + (alpha * Var_V1.item(i,j) * Var_V2.item(k,l) / 255.0) - beta)
 
         #assign new weight to cell in DB
-        data[tempKey]=weight
+        data[key]=weight
 
         ## take advantadge of loop to update maps        
-#        currPix1 = predictor_image_1.item(i,j)
-#        currPix2 = predictor_image_2.item(k,l)
         predictor_image_1.itemset( (i,j), predictor_image_1.item(i,j) + image_2_t_0.item(k,l)*weight )
         predictor_image_2.itemset( (k,l), predictor_image_2.item(k,l) + image_1_t_0.item(i,j)*weight )
-        
         
    #update previous image
     image_1_t_1 = image_1_t_0.copy()
