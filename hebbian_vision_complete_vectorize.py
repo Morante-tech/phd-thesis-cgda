@@ -129,6 +129,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     big_predictor_image_1 = cv2.resize(predictor_image_1,(10*COLS_1, 10*ROWS_1), interpolation = cv2.INTER_NEAREST)
     big_predictor_image_2 = cv2.resize(predictor_image_2,(10*COLS_2, 10*ROWS_2), interpolation = cv2.INTER_NEAREST)
 
+
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
     cv2.imshow('Predictor 2',big_predictor_image_2)
