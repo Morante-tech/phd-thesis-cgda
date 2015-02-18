@@ -33,7 +33,6 @@ alpha = 0.2
 beta =0.001
 
 # video
-
 cap1 = cv2.VideoCapture('videos/video.mp4')
 cap2 = cv2.VideoCapture('videos/video.mp4')
 
