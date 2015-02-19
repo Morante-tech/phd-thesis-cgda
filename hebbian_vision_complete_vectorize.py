@@ -31,13 +31,13 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 80
-COLS_1 = 80#ROWS_1 * frame1Cols / frame1Rows
+ROWS_1 = 78
+COLS_1 = 78#ROWS_1 * frame1Cols / frame1Rows
 ROWS_2 = 80
 COLS_2 = 80#ROWS_2 * frame2Cols / frame2Rows
 
-alpha = 1
-beta = 0
+alpha = 0.01
+beta = 0.004
 ##############
 
 
@@ -92,7 +92,6 @@ while(cap1.isOpened() & cap2.isOpened()):
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
 
-        # 255*255 = 65025
         elem1  = alpha * var_img1.item(i,j) * var_img2
         elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
         elem3 = cv2.subtract(elem2,beta)
@@ -103,15 +102,18 @@ while(cap1.isOpened() & cap2.isOpened()):
         
         ###########
         #take advantadge of loop to update predictor 2
-        img1DotWeight = np.multiply(image_1_t_0.item(i,j), newWeightSubMatrix).astype(float)
-        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeight)
+    for (i,j) in product(ROWS_1_list, COLS_1_list):
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
+        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
+        temp_pred_2= np.clip( cv2.add(predictor_image_2.astype(float) , img1DotWeight), 0,255)
         predictor_image_2 = temp_pred_2.astype(np.uint8)        
 
     # update predictor 1
     for (k,l) in product(ROWS_2_list, COLS_2_list):
         currWeightSubMatrixR1C1 = weightMatrix[k*ROWS_1:(k*ROWS_1+ROWS_1) , l*COLS_1:(l*COLS_1+COLS_1)]
-        img2DotWeight = np.multiply(image_2_t_0.item(k,l), currWeightSubMatrixR1C1).astype(np.uint8)
-        predictor_image_1 = cv2.add(predictor_image_1 , img2DotWeight) 
+        img2DotWeight = np.multiply(image_2_t_0.item(k,l), currWeightSubMatrixR1C1)#.astype(float)
+        temp_pred_1=np.clip(cv2.add(predictor_image_1.astype(float) , img2DotWeight), 0,255) 
+        predictor_image_1 = temp_pred_1.astype(np.uint8) 
 
     
    #update previous image
