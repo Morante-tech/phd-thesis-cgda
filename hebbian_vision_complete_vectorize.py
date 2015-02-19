@@ -31,25 +31,25 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 10
-COLS_1 = ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 15
-COLS_2 = ROWS_2 * frame2Cols / frame2Rows
+ROWS_1 = 20
+COLS_1 = 20#ROWS_1 * frame1Cols / frame1Rows
+ROWS_2 = 20
+COLS_2 = 20#ROWS_2 * frame2Cols / frame2Rows
 
-alpha = 0.00002102
-beta =0.0001
+alpha = 0.019
+beta =0.001
 ##############
 
 
 ###############################
-data  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
+weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
+np.ascontiguousarray(weightMatrix, dtype=float)
 
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
 ROWS_2_list = range(ROWS_2)
 COLS_2_list = range(COLS_2)
-
 
     
 ## some neccesary initialization
@@ -62,12 +62,14 @@ predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
 error_image_1 = np.zeros((frame1Rows,frame1Cols), np.uint8)#first error map 1
 error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
 
-
-###### LOOP #######
-
+###############################
+############ LOOP #############
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
+    if(ret1==False | ret2==False):
+        print 'No stream of images!!'
+        break
     
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
@@ -76,35 +78,38 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-    Var_V1 = cv2.absdiff(image_1_t_0, image_1_t_1)
-    Var_V2 = cv2.absdiff(image_2_t_0, image_2_t_1) 
+    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
+    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1) 
     
     # update weights
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
         # find row in DB and change currentweight value
-        currentWeight = data[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
 
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
 
-        subElem1  = alpha * Var_V1.item(i,j) * Var_V2 / 255.0
-        subElem2 = cv2.add(currentWeight, subElem1)
-        subElem3 = cv2.subtract(subElem2,beta)
-        weight = np.clip(subElem3, 0, 1)
+        # 255*255 = 65025
+        elem1  = alpha * var_img1.item(i,j) * var_img2 / 65025
+        elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
+        elem3 = cv2.subtract(elem2,beta)
+        newWeightSubMatrix = np.clip(elem3, 0, 1)
         #assign new weight to cell in DB
-        data[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = weight
+        weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
 
-        ## take advantadge of loop to update predictor 2
-        subElem4_2 = np.multiply(image_2_t_0, weight).astype(np.uint8)      
-        predictor_image_2 = cv2.add(predictor_image_2 , subElem4_2)        
+    # update predictor 2
+    for (i,j) in product(ROWS_1_list, COLS_1_list):
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
+        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2).astype(np.uint8)      
+        predictor_image_2 = cv2.add(predictor_image_2 , img1DotWeight)        
 
     # update predictor 1
     for (k,l) in product(ROWS_2_list, COLS_2_list):
-        weight1 = data[k*ROWS_1:(k*ROWS_1+ROWS_1) , l*COLS_1:(l*COLS_1+COLS_1)]
-        subElem4_1 = np.multiply(image_1_t_0, weight1).astype(np.uint8)
-        predictor_image_1 = cv2.add(predictor_image_1 , subElem4_1) 
+        currWeightSubMatrixR1C1 = weightMatrix[k*ROWS_1:(k*ROWS_1+ROWS_1) , l*COLS_1:(l*COLS_1+COLS_1)]
+        img2DotWeight = np.multiply(image_2_t_0.item(k,l), currWeightSubMatrixR1C1).astype(np.uint8)
+        predictor_image_1 = cv2.add(predictor_image_1 , img2DotWeight) 
 
     
    #update previous image
@@ -120,12 +125,12 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     # smaller size
     big_predictor_image_1 = cv2.resize(predictor_image_1,(200*frame1Cols / frame1Rows,  200), interpolation = cv2.INTER_NEAREST)
-   #big_predictor_image_2 = cv2.resize(predictor_image_2,(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_2 = cv2.resize(predictor_image_2,(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
 
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
-   # cv2.imshow('Predictor 2',big_predictor_image_2)
+    cv2.imshow('Predictor 2',big_predictor_image_2)
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1', frame1)
