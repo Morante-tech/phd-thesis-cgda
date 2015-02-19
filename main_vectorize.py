@@ -43,7 +43,6 @@ beta = 1
 
 ###############################
 weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
-np.ascontiguousarray(weightMatrix, dtype=float)
 
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
@@ -55,8 +54,7 @@ COLS_2_list = range(COLS_2)
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
-error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
+#error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
 
 ###############################
 ############ LOOP #############
@@ -74,11 +72,10 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-    # 255.0 forcing float
+    # 255.0 forcing float type
     var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)/255.0
     var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)/255.0
-    
-    
+        
     predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
     
     # initialize total weights sum
@@ -115,14 +112,15 @@ while(cap1.isOpened() & cap2.isOpened()):
 #        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
 #        predictor_image_2 = temp_pred_2#.astype(np.uint8)        
 
-        totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
+        totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
 
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
      ###### calculate prediction image
         img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
         temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
-        predictor_image_2 = temp_pred_2#.astype(np.uint8)   
+        predictor_image_2 = np.clip(temp_pred_2, 0, 255)#.astype(np.uint8)   
 
    #update previous image
     image_1_t_1 = image_1_t_0
@@ -131,11 +129,7 @@ while(cap1.isOpened() & cap2.isOpened()):
 #####################   END LOOP   #####################
     
     #### PREDICTOR MAPS ######
-    # original size
-    #big_predictor_image_2 = cv2.resize(predictor_image_2,(frame2Cols, frame2Rows), interpolation = cv2.INTER_NEAREST)
-
-    # smaller size
-    big_predictor_image_2 = cv2.resize(predictor_image_2.astype(np.uint8),(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_2 = cv2.resize(np.rint(predictor_image_2).astype(np.uint8),(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 2',big_predictor_image_2)
