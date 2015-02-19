@@ -31,13 +31,13 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 2
-COLS_1 = 2#ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 2
-COLS_2 = 2#ROWS_2 * frame2Cols / frame2Rows
+ROWS_1 = 40
+COLS_1 = 40#ROWS_1 * frame1Cols / frame1Rows
+ROWS_2 = 40
+COLS_2 = 40#ROWS_2 * frame2Cols / frame2Rows
 
-alpha = 0.03
-beta = 0.00003
+alpha = 1
+beta = 1
 ##############
 
 
@@ -55,9 +55,7 @@ COLS_2_list = range(COLS_2)
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
-
 error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
 
 ###############################
@@ -82,6 +80,10 @@ while(cap1.isOpened() & cap2.isOpened()):
     
     
     predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
+    
+    # initialize total weights sum
+    totalWeights = np.zeros((ROWS_2,COLS_2))
+
     # update weights
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
@@ -91,18 +93,36 @@ while(cap1.isOpened() & cap2.isOpened()):
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
+        
+        #the elements adding
         elem1  = alpha * var_img1.item(i,j) * var_img2
         elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
-        elem3 = np.subtract(elem2,beta)
-        newWeightSubMatrix = np.clip(elem3, 0, 1)
+        
+        #the elements subtracting
+        elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
+        elem4 = elem3 * beta
+        
+        #final result
+        elem5 = np.subtract(elem2,elem4)
+        newWeightSubMatrix = np.clip(elem5, 0, 1)
         
         #assign new weight to cell in DB
         weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
         ############################
-        ###### calculate prediction omage
+        ###### calculate prediction image
+#        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
+#        img1DotWeightOverTotal =  np.divide(img1DotWeight, ROWS_1*COLS_1)
+#        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
+#        predictor_image_2 = temp_pred_2#.astype(np.uint8)        
+
+        totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
+
+    for (i,j) in product(ROWS_1_list, COLS_1_list):   
+     ###### calculate prediction image
         img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
-        temp_pred_2= np.clip( cv2.add(predictor_image_2.astype(float) , img1DotWeight), 0,255)
-        predictor_image_2 = temp_pred_2.astype(np.uint8)        
+        img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
+        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
+        predictor_image_2 = temp_pred_2#.astype(np.uint8)   
 
    #update previous image
     image_1_t_1 = image_1_t_0
@@ -115,7 +135,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     #big_predictor_image_2 = cv2.resize(predictor_image_2,(frame2Cols, frame2Rows), interpolation = cv2.INTER_NEAREST)
 
     # smaller size
-    big_predictor_image_2 = cv2.resize(predictor_image_2,(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_2 = cv2.resize(predictor_image_2.astype(np.uint8),(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 2',big_predictor_image_2)
