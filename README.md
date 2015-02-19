@@ -1,3 +1,3 @@
-# hebbian-vision
+# connected-images
 
-The best performance currently corresponds to hebbian_vision_complete_vectorize.py
+The best performance currently corresponds to main_vectorize.py

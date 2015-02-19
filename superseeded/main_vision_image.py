@@ -33,8 +33,8 @@ alpha = 0.0000185
 beta =0.0001
 
 # video
-cap1 = cv2.VideoCapture('videos/video.mp4')
-cap2 = cv2.VideoCapture('videos/video.mp4')
+cap1 = cv2.VideoCapture('videos/tatup.mp4')
+cap2 = cv2.VideoCapture('videos/tatup.mp4')
 
 # create dataframe                  
 data={}

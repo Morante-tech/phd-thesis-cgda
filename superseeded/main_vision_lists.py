@@ -10,16 +10,19 @@ to relate both images. After training (in fact, it is online, so I should say
 
 import numpy as np
 import cv2
-from itertools import product
+import pandas as pd
+
 
 ################################################
 ################################################
-def limit(y):
-    if(y<0):
+def limit(x):
+    if(x<=0):
         return 0
-    if(y>1):
+    elif(x>=1):
         return 1
-    return y
+    else:
+        return x
+      
 ################################################
 ################################################
     
@@ -33,24 +36,48 @@ alpha = 0.2
 beta =0.001
 
 # video
-cap1 = cv2.VideoCapture('videos/video.mp4')
-cap2 = cv2.VideoCapture('videos/video.mp4')
 
-# create dataframe                  
-data={}
-ROWS_1_list = range(ROWS_1)
-COLS_1_list = range(COLS_1)
-ROWS_2_list = range(ROWS_2)
-COLS_2_list = range(COLS_2)
+cap1 = cv2.VideoCapture('videos/tatup.mp4')
+cap2 = cv2.VideoCapture('videos/tatup.mp4')
 
-combos = product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
+# create dataframe
+numberOfRows =  ROWS_1 * COLS_1 * ROWS_2 * COLS_2 
+
+data = pd.DataFrame(index=np.arange(numberOfRows), 
+                    columns=['X_1', 'Y_1', 'X_2', 'Y_2', 'weights'],
+                    data=0)
+                    
+
 
 #### filling initial data
-for x in combos:
-   theKey = str(x[0]) + " " + str(x[1]) + " " + str(x[2]) + " " + str(x[3])
-   data[theKey]=0
+## first column
+join=[]
+for i in range(ROWS_1):
+    join += [i] * COLS_1 * ROWS_2 * COLS_2
+data['X_1']=join
+
+## second column
+join=[]
+for i in range(COLS_1):
+        join += [i] * ROWS_2 * COLS_2 
+data['Y_1']=join*ROWS_1
+
+## third column
+join=[]
+for i in range(ROWS_2):
+        join += [i]* COLS_2
+data['X_2']=join*ROWS_1*COLS_1
+
+## fourth column
+join=[]
+for i in range(COLS_2):
+        join += [i]
+data['Y_2']=join*ROWS_1*COLS_1*ROWS_2
 ######################################
 
+# converting types to save space                    
+data[['X_1', 'Y_1', 'X_2', 'Y_2']] = data[['X_1', 'Y_1', 'X_2', 'Y_2']].astype('int32')
+data['weights'] = data['weights'].astype('float16')
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -85,7 +112,6 @@ prev_j=-1
 prev_k=-1
 prev_l=-1
 newFrame=False
-############################
 
 while(cap1.isOpened() & cap2.isOpened()):
     ret1, frame1 = cap1.read()
@@ -96,17 +122,25 @@ while(cap1.isOpened() & cap2.isOpened()):
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
     frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
     
+        
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
     # update weights
-    for (i,j,k,l) in product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list):
-        tempKey = str(i) + " " + str(j) + " " + str(k) + " " + str(l)
-        currentWeight = data[tempKey] 
-
+    for index, row in data.iterrows():
+        vals= row.values
+        i=vals[0]  # X_1
+        j=vals[1]  # Y_1
+        k=vals[2]  # X_2
+        l=vals[3]  # Y_2
+        
+        # find row in DB and change weight value
+        currentWeight = vals[4] 
+       
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
+       
        # we only make calculation of variation if something has changed
        # either a new frame, or the indexes
         if(i!=prev_i or j!=prev_j or newFrame==True):
@@ -121,10 +155,10 @@ while(cap1.isOpened() & cap2.isOpened()):
                 weight = limit(currentWeight - beta)
             else:
                 weight = limit(currentWeight + (alpha * Var_V1 * Var_V2 / 255.0) - beta)
-
+        
         #assign new weight to cell in DB
-        data[tempKey]=weight
-
+        vals[4]=weight
+        
         ## take advantadge of loop to update maps
         currPix1 = predictor_image_1.item(i,j)
         currPix2 = predictor_image_2.item(k,l)
@@ -137,7 +171,7 @@ while(cap1.isOpened() & cap2.isOpened()):
         prev_k=k
         prev_l=l
         newFrame=False
-        
+
    #update previous image
     image_1_t_1 = image_1_t_0.copy()
     image_2_t_1 = image_2_t_0.copy()
@@ -151,15 +185,15 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     # smaller size
     big_predictor_image_1 = cv2.resize(predictor_image_1,(200, 200), interpolation = cv2.INTER_NEAREST)
- #   big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
+    #big_predictor_image_2 = cv2.resize(predictor_image_2,(200, 200), interpolation = cv2.INTER_NEAREST)
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
-  #  cv2.imshow('Predictor 2',big_predictor_image_2)
+    #cv2.imshow('Predictor 2',big_predictor_image_2)
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1', frame1)
-   # cv2.imshow('Frame 2', frame2)
+#    cv2.imshow('Frame 2', frame2)
     
     #### ERROR MAPS ######
 #    resized_original_1 = cv2.resize(image_1_t_0, (frame1Cols,frame1Rows), interpolation = cv2.INTER_NEAREST)
