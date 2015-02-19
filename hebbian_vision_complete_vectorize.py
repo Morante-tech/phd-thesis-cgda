@@ -31,9 +31,9 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 20
+ROWS_1 = 10
 COLS_1 = ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 18
+ROWS_2 = 15
 COLS_2 = ROWS_2 * frame2Cols / frame2Rows
 
 alpha = 0.00002102
@@ -94,20 +94,13 @@ while(cap1.isOpened() & cap2.isOpened()):
         subElem3 = cv2.subtract(subElem2,beta)
         weight = np.clip(subElem3, 0, 1)
         #assign new weight to cell in DB
-        data[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]=weight
+        data[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = weight
 
-        ## take advantadge of loop to update maps
-
-        subElem4_2 = np.multiply(image_2_t_0, weight).astype(np.uint8)
-        #subElem4_1 = np.multiply(image_1_t_0, weight).astype(np.uint8)
-        #predictor_image_1 = cv2.add(predictor_image_1 , subElem4_1)        
+        ## take advantadge of loop to update predictor 2
+        subElem4_2 = np.multiply(image_2_t_0, weight).astype(np.uint8)      
         predictor_image_2 = cv2.add(predictor_image_2 , subElem4_2)        
 
-        #predictor_image_1 = cv2.add(predictor_image_1 , data[i*ROWS_1:(i+1)*ROWS_1 , j*COLS_1:(j+1)*COLS_1], dtype=np.uint8 )
-
-        #predictor_image_1.itemset( (i,j), predictor_image_1.item(i,j) + image_2_t_0.item(k,l)*weight )
-        #predictor_image_2.itemset( (k,l), predictor_image_2.item(k,l) + image_1_t_0.item(i,j)*weight )
-    
+    # update predictor 1
     for (k,l) in product(ROWS_2_list, COLS_2_list):
         weight1 = data[k*ROWS_1:(k*ROWS_1+ROWS_1) , l*COLS_1:(l*COLS_1+COLS_1)]
         subElem4_1 = np.multiply(image_1_t_0, weight1).astype(np.uint8)
@@ -115,10 +108,10 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     
    #update previous image
-    image_1_t_1 = image_1_t_0.copy()
-    image_2_t_1 = image_2_t_0.copy()
+    image_1_t_1 = image_1_t_0
+    image_2_t_1 = image_2_t_0
 #########################################################
-#####   END LOOP   #####################
+#####################   END LOOP   #####################
     
     #### PREDICTOR MAPS ######
     # original size
@@ -126,13 +119,13 @@ while(cap1.isOpened() & cap2.isOpened()):
     #big_predictor_image_2 = cv2.resize(predictor_image_2,(frame2Cols, frame2Rows), interpolation = cv2.INTER_NEAREST)
 
     # smaller size
-    big_predictor_image_1 = cv2.resize(predictor_image_1,(10*COLS_1, 10*ROWS_1), interpolation = cv2.INTER_NEAREST)
-    big_predictor_image_2 = cv2.resize(predictor_image_2,(10*COLS_2, 10*ROWS_2), interpolation = cv2.INTER_NEAREST)
+    big_predictor_image_1 = cv2.resize(predictor_image_1,(200*frame1Cols / frame1Rows,  200), interpolation = cv2.INTER_NEAREST)
+   #big_predictor_image_2 = cv2.resize(predictor_image_2,(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
 
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 1',big_predictor_image_1)
-    cv2.imshow('Predictor 2',big_predictor_image_2)
+   # cv2.imshow('Predictor 2',big_predictor_image_2)
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1', frame1)
