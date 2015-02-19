@@ -31,10 +31,10 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 40
-COLS_1 = 40#ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 40
-COLS_2 = 40#ROWS_2 * frame2Cols / frame2Rows
+ROWS_1 = 50
+COLS_1 = ROWS_1 * frame1Cols / frame1Rows
+ROWS_2 = 50
+COLS_2 = ROWS_2 * frame2Cols / frame2Rows
 
 alpha = 1
 beta = 1
@@ -105,18 +105,11 @@ while(cap1.isOpened() & cap2.isOpened()):
         
         #assign new weight to cell in DB
         weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
-        ############################
-        ###### calculate prediction image
-#        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
-#        img1DotWeightOverTotal =  np.divide(img1DotWeight, ROWS_1*COLS_1)
-#        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
-#        predictor_image_2 = temp_pred_2#.astype(np.uint8)        
-
         totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
 
+     ###### calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
-     ###### calculate prediction image
         img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
         temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
@@ -129,7 +122,8 @@ while(cap1.isOpened() & cap2.isOpened()):
 #####################   END LOOP   #####################
     
     #### PREDICTOR MAPS ######
-    big_predictor_image_2 = cv2.resize(np.rint(predictor_image_2).astype(np.uint8),(200*frame2Cols / frame2Rows,  200), interpolation = cv2.INTER_NEAREST)
+    adaptTypePredictor= predictor_image_2.astype(np.uint8)
+    big_predictor_image_2 = cv2.resize(adaptTypePredictor,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
 
     #### SHOW PREDICTOR IMAGES ######
     cv2.imshow('Predictor 2',big_predictor_image_2)
