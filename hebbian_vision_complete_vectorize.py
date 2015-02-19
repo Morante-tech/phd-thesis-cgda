@@ -31,13 +31,13 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 20
-COLS_1 = 20#ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 20
-COLS_2 = 20#ROWS_2 * frame2Cols / frame2Rows
+ROWS_1 = 80
+COLS_1 = 80#ROWS_1 * frame1Cols / frame1Rows
+ROWS_2 = 80
+COLS_2 = 80#ROWS_2 * frame2Cols / frame2Rows
 
-alpha = 0.019
-beta =0.001
+alpha = 1
+beta = 0
 ##############
 
 
@@ -78,8 +78,9 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
-    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1) 
+    # 255.0 forcing float
+    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)/255.0
+    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)/255.0
     
     # update weights
     for (i,j) in product(ROWS_1_list, COLS_1_list):
@@ -92,18 +93,19 @@ while(cap1.isOpened() & cap2.isOpened()):
         #relation (prediction)
 
         # 255*255 = 65025
-        elem1  = alpha * var_img1.item(i,j) * var_img2 / 65025
+        elem1  = alpha * var_img1.item(i,j) * var_img2
         elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
         elem3 = cv2.subtract(elem2,beta)
         newWeightSubMatrix = np.clip(elem3, 0, 1)
+        
         #assign new weight to cell in DB
         weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
-
-    # update predictor 2
-    for (i,j) in product(ROWS_1_list, COLS_1_list):
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
-        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2).astype(np.uint8)      
-        predictor_image_2 = cv2.add(predictor_image_2 , img1DotWeight)        
+        
+        ###########
+        #take advantadge of loop to update predictor 2
+        img1DotWeight = np.multiply(image_1_t_0.item(i,j), newWeightSubMatrix).astype(float)
+        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeight)
+        predictor_image_2 = temp_pred_2.astype(np.uint8)        
 
     # update predictor 1
     for (k,l) in product(ROWS_2_list, COLS_2_list):
