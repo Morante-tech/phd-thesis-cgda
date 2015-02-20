@@ -14,12 +14,12 @@ from itertools import product
     
 
 # from video
-#cap1 = cv2.VideoCapture('videos/tatup.mp4')
-#cap2 = cv2.VideoCapture('videos/tatup.mp4')
+cap1 = cv2.VideoCapture('videos/tatup.mp4')
+cap2 = cv2.VideoCapture('videos/tatup.mp4')
 
 #from webcam
-cap1 = cv2.VideoCapture(1)
-cap2 = cv2.VideoCapture(4)
+#cap1 = cv2.VideoCapture(2)
+#cap2 = cv2.VideoCapture(1)
 
 
 ##### some variables ###############################
@@ -36,25 +36,25 @@ else:
 ######################################################
 
 ##### predictor params
-ROWS_1 = 70
-COLS_1 = ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 70
-COLS_2 = ROWS_2 * frame2Cols / frame2Rows
-alpha = 1
-beta = 1
+ROWS_1 = int(60)
+COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
+ROWS_2 = int(60)
+COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
+alpha = np.float32(1.0)
+beta =  np.float32(1.5)
 
 ####### file params
 loadWeightsFromFile = True
 saveWeightsToFile   = False
-weightsFilename = 'data/weightMatrix.txt'
+weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.txt'
 ##############
 
 
 ###############################
 if(loadWeightsFromFile==True):
-    weightMatrix = np.loadtxt(weightsFilename)
+    weightMatrix = np.loadtxt(weightsFilename).astype(np.float32)
 else:    
-    weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
+    weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
 
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
@@ -67,8 +67,8 @@ COLS_2_list = range(COLS_2)
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 #error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
-totalWeights = np.zeros((ROWS_2,COLS_2))
-predictor_image_2 = np.zeros((ROWS_2,COLS_2)) #first predictor map 2
+totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
+predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) #first predictor map 2
 
 ###############################
 ############ LOOP #############
@@ -87,8 +87,8 @@ while(cap1.isOpened() & cap2.isOpened()):
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
     # 255.0 forcing float type
-    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)/255.0
-    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)/255.0
+    var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
+    var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
         
     predictor_image_2 = 0 #first predictor map 2
     
@@ -100,7 +100,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
         # find row in DB and change currentweight value
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
         #if no variation in any of the images, we cannot predict relation
         #so only decay affects output. Similar to losing confidence in 
@@ -128,10 +128,10 @@ while(cap1.isOpened() & cap2.isOpened()):
      ###### calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
-        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
+        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
         temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
-        predictor_image_2 = np.clip(temp_pred_2, 0, 255)#.astype(np.uint8)   
+        predictor_image_2 = np.clip(temp_pred_2, 0, 255)  
 
    #update previous image
     image_1_t_1 = image_1_t_0
@@ -147,8 +147,8 @@ while(cap1.isOpened() & cap2.isOpened()):
     cv2.imshow('Predictor 2',big_predictor_image_2)
 
     #### SHOW ORIGINAL IMAGES ######
-    cv2.imshow('Frame 1', frame1)
-    cv2.imshow('Frame 2', frame2)
+    cv2.imshow('Frame 1 (color)', frame1)
+    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', cv2.resize(image_2_t_0,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST))
     
     #### ERROR MAPS ###### 
 #    resized_original_2 = cv2.resize(image_2_t_0, (frame2Cols,frame2Rows), interpolation = cv2.INTER_NEAREST)
@@ -157,8 +157,10 @@ while(cap1.isOpened() & cap2.isOpened()):
 #    cv2.imshow('Error 2', error_image_2)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        cv2.destroyAllWindows()
         if(saveWeightsToFile == True):
             np.savetxt(weightsFilename, weightMatrix)
         break
-    
+#################################
+######## END WHILE #############
+
+cv2.destroyAllWindows()
