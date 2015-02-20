@@ -55,6 +55,8 @@ COLS_2_list = range(COLS_2)
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 #error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
+totalWeights = np.zeros((ROWS_2,COLS_2))
+predictor_image_2 = np.zeros((ROWS_2,COLS_2)) #first predictor map 2
 
 ###############################
 ############ LOOP #############
@@ -76,10 +78,11 @@ while(cap1.isOpened() & cap2.isOpened()):
     var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)/255.0
     var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)/255.0
         
-    predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first predictor map 2
+    predictor_image_2 = 0 #first predictor map 2
     
     # initialize total weights sum
-    totalWeights = np.zeros((ROWS_2,COLS_2))
+    #totalWeights = np.zeros((ROWS_2,COLS_2))
+    totalWeights = 0
 
     # update weights
     for (i,j) in product(ROWS_1_list, COLS_1_list):
@@ -112,7 +115,7 @@ while(cap1.isOpened() & cap2.isOpened()):
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
         img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)#.astype(float)
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
-        temp_pred_2= cv2.add(predictor_image_2.astype(float) , img1DotWeightOverTotal)
+        temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
         predictor_image_2 = np.clip(temp_pred_2, 0, 255)#.astype(np.uint8)   
 
    #update previous image
