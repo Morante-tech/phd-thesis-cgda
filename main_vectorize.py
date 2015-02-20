@@ -13,9 +13,14 @@ import cv2
 from itertools import product
     
 
-# video
-cap1 = cv2.VideoCapture('videos/tatup.mp4')
-cap2 = cv2.VideoCapture('videos/tatup.mp4')
+# from video
+#cap1 = cv2.VideoCapture('videos/tatup.mp4')
+#cap2 = cv2.VideoCapture('videos/tatup.mp4')
+
+#from webcam
+cap1 = cv2.VideoCapture(1)
+cap2 = cv2.VideoCapture(4)
+
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -31,9 +36,9 @@ else:
 ######################################################
 
 ##### params
-ROWS_1 = 50
+ROWS_1 = 70
 COLS_1 = ROWS_1 * frame1Cols / frame1Rows
-ROWS_2 = 50
+ROWS_2 = 70
 COLS_2 = ROWS_2 * frame2Cols / frame2Rows
 
 alpha = 1
@@ -133,7 +138,7 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1', frame1)
-   # cv2.imshow('Frame 2', frame2)
+    cv2.imshow('Frame 2', frame2)
     
     #### ERROR MAPS ###### 
 #    resized_original_2 = cv2.resize(image_2_t_0, (frame2Cols,frame2Rows), interpolation = cv2.INTER_NEAREST)
