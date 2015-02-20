@@ -35,19 +35,26 @@ else:
     raise NameError('Cannot extract images from video')    
 ######################################################
 
-##### params
+##### predictor params
 ROWS_1 = 70
 COLS_1 = ROWS_1 * frame1Cols / frame1Rows
 ROWS_2 = 70
 COLS_2 = ROWS_2 * frame2Cols / frame2Rows
-
 alpha = 1
 beta = 1
+
+####### file params
+loadWeightsFromFile = True
+saveWeightsToFile   = False
+weightsFilename = 'data/weightMatrix.txt'
 ##############
 
 
 ###############################
-weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
+if(loadWeightsFromFile==True):
+    weightMatrix = np.loadtxt(weightsFilename)
+else:    
+    weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), float) # weight img
 
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
@@ -99,21 +106,24 @@ while(cap1.isOpened() & cap2.isOpened()):
         #so only decay affects output. Similar to losing confidence in 
         #relation (prediction)
         
-        #the elements adding
-        elem1  = alpha * var_img1.item(i,j) * var_img2
-        elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
-        
-        #the elements subtracting
-        elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
-        elem4 = elem3 * beta
-        
-        #final result
-        elem5 = np.subtract(elem2,elem4)
-        newWeightSubMatrix = np.clip(elem5, 0, 1)
-        
-        #assign new weight to cell in DB
-        weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
-        totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
+        if(loadWeightsFromFile == False):
+            #the elements adding
+            elem1  = alpha * var_img1.item(i,j) * var_img2
+            elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
+            
+            #the elements subtracting
+            elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
+            elem4 = elem3 * beta
+            
+            #final result
+            elem5 = np.subtract(elem2,elem4)
+            newWeightSubMatrix = np.clip(elem5, 0, 1)
+            
+            #assign new weight to cell in DB
+            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
+            totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
+        else:
+            totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
 
      ###### calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
@@ -148,5 +158,7 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
+        if(saveWeightsToFile == True):
+            np.savetxt(weightsFilename, weightMatrix)
         break
     
