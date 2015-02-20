@@ -46,13 +46,13 @@ beta =  np.float32(1.5)
 ####### file params
 loadWeightsFromFile = True
 saveWeightsToFile   = False
-weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.txt'
+weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ##############
 
 
 ###############################
 if(loadWeightsFromFile==True):
-    weightMatrix = np.loadtxt(weightsFilename).astype(np.float32)
+    weightMatrix = np.load(weightsFilename).astype(np.float32)
 else:    
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
 
@@ -158,7 +158,7 @@ while(cap1.isOpened() & cap2.isOpened()):
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         if(saveWeightsToFile == True):
-            np.savetxt(weightsFilename, weightMatrix)
+            np.save(weightsFilename, weightMatrix)
         break
 #################################
 ######## END WHILE #############
