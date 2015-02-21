@@ -36,12 +36,12 @@ else:
 ######################################################
 
 ##### predictor params
-ROWS_1 = int(60)
+ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(60)
+ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(1.0)
-beta =  np.float32(1.5)
+alpha = np.float32(0.01)
+beta =  np.float32(0.01)
 
 ####### file params
 loadWeightsFromFile = True
@@ -55,7 +55,8 @@ if(loadWeightsFromFile==True):
     weightMatrix = np.load(weightsFilename).astype(np.float32)
 else:    
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
-
+####
+np.ascontiguousarray(weightMatrix)    
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
@@ -139,22 +140,29 @@ while(cap1.isOpened() & cap2.isOpened()):
 #########################################################
 #####################   END LOOP   #####################
     
+###########################################
+########### VISUALIZATION #################    
+###########################################
+
+    
     #### PREDICTOR MAPS ######
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
-    big_predictor_image_2 = cv2.resize(adaptTypePredictor,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
-
-    #### SHOW PREDICTOR IMAGES ######
-    cv2.imshow('Predictor 2',big_predictor_image_2)
+    predictorImg2 = cv2.resize(adaptTypePredictor,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
+    cv2.imshow('Predictor 2', predictorImg2)
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.imshow('Frame 1 (color)', frame1)
-    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', cv2.resize(image_2_t_0,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST))
+    smallerReducedImg2 = cv2.resize(image_2_t_0,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
+    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', smallerReducedImg2)
     
+    
+#    #### WEIGHT MAPS ####
+#    adaptTypeWeight= cv2.multiply(weightMatrix, 255*255).astype(np.uint8)
+#    cv2.imshow('WeightMatrix',adaptTypeWeight)
+
     #### ERROR MAPS ###### 
-#    resized_original_2 = cv2.resize(image_2_t_0, (frame2Cols,frame2Rows), interpolation = cv2.INTER_NEAREST)
-#    error_image_2 = abs( big_predictor_image_2 - resized_original_2 )
-    #### SHOW ERROR IMAGES ######
-#    cv2.imshow('Error 2', error_image_2)
+    error_image_2 = cv2.absdiff(predictorImg2, smallerReducedImg2)
+    cv2.imshow('Error 2', error_image_2)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         if(saveWeightsToFile == True):
