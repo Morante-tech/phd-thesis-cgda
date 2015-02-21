@@ -36,13 +36,13 @@ else:
 ######################################################
 
 ##### predictor params
-ROWS_1 = int(20)
+ROWS_1 = int(4)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(20)
+ROWS_2 = int(4)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(1)
 beta =  np.float32(1)
-
+msToWait= 100
 ####### file params
 loadWeightsFromFile = False
 saveWeightsToFile   = False
@@ -147,24 +147,28 @@ while(cap1.isOpened() & cap2.isOpened()):
     
     #### PREDICTOR MAPS ######
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
-    predictorImg2 = cv2.resize(adaptTypePredictor,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
-    cv2.imshow('Predictor 2', predictorImg2)
+    cv2.namedWindow('Predictor 2', cv2.WINDOW_NORMAL)     
+    cv2.imshow('Predictor 2', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
+    cv2.namedWindow('Frame 1 (color)', cv2.WINDOW_NORMAL)     
     cv2.imshow('Frame 1 (color)', frame1)
-    smallerReducedImg2 = cv2.resize(image_2_t_0,(frame2Cols,  frame2Rows), interpolation = cv2.INTER_NEAREST)
-    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', smallerReducedImg2)
+
+    cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
     
     
 #    #### WEIGHT MAPS ####
-#    adaptTypeWeight= cv2.multiply(weightMatrix, 255*255).astype(np.uint8)
-#    cv2.imshow('WeightMatrix',adaptTypeWeight)
+    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
+    cv2.namedWindow('WeightMatrix', cv2.WINDOW_NORMAL)         
+    cv2.imshow('WeightMatrix',adaptTypeWeight)
 
     #### ERROR MAPS ###### 
-    error_image_2 = cv2.absdiff(predictorImg2, smallerReducedImg2)
+    error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(msToWait) & 0xFF == ord('q'):
         if(saveWeightsToFile == True):
             np.save(weightsFilename, weightMatrix)
         break
