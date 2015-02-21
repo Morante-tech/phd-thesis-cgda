@@ -1,6 +1,7 @@
 ### Video Parameters
 
 synthetic_test_1:
+
     *ROWS_1 = int(20)
     *COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     *ROWS_2 = int(20)
