@@ -13,14 +13,17 @@ import cv2
 from itertools import product
     
 
-# from video
-cap1 = cv2.VideoCapture('videos/synthetic.mp4')
-cap2 = cv2.VideoCapture('videos/synthetic.mp4')
+# tatup video
+cap1 = cv2.VideoCapture('videos/tatup.mp4')
+cap2 = cv2.VideoCapture('videos/tatup.mp4')
+
+#synthetic
+#cap1 = cv2.VideoCapture('videos/synthetic.mp4')
+#cap2 = cv2.VideoCapture('videos/synthetic.mp4')
 
 #from webcam
 #cap1 = cv2.VideoCapture(2)
 #cap2 = cv2.VideoCapture(1)
-
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -35,20 +38,18 @@ else:
     raise NameError('Cannot extract images from video')    
 ######################################################
 
-##### predictor params
-ROWS_1 = int(4)
+##### PARAMETERS ###########
+ROWS_1 = int(20)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(4)
+ROWS_2 = int(20)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(1)
 beta =  np.float32(1)
-msToWait= 100
-####### file params
+msToWait= 1
 loadWeightsFromFile = False
 saveWeightsToFile   = False
 weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
-##############
-
+############################
 
 ###############################
 if(loadWeightsFromFile==True):
@@ -57,17 +58,17 @@ else:
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
 ####
 np.ascontiguousarray(weightMatrix)    
+
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
 ROWS_2_list = range(ROWS_2)
 COLS_2_list = range(COLS_2)
 
-    
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-#error_image_2 = np.zeros((frame2Rows,frame2Cols), np.uint8) #first error map 2
+error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) #first predictor map 2
 
@@ -100,24 +101,25 @@ while(cap1.isOpened() & cap2.isOpened()):
     # update weights
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
-        # find row in DB and change currentweight value
+        # find submatrix in DB and change currentweight value
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
         #if no variation in any of the images, we cannot predict relation
-        #so only decay affects output. Similar to losing confidence in 
-        #relation (prediction)
+        #Similar to losing confidence in relation (prediction)
         
         if(loadWeightsFromFile == False):
-            #the elements adding
+            #the elements that add value to the weights
             elem1  = alpha * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
             
-            #the elements subtracting
+            #the elements that subtract value to the weights
             elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
             elem4 = elem3 * beta
             
-            #final result
+            #Subtraction of both elems
             elem5 = np.subtract(elem2,elem4)
+            
+            # limiting weights between 0 and 1
             newWeightSubMatrix = np.clip(elem5, 0, 1)
             
             #assign new weight to cell in DB
