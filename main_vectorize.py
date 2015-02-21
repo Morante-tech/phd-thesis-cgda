@@ -14,8 +14,8 @@ from itertools import product
     
 
 # from video
-cap1 = cv2.VideoCapture('videos/tatup.mp4')
-cap2 = cv2.VideoCapture('videos/tatup.mp4')
+cap1 = cv2.VideoCapture('videos/synthetic.mp4')
+cap2 = cv2.VideoCapture('videos/synthetic.mp4')
 
 #from webcam
 #cap1 = cv2.VideoCapture(2)
@@ -36,15 +36,15 @@ else:
 ######################################################
 
 ##### predictor params
-ROWS_1 = int(40)
+ROWS_1 = int(20)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(40)
+ROWS_2 = int(20)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.01)
-beta =  np.float32(0.01)
+alpha = np.float32(1)
+beta =  np.float32(1)
 
 ####### file params
-loadWeightsFromFile = True
+loadWeightsFromFile = False
 saveWeightsToFile   = False
 weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ##############
