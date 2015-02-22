@@ -14,12 +14,12 @@ from itertools import product
     
 
 # tatup video
-cap1 = cv2.VideoCapture('videos/tatup.mp4')
-cap2 = cv2.VideoCapture('videos/tatup.mp4')
+#cap1 = cv2.VideoCapture('feed/videos/tatup.mp4')
+#cap2 = cv2.VideoCapture('feed/videos/tatup.mp4')
 
 #synthetic
-#cap1 = cv2.VideoCapture('videos/synthetic.mp4')
-#cap2 = cv2.VideoCapture('videos/synthetic.mp4')
+cap1 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
+cap2 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
 
 #from webcam
 #cap1 = cv2.VideoCapture(2)
