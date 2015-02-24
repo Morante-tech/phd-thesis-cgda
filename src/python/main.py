@@ -98,7 +98,6 @@ while(cap1.isOpened() & cap2.isOpened()):
     predictor_image_2 = 0 #first predictor map 2
     
     # initialize total weights sum
-    #totalWeights = np.zeros((ROWS_2,COLS_2))
     totalWeights = 0
 
     # update weights
@@ -171,7 +170,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
     cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
-    print np.sum(error_image_2)
+  #  print np.sum(error_image_2)
 
     if cv2.waitKey(msToWait) & 0xFF == ord('q'):
         if(saveWeightsToFile == True):
