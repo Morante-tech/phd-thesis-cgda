@@ -130,17 +130,16 @@ int main()
 
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
-                    elem1  = alpha * var_img1.at<uchar>(i,j) * var_img2;
-              //      cv::add(currWeightSubMatrixR2C2, elem1, elem2);
+                    elem1  = (alpha * var_img1.at<uchar>(i,j) * var_img2, CV_32FC2);
+                    cv::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
-                //    absdiff(var_img1.at<uchar>(i,j), var_img2, elem3);
-                  //  elem4 = elem3 * beta;
+                    absdiff(var_img1.at<uchar>(i,j), var_img2, elem3);
+                    elem4 = (elem3 * beta, CV_32FC2);
 
                     //#Subtraction of both elems
-                   // elem5 = elem2-elem4;
-                   // cout << elem5 << endl;
-                   // cout << "here" << endl;
+                    elem5 = (elem2-elem4, CV_32FC2);
+
 
                 } //if
 
