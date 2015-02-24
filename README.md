@@ -1,5 +1,7 @@
 # connected-images
 
-Algorithms to connect movement between images.
+About: Algorithms to connect movement between images.
 
-The best performance currently corresponds to the python version.
+Performance: The best performance currently corresponds to the python version.
+
+Status: pre-alpha version (not fully functional yet)
