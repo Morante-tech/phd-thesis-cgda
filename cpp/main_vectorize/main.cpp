@@ -64,34 +64,36 @@ int main()
     //###############################
     Mat weightMatrix;
     if(loadWeightsFromFile == true){
-        weightMatrix = imread(weightsFilename, CV_LOAD_IMAGE_ANYDEPTH);
+        weightMatrix = imread(weightsFilename, CV_32FC1);
     }
     else{
-        weightMatrix = Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_LOAD_IMAGE_ANYDEPTH);
+        weightMatrix = Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_32FC1);
     }
 
 
     // some neccesary initialization
-    Mat image_1_t_1  =  Mat::zeros(ROWS_1, COLS_1, CV_LOAD_IMAGE_GRAYSCALE); // # image 1 previous time
-    Mat image_2_t_1  =  Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_GRAYSCALE); // # image 2 previous time
+    Mat image_1_t_1  =  Mat::zeros(ROWS_1, COLS_1, CV_8UC1); // # image 1 previous time
+    Mat image_2_t_1  =  Mat::zeros(ROWS_2, COLS_2, CV_8UC1); // # image 2 previous time
 
-    Mat image_1_t_0  =  Mat::zeros(ROWS_1, COLS_1, CV_LOAD_IMAGE_GRAYSCALE); // # image 1 previous time
-    Mat image_2_t_0  =  Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_GRAYSCALE); // # image 2 previous time
+    Mat image_1_t_0  =  Mat::zeros(ROWS_1, COLS_1, CV_8UC1); // # image 1 previous time
+    Mat image_2_t_0  =  Mat::zeros(ROWS_2, COLS_2, CV_8UC1); // # image 2 previous time
 
-    Mat error_image_2 = Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_GRAYSCALE); // #first error map 2
-    Mat totalWeights = Mat::zeros(ROWS_2,COLS_2, CV_LOAD_IMAGE_ANYDEPTH);
-    Mat predictor_image_2 = Mat::zeros(ROWS_2,COLS_2, CV_LOAD_IMAGE_ANYDEPTH); // #first predictor map 2
+    Mat error_image_2 = Mat::zeros(ROWS_2, COLS_2, CV_8UC1); // #first error map 2
 
-    Mat var_img1  =  Mat::zeros(ROWS_1, COLS_1, CV_LOAD_IMAGE_ANYDEPTH); // # image 1 previous time
-    Mat var_img2  =  Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH); // # image 2 previous time
+    Mat totalWeights = Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
+    Mat predictor_image_2 = Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
+
+    Mat var_img1  =  Mat::zeros(ROWS_1, COLS_1, CV_32FC1); // # image 1 previous time
+    Mat var_img2  =  Mat::zeros(ROWS_2, COLS_2, CV_32FC1); // # image 2 previous time
 
     Mat frame1_reduced, frame2_reduced;
     Mat currWeightSubMatrixR2C2;
-    Mat elem1(Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH));
-    Mat elem2(Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH));
-    Mat elem3(Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH));
-    Mat elem4(Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH));
-    Mat elem5(Mat::zeros(ROWS_2, COLS_2, CV_LOAD_IMAGE_ANYDEPTH));
+    Mat elem1(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat elem2(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat elem3(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat elem4(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat elem5(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat newWeightSubMatrix(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
 
     //###############################
     //############ LOOP #############
@@ -119,8 +121,8 @@ int main()
         cv::absdiff(image_2_t_0, image_2_t_1, var_img2);
         var_img2 = var_img2/255.0;
 
-        predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_LOAD_IMAGE_ANYDEPTH); // #first predictor map 2
-        totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_LOAD_IMAGE_ANYDEPTH); // #first predictor map 2
+        predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_32FC1); // #first predictor map 2
+        totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_32FC1); // #first predictor map 2
 
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
@@ -130,15 +132,19 @@ int main()
 
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
-                    elem1  = (alpha * var_img1.at<uchar>(i,j) * var_img2, CV_32FC2);
+                    elem1  = (alpha * var_img1.at<uchar>(i,j) * var_img2, CV_32FC1);
                     cv::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
                     absdiff(var_img1.at<uchar>(i,j), var_img2, elem3);
-                    elem4 = (elem3 * beta, CV_32FC2);
+                    elem4 = (elem3 * beta, CV_32FC1);
 
                     //#Subtraction of both elems
-                    elem5 = (elem2-elem4, CV_32FC2);
+                    elem5 = (elem2-elem4, CV_32FC1);
+
+                    threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
+                    threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, THRESH_TOZERO );
+
 
 
                 } //if
