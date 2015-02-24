@@ -18,12 +18,15 @@ from itertools import product
 #cap2 = cv2.VideoCapture('feed/videos/tatup.mp4')
 
 #synthetic
-cap1 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
-cap2 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
+#cap1 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
+#cap2 = cv2.VideoCapture('feed/videos/synthetic2.ogg')
 
 #from webcam
-#cap1 = cv2.VideoCapture(2)
-#cap2 = cv2.VideoCapture(1)
+cap1 = cv2.VideoCapture(0)
+cap2 = cv2.VideoCapture(2)
+
+cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -39,9 +42,9 @@ else:
 ######################################################
 
 ##### PARAMETERS ###########
-ROWS_1 = int(20)
+ROWS_1 = int(50)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(20)
+ROWS_2 = int(50)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(0.1) # small alpha. at least 1/10 of beta
 beta =  np.float32(1)
@@ -153,17 +156,17 @@ while(cap1.isOpened() & cap2.isOpened()):
     cv2.imshow('Predictor 2', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
-    cv2.namedWindow('Frame 1 (color)', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 1 (color)', frame1)
+    cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+    cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
 
     cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
     cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
     
     
 #    #### WEIGHT MAPS ####
-    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
-    cv2.namedWindow('WeightMatrix', cv2.WINDOW_NORMAL)         
-    cv2.imshow('WeightMatrix',adaptTypeWeight)
+#    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
+#    cv2.namedWindow('WeightMatrix', cv2.WINDOW_NORMAL)         
+#    cv2.imshow('WeightMatrix',adaptTypeWeight)
 
     #### ERROR MAPS ###### 
     error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
