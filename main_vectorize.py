@@ -142,8 +142,7 @@ while(cap1.isOpened() & cap2.isOpened()):
    #update previous image
     image_1_t_1 = image_1_t_0
     image_2_t_1 = image_2_t_0
-#########################################################
-#####################   END LOOP   #####################
+
     
 ###########################################
 ########### VISUALIZATION #################    
@@ -177,7 +176,7 @@ while(cap1.isOpened() & cap2.isOpened()):
         if(saveWeightsToFile == True):
             np.save(weightsFilename, weightMatrix)
         break
-#################################
-######## END WHILE #############
+#########################################################
+#####################   END LOOP   #####################
 
 cv2.destroyAllWindows()

@@ -11,8 +11,8 @@
 using namespace std;
 using namespace cv;
 
-int main()
-{
+int main(){
+
     //tatup video
     VideoCapture cap1("/home/smorante/Repositories/connected-images/feed/videos/tatup.mp4"); // open the video file for reading
     VideoCapture cap2("/home/smorante/Repositories/connected-images/feed/videos/tatup.mp4"); // open the video file for reading
@@ -28,8 +28,7 @@ int main()
     cap1.set(CV_CAP_PROP_FPS,15);
     cap2.set(CV_CAP_PROP_FPS,15);
 
-    if (!cap1.isOpened() || !cap2.isOpened())  // if not success, exit program
-    {
+    if (!cap1.isOpened() || !cap2.isOpened()){
         cout << "Cannot extract images from video" << endl;
         return -1;
     }
@@ -42,9 +41,9 @@ int main()
     int frame2Cols = frame2.cols;
 
     //##### PARAMETERS ###########
-    int ROWS_1 = 4;
+    int ROWS_1 = 40;
     int COLS_1 = ROWS_1 * frame1Cols / frame1Rows;
-    int ROWS_2 = 4;
+    int ROWS_2 = 40;
     int COLS_2 = ROWS_2 * frame2Cols / frame2Rows;
     float alpha = 0.1; // small alpha. at least 1/10 of beta
     float beta = 1;
@@ -94,6 +93,12 @@ int main()
     Mat elem4(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
     Mat elem5(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
     Mat newWeightSubMatrix(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat img1DotWeight(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat img1DotWeightOverTotal(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    Mat temp_pred_2 = Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
+    Mat adaptTypePredictor = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
+    Mat adaptRangeWeight = Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
+    Mat adaptTypeWeight = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
 
     //###############################
     //############ LOOP #############
@@ -127,7 +132,8 @@ int main()
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
 
-                currWeightSubMatrixR2C2 = Mat(weightMatrix, Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2) ) );
+                //be careful, it may be not copying, but linking when not using clone. clone could be slow
+                currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
 
 
                 if(loadWeightsFromFile == false){
@@ -142,19 +148,84 @@ int main()
                     //#Subtraction of both elems
                     elem5 = (elem2-elem4, CV_32FC1);
 
+                    //# limiting weights between 0 and 1
                     threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
                     threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, THRESH_TOZERO );
 
-
+                    //#assign new weight to cell in DB
+                    // maybe its not neccesarry in c++, direct asignation
+                    //copy or clone?
+                    currWeightSubMatrixR2C2.copyTo(weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
+                    cv::add(totalWeights, newWeightSubMatrix, totalWeights);
 
                 } //if
+                else{
+                    cv::add(totalWeights, newWeightSubMatrix, totalWeights);
+                }//else
+
+            }//for j
+        } //for i
+
+        for(int i=0; i < ROWS_1; i++){
+            for(int j=0; j < COLS_1; j++){
+                //copy or clone?
+                currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
+                img1DotWeight = (image_1_t_0.at<uchar>(i,j)*currWeightSubMatrixR2C2);
+                img1DotWeightOverTotal = img1DotWeight / totalWeights;
+                cv::add(predictor_image_2, img1DotWeightOverTotal, temp_pred_2);
+                threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC );
+                threshold( predictor_image_2, predictor_image_2, 0, 0, THRESH_TOZERO );
+            }//for j
+        }//for i
+
+        //#update previous image
+        image_1_t_1 = image_1_t_0.clone();
+        image_2_t_1 = image_2_t_0.clone();
 
 
-            }// for j
-        } // for i
+        //    ###########################################
+        //    ########### VISUALIZATION #################
+        //    ###########################################
 
+        //     #### PREDICTOR MAPS ######
+        predictor_image_2.convertTo(adaptTypePredictor, CV_8UC1);
+        namedWindow("Predictor 2", WINDOW_NORMAL);
+        imshow("Predictor 2", adaptTypePredictor);
+
+        //    #### SHOW ORIGINAL IMAGES ######
+        namedWindow("Frame 1 (Reduced, gray, then extended again)", WINDOW_NORMAL);
+        imshow("Frame 1 (Reduced, gray, then extended again)", image_1_t_0);
+
+        namedWindow("Frame 2 (Reduced, gray, then extended again)", WINDOW_NORMAL);
+        imshow("Frame 2 (Reduced, gray, then extended again)", image_2_t_0);
+
+        //    #### WEIGHT MAPS ####
+        adaptRangeWeight = 255* weightMatrix.clone();
+        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
+        namedWindow("WeightMatrix", WINDOW_NORMAL);
+        imshow("WeightMatrix",adaptTypeWeight);
+
+
+       // #### ERROR MAPS ######
+        absdiff(adaptTypePredictor, image_2_t_0, error_image_2);
+        namedWindow("Error 2", WINDOW_NORMAL);
+        imshow("Error 2", error_image_2);
+
+        // escape key, not q as in python
+        if (cv::waitKey(msToWait) == 27 ){
+            if(saveWeightsToFile == true){
+                imwrite(weightsFilename,weightMatrix);
+            }//if
+            break;
+        }//if
 
     } //while
+
+
+    //    #########################################################
+    //    #####################   END LOOP   #####################
+
+    destroyAllWindows();
 
     return 0;
 }
