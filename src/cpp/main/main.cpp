@@ -14,19 +14,19 @@ using namespace cv;
 int main(){
 
     //tatup video
-    VideoCapture cap1("/home/smorante/Repositories/connected-images/feed/videos/tatup.mp4"); // open the video file for reading
-    VideoCapture cap2("/home/smorante/Repositories/connected-images/feed/videos/tatup.mp4"); // open the video file for reading
+    VideoCapture cap1("../../../../feed/videos/tatup.mp4"); // open the video file for reading
+    VideoCapture cap2("../../../../feed/videos/tatup.mp4"); // open the video file for reading
 
     //synthetic video
-    //    VideoCapture cap1('feed/videos/synthetic2.ogg'); // open the video file for reading
-    //    VideoCapture cap2('feed/videos/synthetic2.ogg'); // open the video file for reading
+    //    VideoCapture cap1("../../../..feed/videos/synthetic2.ogg"); // open the video file for reading
+    //    VideoCapture cap2("../../../..feed/videos/synthetic2.ogg"); // open the video file for reading
 
 
     //    VideoCapture cap1(0); // open the video file for reading
     //    VideoCapture cap2(2); // open the video file for reading
 
-    cap1.set(CV_CAP_PROP_FPS,15);
-    cap2.set(CV_CAP_PROP_FPS,15);
+    //cap1.set(CV_CAP_PROP_FPS,15);
+    //cap2.set(CV_CAP_PROP_FPS,15);
 
     if (!cap1.isOpened() || !cap2.isOpened()){
         cout << "Cannot extract images from video" << endl;
