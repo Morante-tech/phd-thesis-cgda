@@ -43,9 +43,9 @@ int main(){
     int frame2Cols = frame2.cols;
 
     //##### PARAMETERS ###########
-    int ROWS_1 = 10;
+    int ROWS_1 = 70;
     int COLS_1 = ROWS_1 * frame1Cols / frame1Rows;
-    int ROWS_2 = 10;
+    int ROWS_2 = 70;
     int COLS_2 = ROWS_2 * frame2Cols / frame2Rows;
     float alpha = 0.1; // small alpha. at least 1/10 of beta
     float beta = 1;
@@ -95,7 +95,7 @@ int main(){
     Mat newWeightSubMatrix(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
     Mat img1DotWeight(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
     Mat img1DotWeightOverTotal(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat temp_pred_2 = Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
+
     Mat adaptTypePredictor = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
     Mat adaptRangeWeight = Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
     Mat adaptTypeWeight = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
@@ -195,9 +195,8 @@ int main(){
         }//for i
 
         //#update previous image
-        image_1_t_1 = image_1_t_0.clone();
-        image_2_t_1 = image_2_t_0.clone();
-
+        image_1_t_0.copyTo(image_1_t_1);
+        image_2_t_0.copyTo(image_2_t_1);
 
         //    ###########################################
         //    ########### VISUALIZATION #################
@@ -216,10 +215,10 @@ int main(){
         imshow("Frame 2 (Reduced, gray, then extended again)", image_2_t_0);
 
         //    #### WEIGHT MAPS ####
-        adaptRangeWeight = 255* weightMatrix.clone();
-        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
-        namedWindow("WeightMatrix", WINDOW_NORMAL);
-        imshow("WeightMatrix",adaptTypeWeight);
+//        adaptRangeWeight = 255* weightMatrix.clone();
+//        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
+//        namedWindow("WeightMatrix", WINDOW_NORMAL);
+//        imshow("WeightMatrix",adaptTypeWeight);
 
 
        // #### ERROR MAPS ######
