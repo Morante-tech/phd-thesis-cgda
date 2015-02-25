@@ -187,17 +187,9 @@ int main(){
 
                 cv::add(predictor_image_2, img1DotWeightOverTotal, predictor_image_2);
 
-                cout << predictor_image_2 << endl;
-
                 threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC);
+                threshold( predictor_image_2, predictor_image_2, 0, 255, cv::THRESH_TOZERO );
 
-
-
-              //  threshold( predictor_image_2, predictor_image_2, 0, 0, THRESH_TOZERO );
-
-                cout << predictor_image_2 << endl;
-
-                cout << "##################################" << endl;
 
             }//for j
         }//for i
