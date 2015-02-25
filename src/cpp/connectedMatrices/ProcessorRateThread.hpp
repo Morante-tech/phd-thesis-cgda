@@ -71,6 +71,28 @@ protected:
         int COLS_1, COLS_2;
         cv::Mat weightMatrix;
         cv::Mat frame1_reduced, frame2_reduced;
+        cv::Mat image_1_t_1; // # image 1 previous time
+        cv::Mat image_2_t_1; // # image 2 previous time
+        cv::Mat var_img1;
+        cv::Mat var_img2;
+        cv::Mat totalWeights;
+        cv::Mat predictor_image_2;
+        cv::Mat currWeightSubMatrixR2C2;
+        cv::Mat elem1;
+        cv::Mat elem2;
+        cv::Mat elem3;
+        cv::Mat elem4;
+        cv::Mat elem5;
+        cv::Mat newWeightSubMatrix;
+        cv::Mat img1DotWeight;
+        cv::Mat img1DotWeightOverTotal;
+        cv::Mat adaptTypePredictor;
+        cv::Mat adaptRangeWeight;
+        cv::Mat adaptTypeWeight;
+        cv::Mat error_image_2;
+
+        bool loadWeightsFromFile;
+        bool saveWeightsToFile;
 
 
 };
