@@ -6,6 +6,7 @@
 #include <yarp/math/Math.h>
 #include <sstream>
 #include <string>
+#include <stdio.h>
 
 
 using namespace std;
@@ -33,6 +34,8 @@ int main(){
         return -1;
     }
     Mat frame1, frame2;
+    cout << frame1.type() << endl;
+
     bool ret1 = cap1.read(frame1); // read a new frame from video
     bool ret2 = cap2.read(frame2); // read a new frame from video
     int frame1Rows = frame1.rows;
@@ -119,16 +122,19 @@ int main(){
 
         //# 255.0 forcing float type
         cv::absdiff(image_1_t_0, image_1_t_1, var_img1);
-        divide(var_img1, 255, var_img1);
+        var_img1.convertTo(var_img1, CV_32FC1);
+        var_img1 = var_img1 / 255.0;
 
-        //error aqui
-        cout << var_img1<< endl;
 
         cv::absdiff(image_2_t_0, image_2_t_1, var_img2);
-        divide(var_img2, 255.0, var_img2);
+        var_img2.convertTo(var_img2, CV_32FC1);
+        var_img2 = var_img2 / 255.0;
+
 
         predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_32FC1); // #first predictor map 2
         totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_32FC1); // #first predictor map 2
+
+  //      cout << totalWeights << endl;
 
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
@@ -136,26 +142,30 @@ int main(){
                 //be careful, it may be not copying, but linking when not using clone. clone could be slow
                 currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
 
+             //   cout << currWeightSubMatrixR2C2 << endl;
+
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
-                    elem1  = (alpha * var_img1.at<float>(i,j) * var_img2, CV_32FC1);
-
-                  //  cout << var_img1.at<float>(i,j) << endl;
-
+                    elem1  = alpha * var_img1.at<float>(i,j) * var_img2;
                     cv::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
                     absdiff(var_img1.at<float>(i,j), var_img2, elem3);
-                    multiply(elem3, beta, elem4);
 
+                    elem4 = beta * elem3;
 
                     //#Subtraction of both elems
-                    elem5 = (elem2-elem4, CV_32FC1);
-
+                    elem5 = elem2-elem4;
 
                     //# limiting weights between 0 and 1
+
+                    //the error may be here
                     threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
                     threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, THRESH_TOZERO );
+
+
+
+                    cout << newWeightSubMatrix << endl;
 
                     //#assign new weight to cell in DB
                     // maybe its not neccesarry in c++, direct asignation
