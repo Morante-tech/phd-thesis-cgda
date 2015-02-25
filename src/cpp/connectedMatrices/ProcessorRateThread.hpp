@@ -16,6 +16,12 @@
 
 #define DEFAULT_MS 50  // [ms], overwritten by parent DEFAULT_PT_MODE_MS.
 
+#define ROWS_1 70
+#define ROWS_2 70
+#define alpha 0.1  //-- small alpha. at least 1/10 of beta
+#define beta 1
+
+
 namespace teo
 {
 
@@ -60,6 +66,13 @@ protected:
 
         IplImage* inCvImg1;
         IplImage* inCvImg2;
+
+        //--
+        int COLS_1, COLS_2;
+        cv::Mat weightMatrix;
+        cv::Mat frame1_reduced, frame2_reduced;
+
+
 };
 
 }  // namespace teo

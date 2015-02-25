@@ -18,13 +18,24 @@ bool teo::ProcessorRateThread::threadInit() {
     printf("iFrameGrabberImage1 got a %dx%d image\n", inYarpImg1.width(), inYarpImg1.height());
     printf("iFrameGrabberImage2 got a %dx%d image\n", inYarpImg2.width(), inYarpImg2.height());
 
+    int frame1Rows = inYarpImg1.height();
+    int frame1Cols = inYarpImg1.width();
+    int frame2Rows = inYarpImg2.height();
+    int frame2Cols = inYarpImg2.width();
+
+    COLS_1 = ROWS_1 * frame1Cols / frame1Rows;
+    COLS_2 = ROWS_2 * frame2Cols / frame2Rows;
+
     inCvImg1 = cvCreateImage(cvSize(inYarpImg1.width(),
                              inYarpImg1.height()),
-                             IPL_DEPTH_8U, 3 );
+                             IPL_DEPTH_8U, 1 );
 
     inCvImg2 = cvCreateImage(cvSize(inYarpImg2.width(),
                              inYarpImg2.height()),
-                             IPL_DEPTH_8U, 3 );
+                             IPL_DEPTH_8U, 1 );
+
+    //-- Always start from zeros for now
+    weightMatrix = cv::Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_32FC1);
 
     return true;
 }
@@ -36,10 +47,16 @@ void teo::ProcessorRateThread::run() {
     iFrameGrabberImage1->getImage(inYarpImg1);
     iFrameGrabberImage2->getImage(inYarpImg2);
 
-    cvCvtColor((IplImage*)inYarpImg1.getIplImage(), inCvImg1, CV_RGB2BGR);
-    cvCvtColor((IplImage*)inYarpImg2.getIplImage(), inCvImg2, CV_RGB2BGR);
+    cvCvtColor((IplImage*)inYarpImg1.getIplImage(), inCvImg1, CV_RGB2GRAY);
+    cvCvtColor((IplImage*)inYarpImg2.getIplImage(), inCvImg2, CV_RGB2GRAY);
+
+    cv::Mat frame1 = inCvImg1;
+    cv::Mat frame2 = inCvImg2;
 
     //-- Process ---
+    //# note the changed axis in opencv
+    cv::resize(frame1, frame1_reduced, cv::Size(COLS_1, ROWS_1), cv::INTER_NEAREST);
+    cv::resize(frame2, frame2_reduced, cv::Size(COLS_2, ROWS_2), cv::INTER_NEAREST);
 
 
 
