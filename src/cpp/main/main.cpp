@@ -3,7 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <yarp/math/Math.h>
+//#include <yarp/math/Math.h>
 #include <sstream>
 #include <string>
 #include <stdio.h>
@@ -27,7 +27,7 @@ int main(){
     //    VideoCapture cap2(2); // open the video file for reading
 
     //cap1.set(CV_CAP_PROP_FPS,15);
-    //cap2.set(CV_CAP_PROP_FPS,15);
+    cap2.set(CV_CAP_PROP_FPS,15);
 
     if (!cap1.isOpened() || !cap2.isOpened()){
         cout << "Cannot extract images from video" << endl;
