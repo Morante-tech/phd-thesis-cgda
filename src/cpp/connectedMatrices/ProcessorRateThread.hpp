@@ -55,6 +55,8 @@ protected:
         yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > >* ptrOutPort1;
         yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > >* ptrOutPort2;
 
+        IplImage* inCvImg1;
+        IplImage* inCvImg2;
 };
 
 }  // namespace teo

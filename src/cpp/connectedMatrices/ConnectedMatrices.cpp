@@ -10,7 +10,8 @@ bool teo::ConnectedMatrices::configure(yarp::os::ResourceFinder &rf) {
     yarp::os::Property grabberOptions1;
     //-- Next lines for local cam1
     grabberOptions1.put("device","opencv_grabber");
-    grabberOptions1.put("camera",0);
+    grabberOptions1.put("camera",1);
+    grabberOptions1.put("framerate",15);
     //-- Next lines for remote cam1
     //grabberOptions1.put("device","remote_grabber"); // device type
     //grabberOptions1.put("local","/cm/1/img:i");     // name of local port to use
@@ -25,7 +26,8 @@ bool teo::ConnectedMatrices::configure(yarp::os::ResourceFinder &rf) {
     yarp::os::Property grabberOptions2;
     //-- Next lines for local cam2
     grabberOptions2.put("device","opencv_grabber");
-    grabberOptions2.put("camera",1);
+    grabberOptions2.put("camera",2);
+    grabberOptions2.put("framerate",15);
     //-- Next lines for remote cam2
     //grabberOptions2.put("device","remote_grabber"); // device type
     //grabberOptions2.put("local","/cm/2/img:i");     // name of local port to use
