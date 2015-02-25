@@ -58,6 +58,13 @@ void teo::ProcessorRateThread::run() {
 }
 
 /************************************************************************/
+void teo::ProcessorRateThread::threadRelease() {
+    cvReleaseImage( &inCvImg1 );
+    cvReleaseImage( &inCvImg2 );
+    return;
+}
+
+/************************************************************************/
 void teo::ProcessorRateThread::setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > *value)
 {
     ptrOutPort1 = value;

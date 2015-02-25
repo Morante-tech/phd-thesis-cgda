@@ -34,6 +34,9 @@ class ProcessorRateThread : public yarp::os::RateThread {
         /** Initialization method. */
         virtual bool threadInit();
 
+        /** Release method. */
+        virtual void threadRelease();
+
         /** Loop function. This is the thread itself. */
         virtual void run();
 
