@@ -34,7 +34,6 @@ int main(){
         return -1;
     }
     Mat frame1, frame2;
-    cout << frame1.type() << endl;
 
     bool ret1 = cap1.read(frame1); // read a new frame from video
     bool ret2 = cap2.read(frame2); // read a new frame from video
@@ -134,13 +133,12 @@ int main(){
         predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_32FC1); // #first predictor map 2
         totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_32FC1); // #first predictor map 2
 
-  //      cout << totalWeights << endl;
-
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
 
                 //be careful, it may be not copying, but linking when not using clone. clone could be slow
-                currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
+                weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
+                //currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
 
              //   cout << currWeightSubMatrixR2C2 << endl;
 
@@ -158,19 +156,15 @@ int main(){
                     elem5 = elem2-elem4;
 
                     //# limiting weights between 0 and 1
-
-                    //the error may be here
                     threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
                     threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, THRESH_TOZERO );
-
-
-
-                    cout << newWeightSubMatrix << endl;
 
                     //#assign new weight to cell in DB
                     // maybe its not neccesarry in c++, direct asignation
                     //copy or clone?
-                    currWeightSubMatrixR2C2.copyTo(weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
+
+                    newWeightSubMatrix.copyTo(weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
+
                     cv::add(totalWeights, newWeightSubMatrix, totalWeights);
 
                 } //if
@@ -184,12 +178,27 @@ int main(){
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
                 //copy or clone?
-                currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
-                img1DotWeight = (image_1_t_0.at<uchar>(i,j)*currWeightSubMatrixR2C2);
+                weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
+
+
+                img1DotWeight = image_1_t_0.at<uchar>(i,j)*currWeightSubMatrixR2C2;
+
                 img1DotWeightOverTotal = img1DotWeight / totalWeights;
-                cv::add(predictor_image_2, img1DotWeightOverTotal, temp_pred_2);
-                threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC );
-                threshold( predictor_image_2, predictor_image_2, 0, 0, THRESH_TOZERO );
+
+                cv::add(predictor_image_2, img1DotWeightOverTotal, predictor_image_2);
+
+                cout << predictor_image_2 << endl;
+
+                threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC);
+
+
+
+              //  threshold( predictor_image_2, predictor_image_2, 0, 0, THRESH_TOZERO );
+
+                cout << predictor_image_2 << endl;
+
+                cout << "##################################" << endl;
+
             }//for j
         }//for i
 
