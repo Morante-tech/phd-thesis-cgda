@@ -22,9 +22,7 @@ bool teo::ConnectedMatrices::configure(yarp::os::ResourceFinder &rf) {
     inPort1.setPtrOutPort5( &outPort5 );
 
     //-- Start
-    inPort1.start();
-
-    return true;
+    return inPort1.start();
 }
 
 /************************************************************************/
@@ -45,9 +43,7 @@ bool teo::ConnectedMatrices::interruptModule() {
     inPort1.interrupt();
     inPort2.interrupt();
 
-    inPort1.stop();
-
-    return true;
+    return inPort1.stop();
 }
 
 /************************************************************************/
