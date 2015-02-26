@@ -14,16 +14,16 @@ from itertools import product
     
 
 # tatup video
-#cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-#cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 
 #synthetic
 #cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 #cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 
 #from webcam
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
+#cap1 = cv2.VideoCapture(0)
+#cap2 = cv2.VideoCapture(1)
 
 cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
@@ -150,6 +150,14 @@ while(cap1.isOpened() & cap2.isOpened()):
     
     #### PREDICTOR MAPS ######
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
+   
+    # median blur, maybe effective with webcams images   
+  #  adaptTypePredictor = cv2.medianBlur(adaptTypePredictor,3)
+
+    # 2d convolution
+#    kernel = np.ones((3,3),np.float32)/9
+#    adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
+
     cv2.namedWindow('Predictor 2', cv2.WINDOW_NORMAL)     
     cv2.imshow('Predictor 2', adaptTypePredictor)
 
