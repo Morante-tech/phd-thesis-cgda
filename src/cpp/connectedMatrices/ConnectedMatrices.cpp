@@ -15,6 +15,7 @@ bool teo::ConnectedMatrices::configure(yarp::os::ResourceFinder &rf) {
     outPort3.open("/frame2_reduced");
     outPort4.open("/adaptTypeWeight");
     outPort5.open("/error_image_2");
+    inPort1.setPtrInPort2( &inPort2 );
     inPort1.setPtrOutPort1( &outPort1 );
     inPort1.setPtrOutPort2( &outPort2 );
     inPort1.setPtrOutPort3( &outPort3 );

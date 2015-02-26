@@ -45,6 +45,8 @@ class ProcessorPort : public yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::s
         /** Stop method. */
         bool stop();
 
+        void setPtrInPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > *value);
+
         void setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
         void setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
         void setPtrOutPort3(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
@@ -56,7 +58,9 @@ protected:
         /** Initialization method. */
         bool initialize(yarp::sig::ImageOf<yarp::sig::PixelRgb> &inYarpImg1);
 
-        yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg2;
+        yarp::sig::ImageOf<yarp::sig::PixelRgb>* inYarpImg2;
+
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelRgb > >* ptrInPort2;
 
         yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg1;
         yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg2;

@@ -21,18 +21,18 @@ bool teo::ProcessorPort::start() {
 bool teo::ProcessorPort::initialize( yarp::sig::ImageOf< yarp::sig::PixelRgb >& inYarpImg1 ) {
 
     printf("initialize got a %dx%d image1\n", inYarpImg1.width(), inYarpImg1.height());
-    printf("initialize got a %dx%d image2\n", inYarpImg2.width(), inYarpImg2.height());
+    printf("initialize got a %dx%d image2\n", inYarpImg2->width(), inYarpImg2->height());
 
     if( inYarpImg1.width() < 1 )
         return false;
 
-    if( inYarpImg2.width() < 1 )
+    if( inYarpImg2->width() < 1 )
         return false;
 
     int frame1Rows = inYarpImg1.height();
     int frame1Cols = inYarpImg1.width();
-    int frame2Rows = inYarpImg2.height();
-    int frame2Cols = inYarpImg2.width();
+    int frame2Rows = inYarpImg2->height();
+    int frame2Cols = inYarpImg2->width();
 
     COLS_1 = ROWS_1 * frame1Cols / frame1Rows;
     COLS_2 = ROWS_2 * frame2Cols / frame2Rows;
@@ -41,8 +41,8 @@ bool teo::ProcessorPort::initialize( yarp::sig::ImageOf< yarp::sig::PixelRgb >& 
                                     inYarpImg1.height()),
                              IPL_DEPTH_8U, 1 );
 
-    inCvImg2 = cvCreateImage(cvSize(inYarpImg2.width(),
-                                    inYarpImg2.height()),
+    inCvImg2 = cvCreateImage(cvSize(inYarpImg2->width(),
+                                    inYarpImg2->height()),
                              IPL_DEPTH_8U, 1 );
 
     //-- Always start from zeros for now
@@ -71,15 +71,16 @@ bool teo::ProcessorPort::initialize( yarp::sig::ImageOf< yarp::sig::PixelRgb >& 
     totalWeights = cv::Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
     predictor_image_2 = cv::Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
 
+    /*
     cv::namedWindow("WeightMatrix", cv::WINDOW_NORMAL);
     cv::namedWindow("Error 2", cv::WINDOW_NORMAL);
     cv::namedWindow("Frame 1 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
     cv::namedWindow("Predictor 2", cv::WINDOW_NORMAL);
     cv::namedWindow("Frame 2 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
-
-    CD_DEBUG("\n");
+    */
 
     initialized = true;
+    CD_DEBUG("Initialized!\n");
 
     return true;
 }
@@ -87,19 +88,23 @@ bool teo::ProcessorPort::initialize( yarp::sig::ImageOf< yarp::sig::PixelRgb >& 
 /************************************************************************/
 void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img ) {
 
+    CD_DEBUG("\n");
+
+    inYarpImg2 = ptrInPort2->read();
+
     //-- Begin --
     if( ! initialized ) {
+        CD_INFO("Not initialized...\n");
         if( ! calledInitialize ) {
             calledInitialize = true;
             if( ! initialize( img  ) )
                 calledInitialize = false;
         }
-        CD_INFO("Not initialized...\n");
         return;
     }
 
     cvCvtColor((IplImage*)img.getIplImage(), inCvImg1, CV_RGB2GRAY);
-    cvCvtColor((IplImage*)inYarpImg2.getIplImage(), inCvImg2, CV_RGB2GRAY);
+    cvCvtColor((IplImage*)inYarpImg2->getIplImage(), inCvImg2, CV_RGB2GRAY);
 
     cv::Mat frame1 = inCvImg1;
     cv::Mat frame2 = inCvImg2;
@@ -189,37 +194,37 @@ void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img 
 
     //-- End (visualization) --
 
-    cvWaitKey(1);
+//j//    cvWaitKey(1);
 
     //     #### PREDICTOR MAPS ######
     predictor_image_2.convertTo(adaptTypePredictor, CV_8UC1);
-    cv::imshow("Predictor 2", adaptTypePredictor);
-    //j//IplImage outCvImg1 = adaptTypePredictor;
-    //j//outYarpImg1.wrapIplImage( &outCvImg1 );
+//j//    cv::imshow("Predictor 2", adaptTypePredictor);
+    IplImage outCvImg1 = adaptTypePredictor;
+    outYarpImg1.wrapIplImage( &outCvImg1 );
 
     //    #### SHOW ORIGINAL IMAGES ######
-    cv::imshow("Frame 1 (Reduced, gray, then extended again)", frame1_reduced);
-    //j//IplImage outCvImg2 = frame1_reduced;
-    //j//outYarpImg2.wrapIplImage( &outCvImg2 );
-    cv::imshow("Frame 2 (Reduced, gray, then extended again)", frame2_reduced);
-    //j//IplImage outCvImg3 = frame2_reduced;
-    //j//outYarpImg3.wrapIplImage( &outCvImg3 );
+//j//    cv::imshow("Frame 1 (Reduced, gray, then extended again)", frame1_reduced);
+    IplImage outCvImg2 = frame1_reduced;
+    outYarpImg2.wrapIplImage( &outCvImg2 );
+//j//    cv::imshow("Frame 2 (Reduced, gray, then extended again)", frame2_reduced);
+    IplImage outCvImg3 = frame2_reduced;
+    outYarpImg3.wrapIplImage( &outCvImg3 );
 
     //    #### WEIGHT MAPS ####
     adaptRangeWeight = 255* weightMatrix.clone();
     adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
-    cv::imshow("WeightMatrix",adaptTypeWeight);
-    //j//IplImage outCvImg4 = adaptTypeWeight;
-    //j//outYarpImg4.wrapIplImage( &outCvImg4 );
+//j//    cv::imshow("WeightMatrix",adaptTypeWeight);
+    IplImage outCvImg4 = adaptTypeWeight;
+    outYarpImg4.wrapIplImage( &outCvImg4 );
 
     // #### ERROR MAPS ######
     cv::absdiff(adaptTypePredictor, frame2_reduced, error_image_2);
-    cv::imshow("Error 2", error_image_2);
-    //j//IplImage outCvImg5 = error_image_2;
-    //j//outYarpImg5.wrapIplImage( &outCvImg5 );
+//j//    cv::imshow("Error 2", error_image_2);
+    IplImage outCvImg5 = error_image_2;
+    outYarpImg5.wrapIplImage( &outCvImg5 );
 
 
-    /*ptrOutPort1->prepare() = outYarpImg1;
+    ptrOutPort1->prepare() = outYarpImg1;
     ptrOutPort2->prepare() = outYarpImg2;
     ptrOutPort3->prepare() = outYarpImg3;
     ptrOutPort4->prepare() = outYarpImg4;
@@ -228,7 +233,7 @@ void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img 
     ptrOutPort2->write();
     ptrOutPort3->write();
     ptrOutPort4->write();
-    ptrOutPort5->write();*/
+    ptrOutPort5->write();
 
     return;
 }
@@ -242,6 +247,12 @@ bool teo::ProcessorPort::stop() {
     cvReleaseImage( &inCvImg2 );
 
     return true;
+}
+
+/************************************************************************/
+void teo::ProcessorPort::setPtrInPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > *value)
+{
+    ptrInPort2 = value;
 }
 
 /************************************************************************/
