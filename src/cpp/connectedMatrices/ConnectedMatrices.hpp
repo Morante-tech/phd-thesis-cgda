@@ -9,7 +9,7 @@
 
 #include "ColorDebug.hpp"
 
-#include "ProcessorRateThread.hpp"
+#include "ProcessorPort.hpp"
 
 namespace teo
 {
@@ -30,7 +30,7 @@ class ConnectedMatrices : public yarp::os::RFModule {
 
     protected:
 
-        ProcessorRateThread processorRateThread;
+        ProcessorPort processorRateThread;
 
         ProcessorPort inPort1;
         yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelRgb > > inPort2;
