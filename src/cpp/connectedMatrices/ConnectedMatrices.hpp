@@ -39,8 +39,11 @@ class ConnectedMatrices : public yarp::os::RFModule {
         bool interruptModule();
         // double getPeriod();
 
-        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > > outPort1;
-        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > > outPort2;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > > outPort1;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > > outPort2;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > > outPort3;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > > outPort4;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > > outPort5;
 
 };
 

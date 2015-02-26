@@ -60,11 +60,21 @@ bool teo::ProcessorRateThread::threadInit() {
     totalWeights = cv::Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
     predictor_image_2 = cv::Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
 
+    cv::namedWindow("WeightMatrix", cv::WINDOW_NORMAL);
+    cv::namedWindow("Error 2", cv::WINDOW_NORMAL);
+    cv::namedWindow("Frame 1 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
+    cv::namedWindow("Predictor 2", cv::WINDOW_NORMAL);
+    cv::namedWindow("Frame 2 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
+
+    CD_DEBUG("\n");
+
     return true;
 }
 
 /************************************************************************/
 void teo::ProcessorRateThread::run() {
+
+    CD_DEBUG("\n");
 
     //-- Begin --
     iFrameGrabberImage1->getImage(inYarpImg1);
@@ -95,7 +105,6 @@ void teo::ProcessorRateThread::run() {
     predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_32FC1); // #first predictor map 2
     totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_32FC1); // #first predictor map 2
 
-    CD_DEBUG("\n");
     for(int i=0; i < ROWS_1; i++){
         for(int j=0; j < COLS_1; j++){
 
@@ -156,49 +165,52 @@ void teo::ProcessorRateThread::run() {
         }//for j
     }//for i
 
-
     //#update previous image
     frame1_reduced.copyTo(image_1_t_1);
     frame2_reduced.copyTo(image_2_t_1);
 
-    //    ###########################################
-    //    ########### VISUALIZATION #################
-    //    ###########################################
+    //-- End (visualization) --
+
+    cvWaitKey(1);
 
     //     #### PREDICTOR MAPS ######
     predictor_image_2.convertTo(adaptTypePredictor, CV_8UC1);
-    cv::namedWindow("Predictor 2", cv::WINDOW_NORMAL);
     cv::imshow("Predictor 2", adaptTypePredictor);
+    //j//IplImage outCvImg1 = adaptTypePredictor;
+    //j//outYarpImg1.wrapIplImage( &outCvImg1 );
 
     //    #### SHOW ORIGINAL IMAGES ######
-    cv::namedWindow("Frame 1 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
     cv::imshow("Frame 1 (Reduced, gray, then extended again)", frame1_reduced);
-
-    cv::namedWindow("Frame 2 (Reduced, gray, then extended again)", cv::WINDOW_NORMAL);
+    //j//IplImage outCvImg2 = frame1_reduced;
+    //j//outYarpImg2.wrapIplImage( &outCvImg2 );
     cv::imshow("Frame 2 (Reduced, gray, then extended again)", frame2_reduced);
+    //j//IplImage outCvImg3 = frame2_reduced;
+    //j//outYarpImg3.wrapIplImage( &outCvImg3 );
 
     //    #### WEIGHT MAPS ####
     adaptRangeWeight = 255* weightMatrix.clone();
     adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
-    cv::namedWindow("WeightMatrix", cv::WINDOW_NORMAL);
     cv::imshow("WeightMatrix",adaptTypeWeight);
+    //j//IplImage outCvImg4 = adaptTypeWeight;
+    //j//outYarpImg4.wrapIplImage( &outCvImg4 );
 
     // #### ERROR MAPS ######
     cv::absdiff(adaptTypePredictor, frame2_reduced, error_image_2);
-    cv::namedWindow("Error 2", cv::WINDOW_NORMAL);
     cv::imshow("Error 2", error_image_2);
+    //j//IplImage outCvImg5 = error_image_2;
+    //j//outYarpImg5.wrapIplImage( &outCvImg5 );
 
 
-    //-- End --
-    /*yarp::sig::ImageOf<yarp::sig::PixelBgr> outYarpImg1;
-    yarp::sig::ImageOf<yarp::sig::PixelBgr> outYarpImg2;
-    outYarpImg1.wrapIplImage(inCvImg1);
-    outYarpImg2.wrapIplImage(inCvImg1);
-
-    ptrOutPort1->prepare() = outYarpImg1;
+    /*ptrOutPort1->prepare() = outYarpImg1;
     ptrOutPort2->prepare() = outYarpImg2;
+    ptrOutPort3->prepare() = outYarpImg3;
+    ptrOutPort4->prepare() = outYarpImg4;
+    ptrOutPort5->prepare() = outYarpImg5;
     ptrOutPort1->write();
-    ptrOutPort2->write();*/
+    ptrOutPort2->write();
+    ptrOutPort3->write();
+    ptrOutPort4->write();
+    ptrOutPort5->write();*/
 
     return;
 }
@@ -211,15 +223,33 @@ void teo::ProcessorRateThread::threadRelease() {
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > *value)
+void teo::ProcessorRateThread::setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort1 = value;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > *value)
+void teo::ProcessorRateThread::setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort2 = value;
+}
+
+/************************************************************************/
+void teo::ProcessorRateThread::setPtrOutPort3(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+{
+    ptrOutPort3 = value;
+}
+
+/************************************************************************/
+void teo::ProcessorRateThread::setPtrOutPort4(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+{
+    ptrOutPort4 = value;
+}
+
+/************************************************************************/
+void teo::ProcessorRateThread::setPtrOutPort5(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+{
+    ptrOutPort5 = value;
 }
 
 /************************************************************************/

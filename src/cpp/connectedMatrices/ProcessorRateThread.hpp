@@ -14,7 +14,7 @@
 
 #include "ColorDebug.hpp"
 
-#define DEFAULT_MS 50  // [ms], overwritten by parent DEFAULT_PT_MODE_MS.
+#define DEFAULT_MS 500  // [ms], overwritten by parent DEFAULT_PT_MODE_MS.
 
 #define ROWS_1 70
 #define ROWS_2 70
@@ -50,19 +50,28 @@ class ProcessorRateThread : public yarp::os::RateThread {
         yarp::dev::IFrameGrabberImage * iFrameGrabberImage1;
         yarp::dev::IFrameGrabberImage * iFrameGrabberImage2;
 
-        void setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > *value);
-        void setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > *value);
+        void setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
+        void setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
+        void setPtrOutPort3(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
+        void setPtrOutPort4(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
+        void setPtrOutPort5(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
 
 protected:
 
         yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg1;
         yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg2;
 
-        yarp::sig::ImageOf<yarp::sig::PixelRgb> outYarpImg1;
-        yarp::sig::ImageOf<yarp::sig::PixelRgb> outYarpImg2;
+        yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg1;
+        yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg2;
+        yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg3;
+        yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg4;
+        yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg5;
 
-        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > >* ptrOutPort1;
-        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelBgr > >* ptrOutPort2;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > >* ptrOutPort1;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > >* ptrOutPort2;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > >* ptrOutPort3;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > >* ptrOutPort4;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelMono > >* ptrOutPort5;
 
         IplImage* inCvImg1;
         IplImage* inCvImg2;
