@@ -28,14 +28,14 @@ namespace teo
 /**
  * @ingroup teoProcessorCompensation
  *
- * The ProcessorRateThread class.
+ * The ProcessorPort class.
  *
  */
-class ProcessorRateThread : public yarp::os::RateThread {
+class ProcessorPort : public yarp::os::RateThread {
 
     public:
         // Set the Thread Rate in the class constructor
-        ProcessorRateThread() : RateThread(DEFAULT_MS) {}  // In ms
+        ProcessorPort() : RateThread(DEFAULT_MS) {}  // In ms
 
         /** Initialization method. */
         virtual bool threadInit();

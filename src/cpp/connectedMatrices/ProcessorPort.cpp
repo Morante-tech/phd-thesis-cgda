@@ -1,9 +1,9 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-#include "ProcessorRateThread.hpp"
+#include "ProcessorPort.hpp"
 
 /************************************************************************/
-bool teo::ProcessorRateThread::threadInit() {
+bool teo::ProcessorPort::threadInit() {
 
     while( inYarpImg1.width() < 1 ) {
         iFrameGrabberImage1->getImage(inYarpImg1);
@@ -72,7 +72,7 @@ bool teo::ProcessorRateThread::threadInit() {
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::run() {
+void teo::ProcessorPort::run() {
 
     CD_DEBUG("\n");
 
@@ -216,38 +216,38 @@ void teo::ProcessorRateThread::run() {
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::threadRelease() {
+void teo::ProcessorPort::threadRelease() {
     cvReleaseImage( &inCvImg1 );
     cvReleaseImage( &inCvImg2 );
     return;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+void teo::ProcessorPort::setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort1 = value;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+void teo::ProcessorPort::setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort2 = value;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort3(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+void teo::ProcessorPort::setPtrOutPort3(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort3 = value;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort4(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+void teo::ProcessorPort::setPtrOutPort4(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort4 = value;
 }
 
 /************************************************************************/
-void teo::ProcessorRateThread::setPtrOutPort5(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
+void teo::ProcessorPort::setPtrOutPort5(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value)
 {
     ptrOutPort5 = value;
 }
