@@ -42,15 +42,16 @@ else:
 ######################################################
 
 ##### PARAMETERS ###########
-ROWS_1 = int(70)
+ROWS_1 = int(20)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(70)
+ROWS_2 = int(20)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(0.1) # small alpha. at least 1/10 of beta
 beta =  np.float32(1)
 msToWait= 1
 loadWeightsFromFile = False
 saveWeightsToFile   = False
+fixWeightsMatrix   = False
 weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ############################
 
@@ -109,7 +110,7 @@ while(cap1.isOpened() & cap2.isOpened()):
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation (prediction)
         
-        if(loadWeightsFromFile == False):
+        if(loadWeightsFromFile == False & fixWeightsMatrix == False):
             #the elements that add value to the weights
             elem1  = alpha * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
@@ -180,10 +181,16 @@ while(cap1.isOpened() & cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
   #  print np.sum(error_image_2)
 
-    if cv2.waitKey(msToWait) & 0xFF == ord('q'):
+    k = cv2.waitKey(1) & 0xFF
+    
+    if k == ord('f'):
+        fixWeightsMatrix = True
+    if k == ord('q'):
         if(saveWeightsToFile == True):
             np.save(weightsFilename, weightMatrix)
         break
+    
+
 #########################################################
 #####################   END LOOP   #####################
 
