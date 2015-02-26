@@ -15,11 +15,14 @@ bool teo::ConnectedMatrices::configure(yarp::os::ResourceFinder &rf) {
     outPort3.open("/frame2_reduced");
     outPort4.open("/adaptTypeWeight");
     outPort5.open("/error_image_2");
-    processorRateThread.setPtrOutPort1( &outPort1 );
-    processorRateThread.setPtrOutPort2( &outPort2 );
-    processorRateThread.setPtrOutPort3( &outPort3 );
-    processorRateThread.setPtrOutPort4( &outPort4 );
-    processorRateThread.setPtrOutPort5( &outPort5 );
+    inPort1.setPtrOutPort1( &outPort1 );
+    inPort1.setPtrOutPort2( &outPort2 );
+    inPort1.setPtrOutPort3( &outPort3 );
+    inPort1.setPtrOutPort4( &outPort4 );
+    inPort1.setPtrOutPort5( &outPort5 );
+
+    //-- Start
+    inPort1.start();
 
     return true;
 }
@@ -39,10 +42,10 @@ bool teo::ConnectedMatrices::interruptModule() {
     outPort4.interrupt();
     outPort5.interrupt();
 
-    processorRateThread.stop();
+    inPort1.interrupt();
+    inPort2.interrupt();
 
-    inPort1.close();
-    inPort1.close();
+    inPort1.stop();
 
     return true;
 }

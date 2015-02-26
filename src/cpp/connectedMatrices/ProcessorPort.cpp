@@ -3,9 +3,23 @@
 #include "ProcessorPort.hpp"
 
 /************************************************************************/
-bool teo::ProcessorPort::threadInit() {
+bool teo::ProcessorPort::start() {
 
-    while( inYarpImg1.width() < 1 ) {
+    CD_DEBUG("\n");
+
+    loadWeightsFromFile = false;
+
+    initialized = false;
+
+    this->useCallback();
+
+    return true;
+}
+
+/************************************************************************/
+bool teo::ProcessorPort::initialize() {
+
+    /*while( inYarpImg1.width() < 1 ) {
         iFrameGrabberImage1->getImage(inYarpImg1);
         CD_INFO("Wait for iFrameGrabberImage1...\n");
         yarp::os::Time::delay(0.5);
@@ -14,7 +28,8 @@ bool teo::ProcessorPort::threadInit() {
         iFrameGrabberImage2->getImage(inYarpImg2);
         CD_INFO("Wait for iFrameGrabberImage2...\n");
         yarp::os::Time::delay(0.5);
-    }
+    }*/
+
     printf("iFrameGrabberImage1 got a %dx%d image\n", inYarpImg1.width(), inYarpImg1.height());
     printf("iFrameGrabberImage2 got a %dx%d image\n", inYarpImg2.width(), inYarpImg2.height());
 
@@ -72,13 +87,15 @@ bool teo::ProcessorPort::threadInit() {
 }
 
 /************************************************************************/
-void teo::ProcessorPort::run() {
+void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img ) {
 
     CD_DEBUG("\n");
 
     //-- Begin --
-    iFrameGrabberImage1->getImage(inYarpImg1);
-    iFrameGrabberImage2->getImage(inYarpImg2);
+    if( ! initialized ) {
+        CD_INFO("Not initialized...\n");
+        return;
+    }
 
     cvCvtColor((IplImage*)inYarpImg1.getIplImage(), inCvImg1, CV_RGB2GRAY);
     cvCvtColor((IplImage*)inYarpImg2.getIplImage(), inCvImg2, CV_RGB2GRAY);
@@ -216,10 +233,14 @@ void teo::ProcessorPort::run() {
 }
 
 /************************************************************************/
-void teo::ProcessorPort::threadRelease() {
+bool teo::ProcessorPort::stop() {
+
+    this->disableCallback();
+
     cvReleaseImage( &inCvImg1 );
     cvReleaseImage( &inCvImg2 );
-    return;
+
+    return true;
 }
 
 /************************************************************************/

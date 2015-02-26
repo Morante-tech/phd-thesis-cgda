@@ -31,24 +31,19 @@ namespace teo
  * The ProcessorPort class.
  *
  */
-class ProcessorPort : public yarp::os::RateThread {
+class ProcessorPort : public yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelRgb > > {
 
     public:
-        // Set the Thread Rate in the class constructor
-        ProcessorPort() : RateThread(DEFAULT_MS) {}  // In ms
+        ProcessorPort() {}
 
-        /** Initialization method. */
-        virtual bool threadInit();
+        /** Callback function. */
+        virtual void onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img );
 
-        /** Release method. */
-        virtual void threadRelease();
+        /** Start method. */
+        bool start();
 
-        /** Loop function. This is the thread itself. */
-        virtual void run();
-
-        /** Grabber stuff */
-        yarp::dev::IFrameGrabberImage * iFrameGrabberImage1;
-        yarp::dev::IFrameGrabberImage * iFrameGrabberImage2;
+        /** Stop method. */
+        bool stop();
 
         void setPtrOutPort1(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
         void setPtrOutPort2(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
@@ -57,6 +52,9 @@ class ProcessorPort : public yarp::os::RateThread {
         void setPtrOutPort5(yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > *value);
 
 protected:
+
+        /** Initialization method. */
+        bool initialize();
 
         yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg1;
         yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg2;
@@ -101,8 +99,7 @@ protected:
         cv::Mat error_image_2;
 
         bool loadWeightsFromFile;
-        bool saveWeightsToFile;
-
+        bool initialized;
 
 };
 

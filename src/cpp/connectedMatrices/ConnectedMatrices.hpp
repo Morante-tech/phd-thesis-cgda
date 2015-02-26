@@ -30,8 +30,6 @@ class ConnectedMatrices : public yarp::os::RFModule {
 
     protected:
 
-        ProcessorPort processorRateThread;
-
         ProcessorPort inPort1;
         yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelRgb > > inPort2;
 
