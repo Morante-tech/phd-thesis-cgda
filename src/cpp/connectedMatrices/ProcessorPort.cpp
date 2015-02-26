@@ -18,11 +18,16 @@ bool teo::ProcessorPort::start() {
 }
 
 /************************************************************************/
-bool teo::ProcessorPort::initialize() {
+bool teo::ProcessorPort::initialize( yarp::sig::ImageOf< yarp::sig::PixelRgb >& inYarpImg1 ) {
 
+    printf("initialize got a %dx%d image1\n", inYarpImg1.width(), inYarpImg1.height());
+    printf("initialize got a %dx%d image2\n", inYarpImg2.width(), inYarpImg2.height());
 
-    printf("initialize got a %dx%d image\n", inYarpImg1.width(), inYarpImg1.height());
-    //printf("iFrameGrabberImage2 got a %dx%d image\n", inYarpImg2.width(), inYarpImg2.height());
+    if( inYarpImg1.width() < 1 )
+        return false;
+
+    if( inYarpImg2.width() < 1 )
+        return false;
 
     int frame1Rows = inYarpImg1.height();
     int frame1Cols = inYarpImg1.width();
@@ -85,16 +90,15 @@ void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img 
     //-- Begin --
     if( ! initialized ) {
         if( ! calledInitialize ) {
-            if( img.width() < 1 )
-                return;
             calledInitialize = true;
-            initialize();  //-- Must pass dimension parameters.
+            if( ! initialize( img  ) )
+                calledInitialize = false;
         }
         CD_INFO("Not initialized...\n");
         return;
     }
 
-    cvCvtColor((IplImage*)inYarpImg1.getIplImage(), inCvImg1, CV_RGB2GRAY);
+    cvCvtColor((IplImage*)img.getIplImage(), inCvImg1, CV_RGB2GRAY);
     cvCvtColor((IplImage*)inYarpImg2.getIplImage(), inCvImg2, CV_RGB2GRAY);
 
     cv::Mat frame1 = inCvImg1;

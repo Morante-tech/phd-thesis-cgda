@@ -54,9 +54,8 @@ class ProcessorPort : public yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::s
 protected:
 
         /** Initialization method. */
-        bool initialize();
+        bool initialize(yarp::sig::ImageOf<yarp::sig::PixelRgb> &inYarpImg1);
 
-        yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg1;
         yarp::sig::ImageOf<yarp::sig::PixelRgb> inYarpImg2;
 
         yarp::sig::ImageOf<yarp::sig::PixelMono> outYarpImg1;
