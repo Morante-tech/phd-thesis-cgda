@@ -99,7 +99,7 @@ protected:
         cv::Mat error_image_2;
 
         bool loadWeightsFromFile;
-        bool initialized;
+        bool initialized, calledInitialize;
 
 };
 

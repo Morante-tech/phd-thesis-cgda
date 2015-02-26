@@ -9,6 +9,7 @@ bool teo::ProcessorPort::start() {
 
     loadWeightsFromFile = false;
 
+    calledInitialize = false;
     initialized = false;
 
     this->useCallback();
@@ -19,19 +20,9 @@ bool teo::ProcessorPort::start() {
 /************************************************************************/
 bool teo::ProcessorPort::initialize() {
 
-    /*while( inYarpImg1.width() < 1 ) {
-        iFrameGrabberImage1->getImage(inYarpImg1);
-        CD_INFO("Wait for iFrameGrabberImage1...\n");
-        yarp::os::Time::delay(0.5);
-    }
-    while( inYarpImg2.width() < 1 ) {
-        iFrameGrabberImage2->getImage(inYarpImg2);
-        CD_INFO("Wait for iFrameGrabberImage2...\n");
-        yarp::os::Time::delay(0.5);
-    }*/
 
-    printf("iFrameGrabberImage1 got a %dx%d image\n", inYarpImg1.width(), inYarpImg1.height());
-    printf("iFrameGrabberImage2 got a %dx%d image\n", inYarpImg2.width(), inYarpImg2.height());
+    printf("initialize got a %dx%d image\n", inYarpImg1.width(), inYarpImg1.height());
+    //printf("iFrameGrabberImage2 got a %dx%d image\n", inYarpImg2.width(), inYarpImg2.height());
 
     int frame1Rows = inYarpImg1.height();
     int frame1Cols = inYarpImg1.width();
@@ -83,16 +74,22 @@ bool teo::ProcessorPort::initialize() {
 
     CD_DEBUG("\n");
 
+    initialized = true;
+
     return true;
 }
 
 /************************************************************************/
 void teo::ProcessorPort::onRead( yarp::sig::ImageOf< yarp::sig::PixelRgb >& img ) {
 
-    CD_DEBUG("\n");
-
     //-- Begin --
     if( ! initialized ) {
+        if( ! calledInitialize ) {
+            if( img.width() < 1 )
+                return;
+            calledInitialize = true;
+            initialize();  //-- Must pass dimension parameters.
+        }
         CD_INFO("Not initialized...\n");
         return;
     }
