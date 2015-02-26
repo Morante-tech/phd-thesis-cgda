@@ -42,9 +42,9 @@ else:
 ######################################################
 
 ##### PARAMETERS ###########
-ROWS_1 = int(20)
+ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(20)
+ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(0.1) # small alpha. at least 1/10 of beta
 beta =  np.float32(1)
@@ -110,7 +110,7 @@ while(cap1.isOpened() & cap2.isOpened()):
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation (prediction)
         
-        if(loadWeightsFromFile == False & fixWeightsMatrix == False):
+        if(loadWeightsFromFile == False and fixWeightsMatrix == False):
             #the elements that add value to the weights
             elem1  = alpha * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
@@ -128,6 +128,7 @@ while(cap1.isOpened() & cap2.isOpened()):
             #assign new weight to cell in DB
             weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
             totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
+
         else:
             totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
 
