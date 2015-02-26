@@ -32,8 +32,8 @@ class ConnectedMatrices : public yarp::os::RFModule {
 
         ProcessorRateThread processorRateThread;
 
-        yarp::dev::PolyDriver grabberDevice1;
-        yarp::dev::PolyDriver grabberDevice2;
+        ProcessorPort inPort1;
+        yarp::os::BufferedPort< yarp::sig::ImageOf< yarp::sig::PixelRgb > > inPort2;
 
         bool updateModule();
         bool interruptModule();
