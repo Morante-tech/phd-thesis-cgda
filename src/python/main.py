@@ -25,8 +25,8 @@ from itertools import product
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(1)
 
-cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -41,17 +41,33 @@ else:
     raise NameError('Cannot extract images from video')    
 ######################################################
 
-##### PARAMETERS ###########
+##### MAIN PARAMETERS ###########
 ROWS_1 = int(60)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 ROWS_2 = int(60)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.1) # small alpha. at least 1/10 of beta
+alpha = np.float32(0.1) # small alpha
 beta =  np.float32(1)
-msToWait= 1
+gaussianFlag = False
+medianFlag = False
+convolutionFlag = False
+interpolationType = cv2.INTER_AREA
+'''
+INTER_NEAREST - a nearest-neighbor interpolation
+INTER_LINEAR - a bilinear interpolation (used by default)
+INTER_AREA - resampling using pixel area relation. 
+      It may be a preferred method for image decimation, as it gives moire’-free results. 
+      But when the image is zoomed, it is similar to the INTER_NEAREST method.
+INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
+INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+'''
+############################
+
+##### SECONDARY PARAMS #####
+fixWeightsMatrix   = False
 loadWeightsFromFile = False
 saveWeightsToFile   = False
-fixWeightsMatrix   = False
+msToWait= 1
 weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ############################
 
@@ -60,8 +76,9 @@ if(loadWeightsFromFile==True):
     weightMatrix = np.load(weightsFilename).astype(np.float32)
 else:    
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
-####
+
 np.ascontiguousarray(weightMatrix)    
+###############################
 
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
@@ -86,8 +103,8 @@ while(cap1.isOpened() & cap2.isOpened()):
         break
     
     # note the changed axis in opencv
-    frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = cv2.INTER_NEAREST)
-    frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = cv2.INTER_NEAREST)
+    frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = interpolationType)
+    frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = interpolationType)
     
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
@@ -105,10 +122,11 @@ while(cap1.isOpened() & cap2.isOpened()):
     for (i,j) in product(ROWS_1_list, COLS_1_list):
        
         # find submatrix in DB and change currentweight value
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) ,
+                                               j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
         #if no variation in any of the images, we cannot predict relation
-        #Similar to losing confidence in relation (prediction)
+        #Similar to losing confidence in relation
         
         if(loadWeightsFromFile == False and fixWeightsMatrix == False):
             #the elements that add value to the weights
@@ -149,16 +167,21 @@ while(cap1.isOpened() & cap2.isOpened()):
 ########### VISUALIZATION #################    
 ###########################################
 
-    
     #### PREDICTOR MAPS ######
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
    
     # median blur, maybe effective with webcams images   
-    adaptTypePredictor = cv2.medianBlur(adaptTypePredictor,3)
+    if medianFlag == True:
+       adaptTypePredictor = cv2.medianBlur(adaptTypePredictor,3)
+
+    # Gaussian blur, maybe effective with webcams images   
+    if gaussianFlag == True:
+       adaptTypePredictor = cv2.GaussianBlur(adaptTypePredictor,(3,3),0)
 
     # 2d convolution
-#    kernel = np.ones((3,3),np.float32)/9
- #   adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
+    if convolutionFlag == True:
+       kernel = np.ones((3,3),np.float32)/9
+       adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
 
     cv2.namedWindow('Predictor 2', cv2.WINDOW_NORMAL)     
     cv2.imshow('Predictor 2', adaptTypePredictor)
@@ -190,7 +213,6 @@ while(cap1.isOpened() & cap2.isOpened()):
         if(saveWeightsToFile == True):
             np.save(weightsFilename, weightMatrix)
         break
-    
 
 #########################################################
 #####################   END LOOP   #####################

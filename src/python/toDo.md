@@ -1,3 +1,3 @@
 # toDo Python
 
-        * Test access from file for selected parts of the matrix
+        * Try access from file for selected parts of the matrix
