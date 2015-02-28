@@ -25,20 +25,23 @@ from itertools import product
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(1)
 
-#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
-    ret1, frame1 = cap1.read()
-    ret2, frame2 = cap2.read()
+
+    cap1.grab() # faster image adquisition than read
+    cap2.grab() # faster image adquisition than read
+    
+    ret1, frame1 = cap1.retrieve() # read = grab + retrieve (processing)
+    ret2, frame2 = cap2.retrieve() # read = grab + retrieve (processing)
     
     frame1Rows = frame1.shape[0]
     frame1Cols = frame1.shape[1]
     frame2Rows = frame2.shape[0]
     frame2Cols = frame2.shape[1]
 else:
-    raise NameError('Cannot extract images from video')    
+    raise NameError('[ERROR] Cannot extract images from video')    
 ######################################################
 
 ##### MAIN PARAMETERS ###########
@@ -48,8 +51,8 @@ ROWS_2 = int(60)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
 alpha = np.float32(0.1) # small alpha
 beta =  np.float32(1)
+medianFlag = True
 gaussianFlag = False
-medianFlag = False
 convolutionFlag = False
 interpolationType = cv2.INTER_AREA
 '''
@@ -64,10 +67,13 @@ INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 ############################
 
 ##### SECONDARY PARAMS #####
+#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+
 fixWeightsMatrix   = False
 loadWeightsFromFile = False
 saveWeightsToFile   = False
-msToWait= 1
+msToWait = int(1)
 weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ############################
 
@@ -89,17 +95,21 @@ COLS_2_list = range(COLS_2)
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) #first error map 2
+error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
-predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) #first predictor map 2
+predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
 
 ###############################
 ############ LOOP #############
-while(cap1.isOpened() & cap2.isOpened()):
-    ret1, frame1 = cap1.read()
-    ret2, frame2 = cap2.read()
-    if(ret1==False | ret2==False):
-        print 'No stream of images!!'
+while(cap1.isOpened() and cap2.isOpened()):
+    cap1.grab()
+    cap2.grab()
+    
+    ret1, frame1 = cap1.retrieve()
+    ret2, frame2 = cap2.retrieve()
+ 
+    if(ret1==False or ret2==False):
+        print '[ERROR] No stream of images!!'
         break
     
     # note the changed axis in opencv
@@ -161,7 +171,6 @@ while(cap1.isOpened() & cap2.isOpened()):
    #update previous image
     image_1_t_1 = image_1_t_0
     image_2_t_1 = image_2_t_0
-
     
 ###########################################
 ########### VISUALIZATION #################    
@@ -205,10 +214,12 @@ while(cap1.isOpened() & cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
   #  print np.sum(error_image_2)
 
-    k = cv2.waitKey(1) & 0xFF
+    k = cv2.waitKey(msToWait) and 0xFF
     
     if k == ord('f'):
-        fixWeightsMatrix = True
+        fixWeightsMatrix = True        
+        print '[INFO] WeightsMatrix Fixed'
+
     if k == ord('q'):
         if(saveWeightsToFile == True):
             np.save(weightsFilename, weightMatrix)
@@ -216,5 +227,8 @@ while(cap1.isOpened() & cap2.isOpened()):
 
 #########################################################
 #####################   END LOOP   #####################
+
+cap1.release()
+cap2.release()
 
 cv2.destroyAllWindows()
