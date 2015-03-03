@@ -56,16 +56,16 @@ int main(){
 
     //###############################
     cv::Mat weightMatrix_cpu;
-    cv::gpu::GpuMat weightMatrix_gpu;
+    cv::gpu::GpuMat weightMatrix;
 
     if(loadWeightsFromFile == true){
         weightMatrix_cpu = cv::imread(weightsFilename, CV_32FC1);
-        weightMatrix_gpu.upload(weightMatrix_cpu);
+        weightMatrix.upload(weightMatrix_cpu);
 
     }
     else{
         weightMatrix_cpu = cv::Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_32FC1);
-        weightMatrix_gpu.upload(weightMatrix_cpu);
+        weightMatrix.upload(weightMatrix_cpu);
 
     }
 
@@ -149,25 +149,25 @@ int main(){
         }
 
         //# note the changed axis in opencv
-        cv::resize(frame1, frame1_reduced, Size(COLS_1, ROWS_1), INTER_NEAREST);
-        cv::resize(frame2, frame2_reduced, Size(COLS_2, ROWS_2), INTER_NEAREST);
+        cv::gpu::resize(frame1, frame1_reduced, cv::Size(COLS_1, ROWS_1), cv::INTER_NEAREST);
+        cv::gpu::resize(frame2, frame2_reduced, cv::Size(COLS_2, ROWS_2), cv::INTER_NEAREST);
 
-        cv::cvtColor(frame1_reduced, image_1_t_0, COLOR_BGR2GRAY);
-        cv::cvtColor(frame2_reduced, image_2_t_0, COLOR_BGR2GRAY);
+        cv::gpu::cvtColor(frame1_reduced, image_1_t_0, cv::COLOR_BGR2GRAY);
+        cv::gpu::cvtColor(frame2_reduced, image_2_t_0, cv::COLOR_BGR2GRAY);
 
         //# 255.0 forcing float type
-        cv::absdiff(image_1_t_0, image_1_t_1, var_img1);
+        cv::gpu::absdiff(image_1_t_0, image_1_t_1, var_img1);
         var_img1.convertTo(var_img1, CV_32FC1);
         var_img1 = var_img1 / 255.0;
 
 
-        cv::absdiff(image_2_t_0, image_2_t_1, var_img2);
+        cv::gpu::absdiff(image_2_t_0, image_2_t_1, var_img2);
         var_img2.convertTo(var_img2, CV_32FC1);
         var_img2 = var_img2 / 255.0;
 
 
-        predictor_image_2 = cv::Mat::zeros(predictor_image_2.rows, predictor_image_2.cols, CV_32FC1); // #first predictor map 2
-        totalWeights = cv::Mat::zeros(totalWeights.rows, totalWeights.cols, CV_32FC1); // #first predictor map 2
+        predictor_image_2.setTo(cv::Scalar::all(0));
+        totalWeights.setTo(cv::Scalar::all(0));
 
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
@@ -181,10 +181,10 @@ int main(){
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
                     elem1  = alpha * var_img1.at<float>(i,j) * var_img2;
-                    cv::add(currWeightSubMatrixR2C2, elem1, elem2);
+                    cv::gpu::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
-                    absdiff(var_img1.at<float>(i,j), var_img2, elem3);
+                    cv::gpu::absdiff(var_img1.at<float>(i,j), var_img2, elem3);
 
                     elem4 = beta * elem3;
 
@@ -192,8 +192,8 @@ int main(){
                     elem5 = elem2-elem4;
 
                     //# limiting weights between 0 and 1
-                    threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
-                    threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, THRESH_TOZERO );
+                    cv::gpu::threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
+                    cv::gpu::threshold( newWeightSubMatrix, newWeightSubMatrix, 0, 0, cv::THRESH_TOZERO );
 
                     //#assign new weight to cell in DB
                     // maybe its not neccesarry in c++, direct asignation
@@ -201,11 +201,11 @@ int main(){
 
                     newWeightSubMatrix.copyTo(weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
 
-                    cv::add(totalWeights, newWeightSubMatrix, totalWeights);
+                    cv::gpu::add(totalWeights, newWeightSubMatrix, totalWeights);
 
                 } //if
                 else{
-                    cv::add(totalWeights, newWeightSubMatrix, totalWeights);
+                    cv::gpu::add(totalWeights, newWeightSubMatrix, totalWeights);
                 }//else
 
             }//for j
@@ -221,10 +221,10 @@ int main(){
 
                 img1DotWeightOverTotal = img1DotWeight / totalWeights;
 
-                cv::add(predictor_image_2, img1DotWeightOverTotal, predictor_image_2);
+                cv::gpu::add(predictor_image_2, img1DotWeightOverTotal, predictor_image_2);
 
-                threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC);
-                threshold( predictor_image_2, predictor_image_2, 0, 255, cv::THRESH_TOZERO );
+                cv::gpu::threshold( predictor_image_2, predictor_image_2, 255, 255, cv::THRESH_TRUNC);
+                cv::gpu::threshold( predictor_image_2, predictor_image_2, 0, 255, cv::THRESH_TOZERO );
 
 
             }//for j
@@ -240,32 +240,32 @@ int main(){
 
         //     #### PREDICTOR MAPS ######
         predictor_image_2.convertTo(adaptTypePredictor, CV_8UC1);
-        namedWindow("Predictor 2", WINDOW_NORMAL);
-        imshow("Predictor 2", adaptTypePredictor);
+        cv::namedWindow("Predictor 2", cv::WINDOW_OPENGL);
+        cv::imshow("Predictor 2", adaptTypePredictor);
 
         //    #### SHOW ORIGINAL IMAGES ######
-        namedWindow("Frame 1 (Reduced, gray, then extended again)", WINDOW_NORMAL);
-        imshow("Frame 1 (Reduced, gray, then extended again)", image_1_t_0);
+        cv::namedWindow("Frame 1 (Reduced, gray, then extended again)", cv::WINDOW_OPENGL);
+        cv::imshow("Frame 1 (Reduced, gray, then extended again)", image_1_t_0);
 
-        namedWindow("Frame 2 (Reduced, gray, then extended again)", WINDOW_NORMAL);
-        imshow("Frame 2 (Reduced, gray, then extended again)", image_2_t_0);
+        cv::namedWindow("Frame 2 (Reduced, gray, then extended again)", cv::WINDOW_OPENGL);
+        cv::imshow("Frame 2 (Reduced, gray, then extended again)", image_2_t_0);
 
         //    #### WEIGHT MAPS ####
 //        adaptRangeWeight = 255* weightMatrix.clone();
 //        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
-//        namedWindow("WeightMatrix", WINDOW_NORMAL);
-//        imshow("WeightMatrix",adaptTypeWeight);
+//        cv::namedWindow("WeightMatrix", cv::WINDOW_OPENGL);
+//        cv::imshow("WeightMatrix",adaptTypeWeight);
 
 
        // #### ERROR MAPS ######
-        absdiff(adaptTypePredictor, image_2_t_0, error_image_2);
-        namedWindow("Error 2", WINDOW_NORMAL);
-        imshow("Error 2", error_image_2);
+        cv::gpu::absdiff(adaptTypePredictor, image_2_t_0, error_image_2);
+        cv::namedWindow("Error 2", cv::WINDOW_OPENGL);
+        cv::imshow("Error 2", error_image_2);
 
         // escape key, not q as in python
         if (cv::waitKey(msToWait) == 27 ){
             if(saveWeightsToFile == true){
-                imwrite(weightsFilename,weightMatrix);
+                cv::imwrite(weightsFilename, weightMatrix);
             }//if
             break;
         }//if
