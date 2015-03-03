@@ -49,9 +49,9 @@ ROWS_1 = int(60)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 ROWS_2 = int(60)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.1) # small alpha
-beta =  np.float32(1)
-medianFlag = True
+alpha = np.float32(0.05) # small alpha
+beta =  np.float32(0.5)
+medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
 interpolationType = cv2.INTER_AREA
@@ -67,9 +67,8 @@ INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 ############################
 
 ##### SECONDARY PARAMS #####
-#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-
+cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 fixWeightsMatrix   = False
 loadWeightsFromFile = False
 saveWeightsToFile   = False
