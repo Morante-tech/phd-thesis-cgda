@@ -1,39 +1,34 @@
+/*
+Author: Santiago Morante
+Robotics Lab. Universidad Carlos III de Madrid
+
+About: This file (when finished) captures two videos, and trains weights
+to relate both images. After training (in fact, it is online, so I should say
+'when enough time has passed') it can predict movements between cameras.
+*/
+
 #include <iostream>
-//#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-//#include <yarp/math/Math.h>
 #include <sstream>
 #include <string>
 #include <stdio.h>
 
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/gpu/gpu.hpp>
 
-using namespace std;
-using namespace cv;
 
 int main(){
 
-    //tatup video
-    VideoCapture cap1("../../../../feed/videos/tatup.mp4"); // open the video file for reading
-    VideoCapture cap2("../../../../feed/videos/tatup.mp4"); // open the video file for reading
-
-    //synthetic video
-    //    VideoCapture cap1("../../../..feed/videos/synthetic2.ogg"); // open the video file for reading
-    //    VideoCapture cap2("../../../..feed/videos/synthetic2.ogg"); // open the video file for reading
-
-
-    //    VideoCapture cap1(0); // open the video file for reading
-    //    VideoCapture cap2(2); // open the video file for reading
-
-    //cap1.set(CV_CAP_PROP_FPS,15);
-    cap2.set(CV_CAP_PROP_FPS,15);
+    //read video
+    cv::gpu::VideoReader_GPU cap1("../../../../feed/videos/tatup.mp4");
+    cv::gpu::VideoReader_GPU cap2("../../../../feed/videos/tatup.mp4");
 
     if (!cap1.isOpened() || !cap2.isOpened()){
-        cout << "Cannot extract images from video" << endl;
+        std::cout << "Cannot extract images from video" << std::endl;
         return -1;
     }
-    Mat frame1, frame2;
+    cv::gpu::GpuMat frame1, frame2;
 
     bool ret1 = cap1.read(frame1); // read a new frame from video
     bool ret2 = cap2.read(frame2); // read a new frame from video
@@ -56,49 +51,90 @@ int main(){
     std::stringstream ss1, ss2;
     ss1 << ROWS_1;
     ss2 << ROWS_2;
-    string weightsFilename = "data/weightMatrix" + ss1.str() + "-" + ss2.str(); // + ".npy";
+    std::string weightsFilename = "data/weightMatrix" + ss1.str() + "-" + ss2.str(); // + ".npy";
     //############################
 
     //###############################
-    Mat weightMatrix;
+    cv::Mat weightMatrix_cpu;
+    cv::gpu::GpuMat weightMatrix_gpu;
+
     if(loadWeightsFromFile == true){
-        weightMatrix = imread(weightsFilename, CV_32FC1);
+        weightMatrix_cpu = cv::imread(weightsFilename, CV_32FC1);
+        weightMatrix_gpu.upload(weightMatrix_cpu);
+
     }
     else{
-        weightMatrix = Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_32FC1);
+        weightMatrix_cpu = cv::Mat::zeros(ROWS_1*ROWS_2, COLS_1*COLS_2, CV_32FC1);
+        weightMatrix_gpu.upload(weightMatrix_cpu);
+
     }
 
 
     // some neccesary initialization
-    Mat image_1_t_1  =  Mat::zeros(ROWS_1, COLS_1, CV_8UC1); // # image 1 previous time
-    Mat image_2_t_1  =  Mat::zeros(ROWS_2, COLS_2, CV_8UC1); // # image 2 previous time
+    cv::gpu::GpuMat image_1_t_1 (ROWS_1, COLS_1, CV_8UC1); // # image 1 previous time
+    image_1_t_1.setTo(cv::Scalar::all(0));
 
-    Mat image_1_t_0  =  Mat::zeros(ROWS_1, COLS_1, CV_8UC1);
-    Mat image_2_t_0  =  Mat::zeros(ROWS_2, COLS_2, CV_8UC1);
+    cv::gpu::GpuMat image_2_t_1(ROWS_2, COLS_2, CV_8UC1); // # image 2 previous time
+    image_2_t_1.setTo(cv::Scalar::all(0));
 
-    Mat error_image_2 = Mat::zeros(ROWS_2, COLS_2, CV_8UC1); // #first error map 2
+    cv::gpu::GpuMat image_1_t_0(ROWS_1, COLS_1, CV_8UC1);
+    image_1_t_0.setTo(cv::Scalar::all(0));
 
-    Mat totalWeights = Mat::zeros(ROWS_2,COLS_2, CV_32FC1);
-    Mat predictor_image_2 = Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
+    cv::gpu::GpuMat image_2_t_0(ROWS_2, COLS_2, CV_8UC1);
+    image_2_t_0.setTo(cv::Scalar::all(0));
 
-    Mat var_img1  =  Mat::zeros(ROWS_1, COLS_1, CV_32FC1);
-    Mat var_img2  =  Mat::zeros(ROWS_2, COLS_2, CV_32FC1);
+    cv::gpu::GpuMat error_image_2(ROWS_2, COLS_2, CV_8UC1); // #first error map 2
+    error_image_2.setTo(cv::Scalar::all(0));
 
-    Mat frame1_reduced, frame2_reduced;
-    Mat elem1(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat elem2(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat elem3(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat elem4(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat elem5(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    cv::gpu::GpuMat totalWeights(ROWS_2,COLS_2, CV_32FC1);
+    totalWeights.setTo(cv::Scalar::all(0));
 
-    Mat currWeightSubMatrixR2C2(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat newWeightSubMatrix(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat img1DotWeight(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
-    Mat img1DotWeightOverTotal(Mat::zeros(ROWS_2, COLS_2, CV_32FC1));
+    cv::gpu::GpuMat predictor_image_2(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
+    predictor_image_2.setTo(cv::Scalar::all(0));
 
-    Mat adaptTypePredictor = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
-    Mat adaptRangeWeight = Mat::zeros(ROWS_2,COLS_2, CV_32FC1); // #first predictor map 2
-    Mat adaptTypeWeight = Mat::zeros(ROWS_2,COLS_2, CV_8UC1); // #first predictor map 2
+    cv::gpu::GpuMat var_img1(ROWS_1, COLS_1, CV_32FC1);
+    var_img1.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat var_img2 (ROWS_2, COLS_2, CV_32FC1);
+    var_img2.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat frame1_reduced, frame2_reduced;
+    cv::gpu::GpuMat elem1(ROWS_2, COLS_2, CV_32FC1);
+    elem1.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat elem2(ROWS_2, COLS_2, CV_32FC1);
+    elem2.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat elem3(ROWS_2, COLS_2, CV_32FC1);
+    elem3.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat elem4(ROWS_2, COLS_2, CV_32FC1);
+    elem4.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat elem5(ROWS_2, COLS_2, CV_32FC1);
+    elem5.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat currWeightSubMatrixR2C2(ROWS_2, COLS_2, CV_32FC1);
+    currWeightSubMatrixR2C2.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat newWeightSubMatrix(ROWS_2, COLS_2, CV_32FC1);
+    newWeightSubMatrix.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat img1DotWeight(ROWS_2, COLS_2, CV_32FC1);
+    img1DotWeight.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat img1DotWeightOverTotal(ROWS_2, COLS_2, CV_32FC1);
+    img1DotWeightOverTotal.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat adaptTypePredictor(ROWS_2,COLS_2, CV_8UC1);
+    adaptTypePredictor.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat adaptRangeWeight (ROWS_2,COLS_2, CV_32FC1);
+    adaptRangeWeight.setTo(cv::Scalar::all(0));
+
+    cv::gpu::GpuMat adaptTypeWeight (ROWS_2,COLS_2, CV_8UC1);
+    adaptTypeWeight.setTo(cv::Scalar::all(0));
+
 
     //###############################
     //############ LOOP #############
@@ -108,7 +144,7 @@ int main(){
         ret2 = cap2.read(frame2); // read a new frame from video
 
         if(ret1 == false || ret2 == false){
-            cout << "No stream of images!!" << endl;
+            std::cout << "No stream of images!!" << std::endl;
             break;
         }
 
