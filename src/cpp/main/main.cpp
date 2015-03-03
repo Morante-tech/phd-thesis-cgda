@@ -158,12 +158,13 @@ int main(){
         //# 255.0 forcing float type
         cv::gpu::absdiff(image_1_t_0, image_1_t_1, var_img1);
         var_img1.convertTo(var_img1, CV_32FC1);
-        var_img1 = var_img1 / 255.0;
+        cv::gpu::multiply(var_img1,(1/255.0),var_img1);
 
 
         cv::gpu::absdiff(image_2_t_0, image_2_t_1, var_img2);
         var_img2.convertTo(var_img2, CV_32FC1);
-        var_img2 = var_img2 / 255.0;
+
+        cv::gpu::multiply(var_img2,(1/255.0),var_img2);
 
 
         predictor_image_2.setTo(cv::Scalar::all(0));
@@ -173,23 +174,26 @@ int main(){
             for(int j=0; j < COLS_1; j++){
 
                 //be careful, it may be not copying, but linking when not using clone. clone could be slow
-                weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
+                weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
                 //currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
 
              //   cout << currWeightSubMatrixR2C2 << endl;
 
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
-                    elem1  = alpha * var_img1.at<float>(i,j) * var_img2;
+                    cv::gpu::multiply(var_img2,alpha,elem1);
+                    cv::gpu::multiply(elem1,var_img1.at<float>(i,j),elem1);
+
+                    //elem1  = alpha * var_img1.at<float>(i,j) * var_img2;
                     cv::gpu::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
                     cv::gpu::absdiff(var_img1.at<float>(i,j), var_img2, elem3);
 
-                    elem4 = beta * elem3;
+                    cv::gpu::multiply(elem3,beta,elem4);
 
                     //#Subtraction of both elems
-                    elem5 = elem2-elem4;
+                    cv::gpu::subtract(elem2,elem4,elem5);
 
                     //# limiting weights between 0 and 1
                     cv::gpu::threshold( elem5, newWeightSubMatrix, 1, 1, cv::THRESH_TRUNC );
@@ -199,7 +203,7 @@ int main(){
                     // maybe its not neccesarry in c++, direct asignation
                     //copy or clone?
 
-                    newWeightSubMatrix.copyTo(weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
+                    newWeightSubMatrix.copyTo(weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
 
                     cv::gpu::add(totalWeights, newWeightSubMatrix, totalWeights);
 
@@ -214,12 +218,12 @@ int main(){
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
                 //copy or clone?
-                weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
+                weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
 
 
-                img1DotWeight = image_1_t_0.at<uchar>(i,j)*currWeightSubMatrixR2C2;
+                cv::gpu::multiply(currWeightSubMatrixR2C2,image_1_t_0.at<uchar>(i,j),img1DotWeight);
 
-                img1DotWeightOverTotal = img1DotWeight / totalWeights;
+                cv::gpu::divide(img1DotWeight,totalWeights,img1DotWeightOverTotal);
 
                 cv::gpu::add(predictor_image_2, img1DotWeightOverTotal, predictor_image_2);
 
@@ -276,7 +280,7 @@ int main(){
     //    #########################################################
     //    #####################   END LOOP   #####################
 
-    destroyAllWindows();
+    cv::destroyAllWindows();
 
     return 0;
 }
