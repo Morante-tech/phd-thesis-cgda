@@ -21,7 +21,7 @@ to relate both images. After training (in fact, it is online, so I should say
 int main(){
 
     int num_devices = cv::gpu::getCudaEnabledDeviceCount();
-    std::cout << "num_devices:" << num_devices << std::endl;
+    std::cout << "[INFO] CUDA devices:" << num_devices << std::endl;
 
     if(num_devices==0){
         std::cerr << "[ERROR] No CUDA devices!!" << std::endl;
@@ -29,21 +29,31 @@ int main(){
     }
 
     //read video
-    cv::gpu::VideoReader_GPU cap1("../../../../feed/videos/tatup.mp4");
-    cv::gpu::VideoReader_GPU cap2("../../../../feed/videos/tatup.mp4");
+
+    cv::VideoCapture cap1("../../../../feed/videos/tatup.mp4");
+    cv::VideoCapture cap2("../../../../feed/videos/tatup.mp4");
+
+ //   cv::VideoCapture cap1(0);
+   // cv::VideoCapture cap2(1);
 
     if (!cap1.isOpened() || !cap2.isOpened()){
-        std::cout << "Cannot extract images from video" << std::endl;
+        std::cerr << "[ERROR] Cannot extract images from video" << std::endl;
         return 1;
     }
-    cv::gpu::GpuMat frame1, frame2;
 
-    bool ret1 = cap1.read(frame1); // read a new frame from video
-    bool ret2 = cap2.read(frame2); // read a new frame from video
-    int frame1Rows = frame1.rows;
-    int frame1Cols = frame1.cols;
-    int frame2Rows = frame2.rows;
-    int frame2Cols = frame2.cols;
+//    cap1.set(CV_CAP_PROP_FPS, 15);
+ //   cap2.set(CV_CAP_PROP_FPS, 15);
+
+    cv::gpu::GpuMat frame1, frame2;
+    cv::Mat frame1_cpu, frame2_cpu;
+
+    bool ret1 = cap1.read(frame1_cpu); // read a new frame from video
+    bool ret2 = cap2.read(frame2_cpu); // read a new frame from video
+
+    int frame1Rows = frame1_cpu.rows;
+    int frame1Cols = frame1_cpu.cols;
+    int frame2Rows = frame2_cpu.rows;
+    int frame2Cols = frame2_cpu.cols;
 
     //##### PARAMETERS ###########
     int ROWS_1 = 70;
@@ -152,8 +162,11 @@ int main(){
     //############ LOOP #############
     while(cap1.isOpened() && cap2.isOpened()){
 
-        ret1 = cap1.read(frame1); // read a new frame from video
-        ret2 = cap2.read(frame2); // read a new frame from video
+        ret1 = cap1.read(frame1_cpu); // read a new frame from video
+        ret2 = cap2.read(frame2_cpu); // read a new frame from video
+
+        frame1.upload(frame1_cpu);
+        frame2.upload(frame2_cpu);
 
         if(ret1 == false || ret2 == false){
             std::cerr << "No stream of images!!" << std::endl;
