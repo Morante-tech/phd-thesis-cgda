@@ -20,13 +20,21 @@ to relate both images. After training (in fact, it is online, so I should say
 
 int main(){
 
+    int num_devices = cv::gpu::getCudaEnabledDeviceCount();
+    std::cout << "num_devices:" << num_devices << std::endl;
+
+    if(num_devices==0){
+        std::cerr << "[ERROR] No CUDA devices!!" << std::endl;
+        return 1;
+    }
+
     //read video
     cv::gpu::VideoReader_GPU cap1("../../../../feed/videos/tatup.mp4");
     cv::gpu::VideoReader_GPU cap2("../../../../feed/videos/tatup.mp4");
 
     if (!cap1.isOpened() || !cap2.isOpened()){
         std::cout << "Cannot extract images from video" << std::endl;
-        return -1;
+        return 1;
     }
     cv::gpu::GpuMat frame1, frame2;
 
@@ -47,7 +55,7 @@ int main(){
     int msToWait= 1;
     bool loadWeightsFromFile = false;
     bool saveWeightsToFile   = false;
-// ###############
+    // ###############
     std::stringstream ss1, ss2;
     ss1 << ROWS_1;
     ss2 << ROWS_2;
@@ -79,6 +87,8 @@ int main(){
 
     cv::gpu::GpuMat image_1_t_0(ROWS_1, COLS_1, CV_8UC1);
     image_1_t_0.setTo(cv::Scalar::all(0));
+    cv::Mat image_1_t_0_cpu(ROWS_1, COLS_1, CV_8UC1);
+
 
     cv::gpu::GpuMat image_2_t_0(ROWS_2, COLS_2, CV_8UC1);
     image_2_t_0.setTo(cv::Scalar::all(0));
@@ -94,6 +104,7 @@ int main(){
 
     cv::gpu::GpuMat var_img1(ROWS_1, COLS_1, CV_32FC1);
     var_img1.setTo(cv::Scalar::all(0));
+    cv::Mat var_img1_cpu(ROWS_1, COLS_1, CV_32FC1);
 
     cv::gpu::GpuMat var_img2 (ROWS_2, COLS_2, CV_32FC1);
     var_img2.setTo(cv::Scalar::all(0));
@@ -135,6 +146,7 @@ int main(){
     cv::gpu::GpuMat adaptTypeWeight (ROWS_2,COLS_2, CV_8UC1);
     adaptTypeWeight.setTo(cv::Scalar::all(0));
 
+    cv::gpu::GpuMat tempMatrix;
 
     //###############################
     //############ LOOP #############
@@ -144,7 +156,7 @@ int main(){
         ret2 = cap2.read(frame2); // read a new frame from video
 
         if(ret1 == false || ret2 == false){
-            std::cout << "No stream of images!!" << std::endl;
+            std::cerr << "No stream of images!!" << std::endl;
             break;
         }
 
@@ -159,6 +171,7 @@ int main(){
         cv::gpu::absdiff(image_1_t_0, image_1_t_1, var_img1);
         var_img1.convertTo(var_img1, CV_32FC1);
         cv::gpu::multiply(var_img1,(1/255.0),var_img1);
+        var_img1.download(var_img1_cpu);
 
 
         cv::gpu::absdiff(image_2_t_0, image_2_t_1, var_img2);
@@ -175,20 +188,17 @@ int main(){
 
                 //be careful, it may be not copying, but linking when not using clone. clone could be slow
                 weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
-                //currWeightSubMatrixR2C2 = weightMatrix( Rect(Point(j*COLS_2,i*ROWS_2), Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ).clone();
-
-             //   cout << currWeightSubMatrixR2C2 << endl;
 
                 if(loadWeightsFromFile == false){
                     //#the elements that add value to the weights
                     cv::gpu::multiply(var_img2,alpha,elem1);
-                    cv::gpu::multiply(elem1,var_img1.at<float>(i,j),elem1);
+                    cv::gpu::multiply(elem1,var_img1_cpu.at<float>(i,j),elem1);
 
                     //elem1  = alpha * var_img1.at<float>(i,j) * var_img2;
                     cv::gpu::add(currWeightSubMatrixR2C2, elem1, elem2);
 
                     //#the elements that subtract value to the weights
-                    cv::gpu::absdiff(var_img1.at<float>(i,j), var_img2, elem3);
+                    cv::gpu::absdiff( var_img2, var_img1_cpu.at<float>(i,j), elem3);
 
                     cv::gpu::multiply(elem3,beta,elem4);
 
@@ -203,7 +213,10 @@ int main(){
                     // maybe its not neccesarry in c++, direct asignation
                     //copy or clone?
 
-                    newWeightSubMatrix.copyTo(weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)) ));
+               //     weightMatrix.download(weightMatrix_cpu);
+                    tempMatrix = weightMatrix(cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2)));
+                    newWeightSubMatrix.copyTo( tempMatrix );
+                 //   weightMatrix.upload(weightMatrix_cpu);
 
                     cv::gpu::add(totalWeights, newWeightSubMatrix, totalWeights);
 
@@ -215,13 +228,15 @@ int main(){
             }//for j
         } //for i
 
+
+        image_1_t_0.download(image_1_t_0_cpu);
         for(int i=0; i < ROWS_1; i++){
             for(int j=0; j < COLS_1; j++){
                 //copy or clone?
                 weightMatrix( cv::Rect(cv::Point(j*COLS_2,i*ROWS_2), cv::Point(j*COLS_2+COLS_2,i*ROWS_2+ROWS_2))).copyTo(currWeightSubMatrixR2C2);
 
 
-                cv::gpu::multiply(currWeightSubMatrixR2C2,image_1_t_0.at<uchar>(i,j),img1DotWeight);
+                cv::gpu::multiply(currWeightSubMatrixR2C2,image_1_t_0_cpu.at<uchar>(i,j),img1DotWeight);
 
                 cv::gpu::divide(img1DotWeight,totalWeights,img1DotWeightOverTotal);
 
@@ -255,13 +270,13 @@ int main(){
         cv::imshow("Frame 2 (Reduced, gray, then extended again)", image_2_t_0);
 
         //    #### WEIGHT MAPS ####
-//        adaptRangeWeight = 255* weightMatrix.clone();
-//        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
-//        cv::namedWindow("WeightMatrix", cv::WINDOW_OPENGL);
-//        cv::imshow("WeightMatrix",adaptTypeWeight);
+        //        adaptRangeWeight = 255* weightMatrix.clone();
+        //        adaptRangeWeight.convertTo(adaptTypeWeight, CV_8UC1);
+        //        cv::namedWindow("WeightMatrix", cv::WINDOW_OPENGL);
+        //        cv::imshow("WeightMatrix",adaptTypeWeight);
 
 
-       // #### ERROR MAPS ######
+        // #### ERROR MAPS ######
         cv::gpu::absdiff(adaptTypePredictor, image_2_t_0, error_image_2);
         cv::namedWindow("Error 2", cv::WINDOW_OPENGL);
         cv::imshow("Error 2", error_image_2);
