@@ -11,7 +11,7 @@ to relate both images. After training (in fact, it is online, so I should say
 import numpy as np
 import cv2
 from itertools import product
-    
+from fann2 import libfann
 
 # tatup video
 #cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
@@ -45,12 +45,11 @@ else:
 ######################################################
 
 ##### MAIN PARAMETERS ###########
-ROWS_1 = int(60)
+ROWS_1 = int(2)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(60)
+ROWS_2 = int(2)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.05) # small alpha
-beta =  np.float32(0.5)
+alpha = np.float32(0.0001) # small alpha
 medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
@@ -92,11 +91,26 @@ ROWS_2_list = range(ROWS_2)
 COLS_2_list = range(COLS_2)
 
 ## some neccesary initialization
-image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
-image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
+image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
+image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
+
+
+mult_imgs = np.zeros((ROWS_2,COLS_2), np.float32)
+
+
+
+###################################################################
+##############################################################
+
+ann = libfann.neural_net()
+ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+
+###########################################################
+#########################################################
+
 
 ###############################
 ############ LOOP #############
@@ -118,48 +132,20 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
+
+    ann.train(image_1_t_0, image_2_t_0)
+    print    ann.run(image_1_t_0)
+    
     # 255.0 forcing float type
-    var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
-    var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
+#    var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
+#    var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
         
     predictor_image_2 = 0 #first predictor map 2
     
     # initialize total weights sum
     totalWeights = 0
 
-    # update weights
-    for (i,j) in product(ROWS_1_list, COLS_1_list):
-       
-        # find submatrix in DB and change currentweight value
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) ,
-                                               j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
-
-        #if no variation in any of the images, we cannot predict relation
-        #Similar to losing confidence in relation
-        
-        if(loadWeightsFromFile == False and fixWeightsMatrix == False):
-            #the elements that add value to the weights
-            elem1  = alpha * var_img1.item(i,j) * var_img2
-            elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
-            
-            #the elements that subtract value to the weights
-            elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
-            elem4 = elem3 * beta
-            
-            #Subtraction of both elems
-            elem5 = np.subtract(elem2,elem4)
-            
-            # limiting weights between 0 and 1
-            newWeightSubMatrix = np.clip(elem5, 0, 1)
-            
-            #assign new weight to cell in DB
-            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
-            totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
-
-        else:
-            totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
-
-     ###### calculate prediction image
+     ###### PROPAGATE: calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
         img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
@@ -167,9 +153,27 @@ while(cap1.isOpened() and cap2.isOpened()):
         temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
         predictor_image_2 = np.clip(temp_pred_2, 0, 255)  
 
-   #update previous image
-    image_1_t_1 = image_1_t_0
-    image_2_t_1 = image_2_t_0
+     ###### UPDATE WEIGHTS
+    for (i,j) in product(ROWS_1_list, COLS_1_list):
+        # find submatrix in DB and change currentweight value
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
+        
+        if(loadWeightsFromFile == False and fixWeightsMatrix == False):
+            #the elements that add value to the weights
+            mult_imgs = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
+
+            elem1  = alpha * cv2.subtract(image_2_t_0.astype(np.float32), mult_imgs)
+            newWeightSubMatrix = cv2.add(currWeightSubMatrixR2C2, elem1)
+            #assign new weight to cell in DB
+            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
+            
+            totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
+
+        else:
+            totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
+
+
+
     
 ###########################################
 ########### VISUALIZATION #################    
@@ -211,7 +215,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
     cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
-  #  print np.sum(error_image_2)
+   # print np.sum(error_image_2)
 
     k = cv2.waitKey(msToWait) and 0xFF
     
