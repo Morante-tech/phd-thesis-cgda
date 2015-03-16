@@ -5,12 +5,11 @@ Robotics Lab. Universidad Carlos III de Madrid
 
 About: This file (when finished) captures two videos, and trains weights
 to relate both images. After training (in fact, it is online, so I should say
-'when enough time has passed') it can predict movements between cameras.
+'when enough time has elapsed') it can predict movements between cameras.
 """
 
 import numpy as np
 import cv2
-from itertools import product
 from fann2 import libfann
 
 # tatup video
@@ -45,11 +44,11 @@ else:
 ######################################################
 
 ##### MAIN PARAMETERS ###########
-ROWS_1 = int(2)
+ROWS_1 = int(30)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(2)
+ROWS_2 = int(30)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.0001) # small alpha
+alpha = float(0.001) 
 medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
@@ -64,53 +63,36 @@ INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better t
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
 ############################
-
 ##### SECONDARY PARAMS #####
 cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 fixWeightsMatrix   = False
-loadWeightsFromFile = False
-saveWeightsToFile   = False
 msToWait = int(1)
-weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 ############################
-
-###############################
-if(loadWeightsFromFile==True):
-    weightMatrix = np.load(weightsFilename).astype(np.float32)
-else:    
-    weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
-
-np.ascontiguousarray(weightMatrix)    
-###############################
-
-## create dataframe                  
-ROWS_1_list = range(ROWS_1)
-COLS_1_list = range(COLS_1)
-ROWS_2_list = range(ROWS_2)
-COLS_2_list = range(COLS_2)
 
 ## some neccesary initialization
 image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
-totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
-predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
-
-
-mult_imgs = np.zeros((ROWS_2,COLS_2), np.float32)
-
-
 
 ###################################################################
+##########  NN
 ##############################################################
 
+# setting
 ann = libfann.neural_net()
 ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+ann.set_training_algorithm(0)
+ann.set_learning_rate(alpha)
+#ann.randomize_weights(-0.1, 0.1)
 
-###########################################################
-#########################################################
-
+# getting
+print "[INFO] sizes: ", ROWS_1*COLS_1, " and ", ROWS_2*COLS_2
+print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
+print "[INFO] total number of neurons: " , ann.get_total_neurons()
+print "[INFO] total number of connections: " , ann.get_total_connections()
+print "[INFO] ann params: ", ann.print_parameters()
+#print "[INFO] connecion matrix: ", ann.print_connections()
 
 ###############################
 ############ LOOP #############
@@ -132,54 +114,24 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-
-    ann.train(image_1_t_0, image_2_t_0)
-    print    ann.run(image_1_t_0)
+    img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+    img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
-    # 255.0 forcing float type
-#    var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
-#    var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
-        
-    predictor_image_2 = 0 #first predictor map 2
+    #train 1 sample (incremental)
+    ann.train(img1, img2) 
     
-    # initialize total weights sum
-    totalWeights = 0
-
-     ###### PROPAGATE: calculate prediction image
-    for (i,j) in product(ROWS_1_list, COLS_1_list):   
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
-        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
-        img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
-        temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
-        predictor_image_2 = np.clip(temp_pred_2, 0, 255)  
-
-     ###### UPDATE WEIGHTS
-    for (i,j) in product(ROWS_1_list, COLS_1_list):
-        # find submatrix in DB and change currentweight value
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
-        
-        if(loadWeightsFromFile == False and fixWeightsMatrix == False):
-            #the elements that add value to the weights
-            mult_imgs = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
-
-            elem1  = alpha * cv2.subtract(image_2_t_0.astype(np.float32), mult_imgs)
-            newWeightSubMatrix = cv2.add(currWeightSubMatrixR2C2, elem1)
-            #assign new weight to cell in DB
-            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
-            
-            totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
-
-        else:
-            totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
-
-
-
+    # predict 1 sample
+    predictor_image_2_list = ann.run(img1)
+    
+    #print "[INFO] MSE: ", ann.get_MSE()
     
 ###########################################
 ########### VISUALIZATION #################    
 ###########################################
 
     #### PREDICTOR MAPS ######
+    # des-normalizing and reshaping
+    predictor_image_2 = 255 * np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
    
     # median blur, maybe effective with webcams images   
@@ -190,7 +142,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     if gaussianFlag == True:
        adaptTypePredictor = cv2.GaussianBlur(adaptTypePredictor,(3,3),0)
 
-    # 2d convolution
+    # 2d convolution, maybe effective with webcams images 
     if convolutionFlag == True:
        kernel = np.ones((3,3),np.float32)/9
        adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
@@ -222,11 +174,6 @@ while(cap1.isOpened() and cap2.isOpened()):
     if k == ord('f'):
         fixWeightsMatrix = True        
         print '[INFO] WeightsMatrix Fixed'
-
-    if k == ord('q'):
-        if(saveWeightsToFile == True):
-            np.save(weightsFilename, weightMatrix)
-        break
 
 #########################################################
 #####################   END LOOP   #####################
