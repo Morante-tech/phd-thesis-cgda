@@ -11,6 +11,7 @@ to relate both images. After training (in fact, it is online, so I should say
 import numpy as np
 import cv2
 from fann2 import libfann
+from fann2 import _libfann
 
 # tatup video
 #cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
@@ -44,11 +45,13 @@ else:
 ######################################################
 
 ##### MAIN PARAMETERS ###########
-ROWS_1 = int(30)
+ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-ROWS_2 = int(30)
+ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = float(0.001) 
+alpha = float(0.0005) 
+momentum = float(0.1)
+hidden = False
 medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
@@ -81,8 +84,16 @@ error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 
 # setting
 ann = libfann.neural_net()
-ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
-ann.set_training_algorithm(0)
+if hidden == True:
+    ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
+else:
+    ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+ann.set_training_algorithm(_libfann.TRAIN_INCREMENTAL)
+'''
+TRAIN_RPROP
+TRAIN_INCREMENTAL
+'''
+ann.set_learning_momentum(momentum)
 ann.set_learning_rate(alpha)
 #ann.randomize_weights(-0.1, 0.1)
 
@@ -117,8 +128,9 @@ while(cap1.isOpened() and cap2.isOpened()):
     img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
-    #train 1 sample (incremental)
-    ann.train(img1, img2) 
+    if fixWeightsMatrix == False:    
+        #train 1 sample (incremental)
+        ann.train(img1, img2) 
     
     # predict 1 sample
     predictor_image_2_list = ann.run(img1)
@@ -169,11 +181,14 @@ while(cap1.isOpened() and cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
    # print np.sum(error_image_2)
 
-    k = cv2.waitKey(msToWait) and 0xFF
+    k = cv2.waitKey(msToWait) & 0xFF # not use AND, use &
     
     if k == ord('f'):
         fixWeightsMatrix = True        
         print '[INFO] WeightsMatrix Fixed'
+
+    if k == ord('q'):
+        break
 
 #########################################################
 #####################   END LOOP   #####################
