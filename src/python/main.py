@@ -39,11 +39,11 @@ ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = float(0.5) 
+alpha = float(0.7) 
 momentum = float(0.0)
 hidden = False
 
-var_images = True
+mvmnt_thres = 10
 fixWeightsMatrix   = False
 msToWait = int(1)
 interpolationType = cv2.INTER_AREA
@@ -85,8 +85,8 @@ TRAIN_INCREMENTAL
 '''
 ann.set_learning_momentum(momentum)
 ann.set_learning_rate(alpha)
+ann.set_train_error_function(_libfann.ERRORFUNC_TANH)
 #ann.set_activation_function_output(_libfann.SIGMOID_SYMMETRIC)
-#ann.randomize_weights(-0.1, 0.1)
 
 # getting
 print "[INFO] sizes: ", ROWS_1*COLS_1, " and ", ROWS_2*COLS_2
@@ -115,31 +115,31 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-    if var_images == True:
-    # variation image
-        var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
-        var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
 
-        img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-        img2 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-        
-    else:
+# variation image
+    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
+    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
+
+    img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+    img2 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
-        img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-        img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-        
-    if fixWeightsMatrix == False:    
+    total_change_img1 = int(sum(img1))
+    total_change_img2 = int(sum(img2))
+    
+    print "[INFO] Sum movement 1: ", total_change_img1
+    print "[INFO] Sum movement 2: ", total_change_img2, "\n"
+    
+    #train only if enough movement is available
+    if fixWeightsMatrix == False and total_change_img1 > mvmnt_thres and total_change_img2 > mvmnt_thres:    
         ann.train(img1, img2)  #train 1 sample (incremental)
-    
+    print "[INFO] MSE: ", ann.get_MSE()
+
     predictor_image_2_list = ann.run(img1)    # predict 1 sample
-
-    #print "[INFO] MSE: ", ann.get_MSE()
     
-    if var_images ==True:
-        image_1_t_1 = image_1_t_0       #update previous image
-        image_2_t_1 = image_2_t_0      #update previous image
 
-    
+    image_1_t_1 = image_1_t_0       #update previous image
+    image_2_t_1 = image_2_t_0      #update previous image
+
 ###########################################
 ########### VISUALIZATION #################    
 ###########################################
@@ -154,34 +154,22 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     #### SHOW ORIGINAL IMAGES ######
 
-    if var_images ==True:    
-        cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
-    
-        cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)    
-    
-    else:
+  
+    cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+    cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
 
-        cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
-    
-        cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)    
+    cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)    
+ 
     
     #### ERROR MAPS ###### 
-    if var_images ==True:    
-        error_image_2 = cv2.absdiff(adaptTypePredictor, var_img2)
-    else:
-        error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
-
+    
+    error_image_2 = cv2.absdiff(adaptTypePredictor, var_img2)
     cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
 
-
     #### Keys ###
     k = cv2.waitKey(msToWait) & 0xFF # not use AND, use &
-    
     if k == ord('f'):
         fixWeightsMatrix = True        
         print '[INFO] WeightsMatrix Fixed'
@@ -194,5 +182,4 @@ while(cap1.isOpened() and cap2.isOpened()):
 
 cap1.release()
 cap2.release()
-
 cv2.destroyAllWindows()
