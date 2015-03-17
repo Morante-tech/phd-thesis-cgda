@@ -55,6 +55,8 @@ hidden = False
 medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
+fixWeightsMatrix   = False
+msToWait = int(1)
 interpolationType = cv2.INTER_AREA
 '''
 INTER_NEAREST - a nearest-neighbor interpolation
@@ -65,12 +67,9 @@ INTER_AREA - resampling using pixel area relation.
 INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
-############################
-##### SECONDARY PARAMS #####
+##### CAMS PARAMS #####
 cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-fixWeightsMatrix   = False
-msToWait = int(1)
 ############################
 
 ## some neccesary initialization
@@ -78,9 +77,9 @@ image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 
-###################################################################
-##########  NN
-##############################################################
+##########################
+#########  NN ############
+##########################
 
 # setting
 ann = libfann.neural_net()
@@ -95,6 +94,7 @@ TRAIN_INCREMENTAL
 '''
 ann.set_learning_momentum(momentum)
 ann.set_learning_rate(alpha)
+#ann.set_activation_function_output(_libfann.SIGMOID_SYMMETRIC)
 #ann.randomize_weights(-0.1, 0.1)
 
 # getting
@@ -103,7 +103,6 @@ print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
 print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
 print "[INFO] ann params: ", ann.print_parameters()
-#print "[INFO] connecion matrix: ", ann.print_connections()
 
 ###############################
 ############ LOOP #############
