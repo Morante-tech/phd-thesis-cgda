@@ -13,19 +13,9 @@ import cv2
 from fann2 import libfann
 from fann2 import _libfann
 
-# tatup video
-#cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-#cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-
-#synthetic
-#cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
-#cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
-
 #from webcam
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(1)
-
-
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -49,12 +39,11 @@ ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = float(0.0005) 
-momentum = float(0.1)
+alpha = float(0.5) 
+momentum = float(0.0)
 hidden = False
-medianFlag = False
-gaussianFlag = False
-convolutionFlag = False
+
+var_images = True
 fixWeightsMatrix   = False
 msToWait = int(1)
 interpolationType = cv2.INTER_AREA
@@ -75,9 +64,11 @@ cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 ## some neccesary initialization
 image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
+image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
+image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
-
 ##########################
+
 #########  NN ############
 ##########################
 
@@ -104,8 +95,8 @@ print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
 print "[INFO] ann params: ", ann.print_parameters()
 
-###############################
-############ LOOP #############
+##############################################################
+############ LOOP ############################################
 while(cap1.isOpened() and cap2.isOpened()):
     cap1.grab()
     cap2.grab()
@@ -124,17 +115,30 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-    img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-    img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+    if var_images == True:
+    # variation image
+        var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
+        var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
+
+        img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        img2 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        
+    else:
     
+        img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        
     if fixWeightsMatrix == False:    
-        #train 1 sample (incremental)
-        ann.train(img1, img2) 
+        ann.train(img1, img2)  #train 1 sample (incremental)
     
-    # predict 1 sample
-    predictor_image_2_list = ann.run(img1)
-    
+    predictor_image_2_list = ann.run(img1)    # predict 1 sample
+
     #print "[INFO] MSE: ", ann.get_MSE()
+    
+    if var_images ==True:
+        image_1_t_1 = image_1_t_0       #update previous image
+        image_2_t_1 = image_2_t_0      #update previous image
+
     
 ###########################################
 ########### VISUALIZATION #################    
@@ -145,41 +149,37 @@ while(cap1.isOpened() and cap2.isOpened()):
     predictor_image_2 = 255 * np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
    
-    # median blur, maybe effective with webcams images   
-    if medianFlag == True:
-       adaptTypePredictor = cv2.medianBlur(adaptTypePredictor,3)
-
-    # Gaussian blur, maybe effective with webcams images   
-    if gaussianFlag == True:
-       adaptTypePredictor = cv2.GaussianBlur(adaptTypePredictor,(3,3),0)
-
-    # 2d convolution, maybe effective with webcams images 
-    if convolutionFlag == True:
-       kernel = np.ones((3,3),np.float32)/9
-       adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
-
     cv2.namedWindow('Predictor 2', cv2.WINDOW_NORMAL)     
     cv2.imshow('Predictor 2', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
-    cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
 
-    cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
+    if var_images ==True:    
+        cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
     
+        cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)    
     
-#    #### WEIGHT MAPS ####
-#    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
-#    cv2.namedWindow('WeightMatrix', cv2.WINDOW_NORMAL)         
-#    cv2.imshow('WeightMatrix',adaptTypeWeight)
+    else:
 
+        cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
+    
+        cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)    
+    
     #### ERROR MAPS ###### 
-    error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    if var_images ==True:    
+        error_image_2 = cv2.absdiff(adaptTypePredictor, var_img2)
+    else:
+        error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+
     cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
-   # print np.sum(error_image_2)
 
+
+    #### Keys ###
     k = cv2.waitKey(msToWait) & 0xFF # not use AND, use &
     
     if k == ord('f'):
