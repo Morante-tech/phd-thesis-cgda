@@ -24,7 +24,8 @@ from itertools import product
 #from webcam
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(1)
-
+cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 
 ##### some variables ###############################
@@ -54,6 +55,12 @@ beta =  np.float32(0.5)
 medianFlag = False
 gaussianFlag = False
 convolutionFlag = False
+fixWeightsMatrix   = False
+loadWeightsFromFile = False
+saveWeightsToFile   = False
+ACTUAL_IMAGES = False
+msToWait = int(1)
+weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 interpolationType = cv2.INTER_AREA
 '''
 INTER_NEAREST - a nearest-neighbor interpolation
@@ -64,18 +71,6 @@ INTER_AREA - resampling using pixel area relation.
 INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
-############################
-
-##### SECONDARY PARAMS #####
-cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-fixWeightsMatrix   = False
-loadWeightsFromFile = False
-saveWeightsToFile   = False
-msToWait = int(1)
-weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
-############################
-
 ###############################
 if(loadWeightsFromFile==True):
     weightMatrix = np.load(weightsFilename).astype(np.float32)
@@ -162,7 +157,12 @@ while(cap1.isOpened() and cap2.isOpened()):
      ###### calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
-        img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
+        
+        if ACTUAL_IMAGES == True:
+            img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
+        else:
+            img1DotWeight = 255*np.multiply(var_img1.item(i,j), currWeightSubMatrixR2C2)
+        
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
         temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
         predictor_image_2 = np.clip(temp_pred_2, 0, 255)  
@@ -196,11 +196,14 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     #### SHOW ORIGINAL IMAGES ######
     cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
-
     cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
-    
+
+    if ACTUAL_IMAGES == True:
+        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
+        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
+    else:
+        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
+        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)
     
 #    #### WEIGHT MAPS ####
 #    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
@@ -208,7 +211,10 @@ while(cap1.isOpened() and cap2.isOpened()):
 #    cv2.imshow('WeightMatrix',adaptTypeWeight)
 
     #### ERROR MAPS ###### 
-    error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    if ACTUAL_IMAGES == True:
+        error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    else:
+        error_image_2 = cv2.absdiff(adaptTypePredictor, (var_img2*255).astype(np.uint8))
     cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error 2', error_image_2)
   #  print np.sum(error_image_2)
