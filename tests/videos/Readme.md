@@ -2,6 +2,8 @@
 
 synthetic_test_1:
 
+    *Network: Custom
+    *ACTUAL_IMAGES = TRUE
     *ROWS_1 = int(20)
     *COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     *ROWS_2 = int(20)
@@ -12,7 +14,8 @@ synthetic_test_1:
     *loadWeightsFromFile = False
 
 tatup_test_1:
-
+    *Network: Custom
+    *ACTUAL_IMAGES = TRUE
     *ROWS_1 = int(20)
     *COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     *ROWS_2 = int(20)
