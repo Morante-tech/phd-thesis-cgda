@@ -1,3 +1,4 @@
 # toDo Python
 
-        * Try access from file for selected parts of the matrix
+        * Affordances: force-visio, etc.
+        * Custom error function

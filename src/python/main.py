@@ -46,6 +46,7 @@ hidden = False
 mvmnt_thres = 10
 fixWeightsMatrix   = False
 msToWait = int(1)
+
 interpolationType = cv2.INTER_AREA
 '''
 INTER_NEAREST - a nearest-neighbor interpolation
@@ -78,16 +79,152 @@ if hidden == True:
     ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
 else:
     ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+
 ann.set_training_algorithm(_libfann.TRAIN_INCREMENTAL)
 '''
-TRAIN_RPROP
-TRAIN_INCREMENTAL
-'''
-ann.set_learning_momentum(momentum)
-ann.set_learning_rate(alpha)
-ann.set_train_error_function(_libfann.ERRORFUNC_TANH)
-#ann.set_activation_function_output(_libfann.SIGMOID_SYMMETRIC)
+TRAIN_INCREMENTAL	Standard backpropagation algorithm, 
+where the weights are updated after each training pattern.  
+This means that the weights are updated many times during a single epoch.  
+For this reason some problems, will train very fast with this algorithm, 
+while other more advanced problems will not train very well.
 
+TRAIN_BATCH	Standard backpropagation algorithm, where the weights are 
+updated after calculating the mean square error for the whole training set.  
+This means that the weights are only updated once during a epoch.  For this 
+reason some problems, will train slower with this algorithm.  But since the 
+mean square error is calculated more correctly than in incremental training,
+some problems will reach a better solutions with this algorithm.
+
+TRAIN_RPROP	A more advanced batch training algorithm which achieves good 
+results for many problems.  The RPROP training algorithm is adaptive, and does 
+therefore not use the learning_rate.  Some other parameters can however be set 
+to change the way the RPROP algorithm works, but it is only recommended for 
+users with insight in how the RPROP training algorithm works.  The RPROP 
+training algorithm is described by [Riedmiller and Braun, 1993], but the actual 
+learning algorithm used here is the iRPROP- training algorithm which is 
+described by [Igel and Husken, 2000] which is an variety of the standard RPROP 
+training algorithm.
+
+TRAIN_QUICKPROP	A more advanced batch training algorithm which achieves 
+good results for many problems.  The quickprop training algorithm uses the 
+learning_rate parameter along with other more advanced parameters, but it is 
+only recommended to change these advanced parameters, for users with insight 
+in how the quickprop training algorithm works.  The quickprop training 
+algorithm is described by [Fahlman, 1988].
+'''
+
+ann.set_learning_momentum(momentum)
+'''
+Get the learning momentum.
+The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
+A too high momentum will however not benefit training.  Setting momentum to 0 
+will be the same as not using the momentum parameter.  The recommended value 
+of this parameter is between 0.0 and 1.0.
+The default momentum is 0.
+'''
+
+ann.set_learning_rate(alpha)
+'''
+The learning rate is used to determine how aggressive training should be for 
+some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
+FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
+'''
+
+ann.set_train_error_function(_libfann.ERRORFUNC_TANH)
+'''
+FANN_ERRORFUNC_LINEAR	Standard linear error function.
+FANN_ERRORFUNC_TANH	Tanh error function, usually better but can require a 
+lower learning rate.  This error function agressively targets outputs that 
+differ much from the desired, while not targetting outputs that only differ 
+a little that much.  This activation function is not recommended for cascade 
+training and incremental training.
+'''
+
+#ann.set_activation_function_output(_libfann.SIGMOID_SYMMETRIC)
+'''
+The functions are described with functions where
+x is the input to the activation function,
+y is the output,
+s is the steepness and
+d is the derivation.
+
+FANN_LINEAR	Linear activation function.
+span: -inf < y < inf
+y = x*s, d = 1*s
+Can NOT be used in fixed point.
+
+FANN_THRESHOLD	Threshold activation function.
+x < 0 -> y = 0, x >= 0 -> y = 1
+Can NOT be used during training.
+
+FANN_THRESHOLD_SYMMETRIC	Threshold activation function.
+x < 0 -> y = 0, x >= 0 -> y = 1
+Can NOT be used during training.
+
+FANN_SIGMOID	Sigmoid activation function.
+One of the most used activation functions.
+span: 0 < y < 1
+y = 1/(1 + exp(-2*s*x))
+d = 2*s*y*(1 - y)
+
+FANN_SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
+Faster than sigmoid but a bit less precise.
+Symmetric sigmoid activation function, aka. tanh.
+One of the most used activation functions.
+span: -1 < y < 1
+y = tanh(s*x) = 2/(1 + exp(-2*s*x)) - 1
+d = s*(1-(y*y))
+
+FANN_GAUSSIAN	Gaussian activation function.
+0 when x = -inf, 1 when x = 0 and 0 when x = inf
+span: 0 < y < 1
+y = exp(-x*s*x*s)
+d = -2*x*s*y*s
+
+FANN_GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
+-1 when x = -inf, 1 when x = 0 and 0 when x = inf
+span: -1 < y < 1
+y = exp(-x*s*x*s)*2-1
+d = -2*x*s*(y+1)*s
+
+FANN_ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
+span: 0 < y < 1
+y = ((x*s) / 2) / (1 + |x*s|) + 0.5
+d = s*1/(2*(1+|x*s|)*(1+|x*s|))
+
+FANN_ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
+span: -1 < y < 1
+y = (x*s) / (1 + |x*s|)
+d = s*1/((1+|x*s|)*(1+|x*s|))
+
+FANN_LINEAR_PIECE	Bounded linear activation function.
+span: 0 <= y <= 1
+y = x*s, d = 1*s
+
+FANN_LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
+span: -1 <= y <= 1
+y = x*s, d = 1*s
+
+FANN_SIN_SYMMETRIC	Periodical sinus activation function.
+span: -1 <= y <= 1
+y = sin(x*s)
+d = s*cos(x*s)
+
+FANN_COS_SYMMETRIC	Periodical cosinus activation function.
+span: -1 <= y <= 1
+y = cos(x*s)
+d = s*-sin(x*s)
+
+FANN_SIN	Periodical sinus activation function.
+span: 0 <= y <= 1
+y = sin(x*s)/2+0.5
+d = s*cos(x*s)/2
+
+FANN_COS	Periodical cosinus activation function.
+span: 0 <= y <= 1
+y = cos(x*s)/2+0.5
+d = s*-sin(x*s)/2
+'''
 # getting
 print "[INFO] sizes: ", ROWS_1*COLS_1, " and ", ROWS_2*COLS_2
 print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
@@ -121,18 +258,18 @@ while(cap1.isOpened() and cap2.isOpened()):
     var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
 
     img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-    img2 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+    img2 = np.array(var_img2).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
     total_change_img1 = int(sum(img1))
     total_change_img2 = int(sum(img2))
     
-    print "[INFO] Sum movement 1: ", total_change_img1
-    print "[INFO] Sum movement 2: ", total_change_img2, "\n"
+  #  print "[INFO] Sum movement 1: ", total_change_img1
+  #  print "[INFO] Sum movement 2: ", total_change_img2, "\n"
     
     #train only if enough movement is available
     if fixWeightsMatrix == False and total_change_img1 > mvmnt_thres and total_change_img2 > mvmnt_thres:    
         ann.train(img1, img2)  #train 1 sample (incremental)
-    print "[INFO] MSE: ", ann.get_MSE()
+   # print "[INFO] MSE: ", ann.get_MSE()
 
     predictor_image_2_list = ann.run(img1)    # predict 1 sample
     
