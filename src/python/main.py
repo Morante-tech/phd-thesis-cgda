@@ -43,51 +43,47 @@ else:
     raise NameError('[ERROR] Cannot extract images from video')    
 ######################################################
 
-##### MAIN PARAMETERS ###########
-ROWS_1 = int(40)
-COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
+##### PARAMETERS ###########
+ROWS_1 = int(40) 
+''' 
+image 1 rows in reduced image to feed the NN with
+'''
+COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows) 
+''' 
+image 1 cols in reduced image to feed the NN with
+'''
 ROWS_2 = int(40)
+''' 
+image 2 rows in reduced image to feed the NN with
+'''
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = float(0.3) 
-momentum = float(0.0)
-hidden = False
-
-mvmnt_thres = 10
-fixWeightsMatrix   = False
-msToWait = int(1)
-
-interpolationType = cv2.INTER_AREA
-'''
-INTER_NEAREST - a nearest-neighbor interpolation
-INTER_LINEAR - a bilinear interpolation (used by default)
-INTER_AREA - resampling using pixel area relation. 
-      It may be a preferred method for image decimation, as it gives moire’-free results. 
-      But when the image is zoomed, it is similar to the INTER_NEAREST method.
-INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
-INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+''' 
+image 2 cols in reduced image to feed the NN with
 '''
 
-############################
+ALPHA = float(0.3) 
+'''
+The learning rate is used to determine how aggressive training should be for 
+some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
+FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
+'''
 
-## some neccesary initialization
-image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
-image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
-image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
-##########################
+MOMENTUM = float(0.0)
+'''
+Get the learning momentum.
+The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
+A too high momentum will however not benefit training.  Setting momentum to 0 
+will be the same as not using the momentum parameter.  The recommended value 
+of this parameter is between 0.0 and 1.0.
+The default momentum is 0.
+'''
 
-#########  NN ############
-##########################
+HIDDEN = False
+'''
+Select if a hidden layer is used or not. Default size = same as input layer
+'''
 
-# setting
-ann = libfann.neural_net()
-if hidden == True:
-    ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
-else:
-    ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
-
-ann.set_training_algorithm(_libfann.TRAIN_INCREMENTAL)
+TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
 '''
 TRAIN_INCREMENTAL	Standard backpropagation algorithm, 
 where the weights are updated after each training pattern.  
@@ -120,24 +116,7 @@ in how the quickprop training algorithm works.  The quickprop training
 algorithm is described by [Fahlman, 1988].
 '''
 
-ann.set_learning_momentum(momentum)
-'''
-Get the learning momentum.
-The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
-A too high momentum will however not benefit training.  Setting momentum to 0 
-will be the same as not using the momentum parameter.  The recommended value 
-of this parameter is between 0.0 and 1.0.
-The default momentum is 0.
-'''
-
-ann.set_learning_rate(alpha)
-'''
-The learning rate is used to determine how aggressive training should be for 
-some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
-FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
-'''
-
-ann.set_train_error_function(_libfann.ERRORFUNC_TANH)
+TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
 '''
 ERRORFUNC_LINEAR	Standard linear error function.
 ERRORFUNC_TANH	Tanh error function, usually better but can require a 
@@ -146,8 +125,7 @@ differ much from the desired, while not targetting outputs that only differ
 a little that much.  This activation function is not recommended for cascade 
 training and incremental training.
 '''
-
-ann.set_train_stop_function(_libfann.STOPFUNC_MSE)
+TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
 '''
 STOPFUNC_MSE	Stop criteria is Mean Square Error (MSE) value.
 
@@ -158,10 +136,8 @@ are counted in all of the training data, so this number can be higher than the
 number of training data.
 '''
 
-if hidden ==True:
-    ann.set_activation_function_hidden(_libfann.SIGMOID)
-
-ann.set_activation_function_output(_libfann.SIGMOID)
+ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
+ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
 '''
 The functions are described with functions where
 x is the input to the activation function,
@@ -248,11 +224,72 @@ span: 0 <= y <= 1
 y = cos(x*s)/2+0.5
 d = s*-sin(x*s)/2
 '''
-# getting
+
+MVMNT_THRES = 10
+'''
+Movement is detected by pixel. If no movement in the image, its "variation image"
+value  is zero. This threshold is used to avoid training the NN with static images,
+that is, images were there is no movement. This params is compared with the sum
+os all the values of all pixel in each "variation image". Pixel values are
+normalize 0-1.
+
+'''
+
+FIXWEIGHTSMATRIX = False
+'''
+This param is used to fix the NN in a specific moment, and dont train it more
+'''
+
+MSTOWAIT = int(1)
+'''
+ms to wait for a key in opencv
+'''
+
+interpolationType = cv2.INTER_AREA
+'''
+INTER_NEAREST - a nearest-neighbor interpolation
+INTER_LINEAR - a bilinear interpolation (used by default)
+INTER_AREA - resampling using pixel area relation. 
+      It may be a preferred method for image decimation, as it gives moire’-free results. 
+      But when the image is zoomed, it is similar to the INTER_NEAREST method.
+INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
+INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
+'''
+############################
+
+#########  NN ############
+
+# setting
+ann = libfann.neural_net()
+if HIDDEN == True:
+    ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
+else:
+    ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+
+ann.set_learning_rate(ALPHA)
+ann.set_learning_momentum(MOMENTUM)
+ann.set_training_algorithm(TRAINING_ALGORITHM)
+ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
+ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
+
+if HIDDEN ==True:
+    ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
+
+ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
+################################
+
+# Getting info from NN
 print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
 print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
 print "[INFO] ann params: ", ann.print_parameters()
+
+## Some neccesary initialization
+image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
+image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
+image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
+image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
+error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 
 ##############################################################
 ############ LOOP ############################################
@@ -274,29 +311,33 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
-
-# variation image
+    # variation image
     var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
     var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
 
+    # flatten images
     img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     img2 = np.array(var_img2).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
+    #calculating total change in pixels
     total_change_img1 = int(sum(img1))
     total_change_img2 = int(sum(img2))
     
   #  print "[INFO] Sum movement 1: ", total_change_img1
   #  print "[INFO] Sum movement 2: ", total_change_img2, "\n"
     
-    #train only if enough movement is available
-    if fixWeightsMatrix == False and total_change_img1 > mvmnt_thres and total_change_img2 > mvmnt_thres:    
+    # train only if enough movement has ocurred
+    if FIXWEIGHTSMATRIX == False and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:    
         ann.train(img1, img2)  #train 1 sample (incremental)
+   
    # print "[INFO] MSE: ", ann.get_MSE()
 
-    predictor_image_2_list = ann.run(img1)    # predict 1 sample
+    ## PREDICTING SAMPLE
+    predictor_image_2_list = ann.run(img1)
     
-    image_1_t_1 = image_1_t_0       #update previous image
-    image_2_t_1 = image_2_t_0      #update previous image
+    ## UPDATE PREVIOUS IMAGES
+    image_1_t_1 = image_1_t_0
+    image_2_t_1 = image_2_t_0
 
 ###########################################
 ########### VISUALIZATION #################    
@@ -326,9 +367,9 @@ while(cap1.isOpened() and cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
 
     #### Keys ###
-    k = cv2.waitKey(msToWait) & 0xFF # not use AND, use &
+    k = cv2.waitKey(MSTOWAIT) & 0xFF # not use AND, use &
     if k == ord('f'):
-        fixWeightsMatrix = True        
+        FIXWEIGHTSMATRIX = True        
         print '[INFO] WeightsMatrix Fixed'
 
     if k == ord('q'):
