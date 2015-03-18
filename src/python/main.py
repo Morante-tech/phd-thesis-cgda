@@ -13,9 +13,18 @@ import cv2
 from fann2 import libfann
 from fann2 import _libfann
 
+##### CAMS PARAMS #####
 #from webcam
 cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(1)
+cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+
+#cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
+#cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
+
+#cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+#cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -39,7 +48,7 @@ ROWS_1 = int(40)
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 ROWS_2 = int(40)
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = float(0.7) 
+alpha = float(0.3) 
 momentum = float(0.0)
 hidden = False
 
@@ -57,9 +66,7 @@ INTER_AREA - resampling using pixel area relation.
 INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
-##### CAMS PARAMS #####
-cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+
 ############################
 
 ## some neccesary initialization
@@ -132,15 +139,29 @@ FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
 
 ann.set_train_error_function(_libfann.ERRORFUNC_TANH)
 '''
-FANN_ERRORFUNC_LINEAR	Standard linear error function.
-FANN_ERRORFUNC_TANH	Tanh error function, usually better but can require a 
+ERRORFUNC_LINEAR	Standard linear error function.
+ERRORFUNC_TANH	Tanh error function, usually better but can require a 
 lower learning rate.  This error function agressively targets outputs that 
 differ much from the desired, while not targetting outputs that only differ 
 a little that much.  This activation function is not recommended for cascade 
 training and incremental training.
 '''
 
-#ann.set_activation_function_output(_libfann.SIGMOID_SYMMETRIC)
+ann.set_train_stop_function(_libfann.STOPFUNC_MSE)
+'''
+STOPFUNC_MSE	Stop criteria is Mean Square Error (MSE) value.
+
+STOPFUNC_BIT	Stop criteria is number of bits that fail.  The number 
+of bits; means the number of output neurons which differ more than the bit 
+fail limit (see fann_get_bit_fail_limit, fann_set_bit_fail_limit).  The bits 
+are counted in all of the training data, so this number can be higher than the 
+number of training data.
+'''
+
+if hidden ==True:
+    ann.set_activation_function_hidden(_libfann.SIGMOID)
+
+ann.set_activation_function_output(_libfann.SIGMOID)
 '''
 The functions are described with functions where
 x is the input to the activation function,
@@ -148,85 +169,86 @@ y is the output,
 s is the steepness and
 d is the derivation.
 
-FANN_LINEAR	Linear activation function.
+LINEAR	Linear activation function.
 span: -inf < y < inf
 y = x*s, d = 1*s
 Can NOT be used in fixed point.
 
-FANN_THRESHOLD	Threshold activation function.
+THRESHOLD	Threshold activation function.
 x < 0 -> y = 0, x >= 0 -> y = 1
 Can NOT be used during training.
 
-FANN_THRESHOLD_SYMMETRIC	Threshold activation function.
+THRESHOLD_SYMMETRIC	Threshold activation function.
 x < 0 -> y = 0, x >= 0 -> y = 1
 Can NOT be used during training.
 
-FANN_SIGMOID	Sigmoid activation function.
+SIGMOID	Sigmoid activation function.
 One of the most used activation functions.
 span: 0 < y < 1
 y = 1/(1 + exp(-2*s*x))
 d = 2*s*y*(1 - y)
 
-FANN_SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
+-> SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
 Faster than sigmoid but a bit less precise.
+
+SIGMOID_SYMMETRIC
 Symmetric sigmoid activation function, aka. tanh.
 One of the most used activation functions.
 span: -1 < y < 1
 y = tanh(s*x) = 2/(1 + exp(-2*s*x)) - 1
 d = s*(1-(y*y))
 
-FANN_GAUSSIAN	Gaussian activation function.
+GAUSSIAN	Gaussian activation function.
 0 when x = -inf, 1 when x = 0 and 0 when x = inf
 span: 0 < y < 1
 y = exp(-x*s*x*s)
 d = -2*x*s*y*s
 
-FANN_GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
+GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
 -1 when x = -inf, 1 when x = 0 and 0 when x = inf
 span: -1 < y < 1
 y = exp(-x*s*x*s)*2-1
 d = -2*x*s*(y+1)*s
 
-FANN_ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
+ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
 span: 0 < y < 1
 y = ((x*s) / 2) / (1 + |x*s|) + 0.5
 d = s*1/(2*(1+|x*s|)*(1+|x*s|))
 
-FANN_ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
+ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
 span: -1 < y < 1
 y = (x*s) / (1 + |x*s|)
 d = s*1/((1+|x*s|)*(1+|x*s|))
 
-FANN_LINEAR_PIECE	Bounded linear activation function.
+LINEAR_PIECE	Bounded linear activation function.
 span: 0 <= y <= 1
 y = x*s, d = 1*s
 
-FANN_LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
+LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
 span: -1 <= y <= 1
 y = x*s, d = 1*s
 
-FANN_SIN_SYMMETRIC	Periodical sinus activation function.
+SIN_SYMMETRIC	Periodical sinus activation function.
 span: -1 <= y <= 1
 y = sin(x*s)
 d = s*cos(x*s)
 
-FANN_COS_SYMMETRIC	Periodical cosinus activation function.
+COS_SYMMETRIC	Periodical cosinus activation function.
 span: -1 <= y <= 1
 y = cos(x*s)
 d = s*-sin(x*s)
 
-FANN_SIN	Periodical sinus activation function.
+SIN	Periodical sinus activation function.
 span: 0 <= y <= 1
 y = sin(x*s)/2+0.5
 d = s*cos(x*s)/2
 
-FANN_COS	Periodical cosinus activation function.
+COS	Periodical cosinus activation function.
 span: 0 <= y <= 1
 y = cos(x*s)/2+0.5
 d = s*-sin(x*s)/2
 '''
 # getting
-print "[INFO] sizes: ", ROWS_1*COLS_1, " and ", ROWS_2*COLS_2
 print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
 print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
@@ -273,7 +295,6 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     predictor_image_2_list = ann.run(img1)    # predict 1 sample
     
-
     image_1_t_1 = image_1_t_0       #update previous image
     image_2_t_1 = image_2_t_0      #update previous image
 
@@ -290,14 +311,13 @@ while(cap1.isOpened() and cap2.isOpened()):
     cv2.imshow('Predictor 2', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
-
   
     cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
     cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
 
     cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
     cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)    
- 
+
     
     #### ERROR MAPS ###### 
     
@@ -313,7 +333,6 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     if k == ord('q'):
         break
-
 #########################################################
 #####################   END LOOP   #####################
 
