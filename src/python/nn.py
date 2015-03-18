@@ -248,6 +248,11 @@ MS_TO_WAIT = int(1)
 ms to wait for a key in opencv
 '''
 
+ACTUAL_IMAGES = True
+'''
+it determines wheter to predict variations or images
+'''
+
 INTERPOLATION_TYPE = cv2.INTER_AREA
 '''
 INTER_NEAREST - a nearest-neighbor interpolation
@@ -261,11 +266,11 @@ INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 ############################
 
 #########  NN ############
-
 # setting
 ann = libfann.neural_net()
 if HIDDEN == True:
     ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
+    ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
 else:
     ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
 
@@ -274,18 +279,14 @@ ann.set_learning_momentum(MOMENTUM)
 ann.set_training_algorithm(TRAINING_ALGORITHM)
 ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
 ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
-
-if HIDDEN ==True:
-    ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
-
 ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
-################################
 
 # Getting info from NN
 print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
 print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
 print "[INFO] ann params: ", ann.print_parameters()
+################################
 
 ## Some neccesary initialization
 image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
@@ -318,13 +319,22 @@ while(cap1.isOpened() and cap2.isOpened()):
     var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
     var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
 
-    # flatten images
-    img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-    img2 = np.array(var_img2).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
     
-    #calculating total change in pixels
-    total_change_img1 = int(sum(img1))
-    total_change_img2 = int(sum(img2))
+    if ACTUAL_IMAGES == True:
+        img1 = np.array(image_1_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+
+        #calculating total change in pixels
+        total_change_img1 = int(sum(np.array(var_img1).flatten().astype(np.float32) / 255.0))
+        total_change_img2 = int(sum(np.array(var_img2).flatten().astype(np.float32) / 255.0))
+
+    else:
+        img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        img2 = np.array(var_img2).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        
+        #calculating total change in pixels
+        total_change_img1 = int(sum(img1))
+        total_change_img2 = int(sum(img2))
     
   #  print "[INFO] Sum movement 1: ", total_change_img1
   #  print "[INFO] Sum movement 2: ", total_change_img2, "\n"
@@ -347,25 +357,29 @@ while(cap1.isOpened() and cap2.isOpened()):
 ###########################################
 
     #### PREDICTOR MAPS ######
-    # des-normalizing and reshaping
-    predictor_image_2 = 255 * np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))
+    predictor_image_2 = 255* np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))   
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
    
     cv2.namedWindow('Predictor', cv2.WINDOW_NORMAL)     
     cv2.imshow('Predictor', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
-  
     cv2.namedWindow('Frame 1', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 1', var_img1)
-
     cv2.namedWindow('Frame 2', cv2.WINDOW_NORMAL)     
-    cv2.imshow('Frame 2', var_img2)    
 
-    
+    if ACTUAL_IMAGES == True:
+        cv2.imshow('Frame 1', image_1_t_0)
+        cv2.imshow('Frame 2', image_2_t_0)    
+    else:    
+        cv2.imshow('Frame 1', var_img1)
+        cv2.imshow('Frame 2', var_img2)    
+
     #### ERROR MAPS ###### 
-    
-    error_image = cv2.absdiff(adaptTypePredictor, var_img2)
+    if ACTUAL_IMAGES == True:
+        error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    else:
+        error_image = cv2.absdiff(adaptTypePredictor, var_img2)
+
     cv2.namedWindow('Error', cv2.WINDOW_NORMAL)         
     cv2.imshow('Error', error_image)
 
