@@ -2,10 +2,9 @@
 """
 Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
-
 About: This file (when finished) captures two videos, and trains weights
 to relate both images. After training (in fact, it is online, so I should say
-'when enough time has passed') it can predict movements between cameras.
+'when enough time has elapsed') it can predict movements between cameras.
 """
 
 import numpy as np
@@ -47,21 +46,66 @@ else:
 
 ##### MAIN PARAMETERS ###########
 ROWS_1 = int(60)
+''' 
+image 1 rows in reduced image to feed the network with
+'''
+
 COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
+''' 
+image 1 cols in reduced image to feed the network with
+'''
+
 ROWS_2 = int(60)
+''' 
+image 2 rows in reduced image to feed the network with
+'''
+
 COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-alpha = np.float32(0.05) # small alpha
-beta =  np.float32(0.5)
-medianFlag = False
-gaussianFlag = False
-convolutionFlag = False
-fixWeightsMatrix   = False
-loadWeightsFromFile = False
-saveWeightsToFile   = False
-ACTUAL_IMAGES = False
-msToWait = int(1)
-weightsFilename = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
-interpolationType = cv2.INTER_AREA
+''' 
+image 2 cols in reduced image to feed the network with
+'''
+
+ALPHA = np.float32(0.05)
+'''
+The learning rate is used to determine how aggressive training should be
+'''
+
+BETA =  np.float32(0.5)
+'''
+Determine the decay, it counterweights alpha
+'''
+
+FIX_WEIGHTS_MATRIX = False
+'''
+This param is used to fix the network in a specific moment, 
+and dont train it more
+'''
+
+LOAD_FROM_FILE = False
+'''
+To load from file the weights matrix
+'''
+
+SAVE_TO_FILE   = False
+'''
+To save to file the weights matrix
+'''
+
+FILENAME = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
+'''
+filename to load from / save to the weights matrix
+'''
+ACTUAL_IMAGES = True
+'''
+it determines wheter to predict variations or images
+'''
+
+MS_TO_WAIT = int(1)
+'''
+ms to wait for a key in opencv
+'''
+
+INTERPOLATION_TYPE = cv2.INTER_AREA
 '''
 INTER_NEAREST - a nearest-neighbor interpolation
 INTER_LINEAR - a bilinear interpolation (used by default)
@@ -72,8 +116,8 @@ INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better t
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
 ###############################
-if(loadWeightsFromFile==True):
-    weightMatrix = np.load(weightsFilename).astype(np.float32)
+if(LOAD_FROM_FILE==True):
+    weightMatrix = np.load(FILENAME).astype(np.float32)
 else:    
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
 
@@ -89,7 +133,7 @@ COLS_2_list = range(COLS_2)
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
-error_image_2 = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
+error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
 
@@ -107,8 +151,8 @@ while(cap1.isOpened() and cap2.isOpened()):
         break
     
     # note the changed axis in opencv
-    frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = interpolationType)
-    frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = interpolationType)
+    frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = INTERPOLATION_TYPE)
+    frame2_reduced  = cv2.resize(frame2,(COLS_2, ROWS_2), interpolation = INTERPOLATION_TYPE)
     
     image_1_t_0 = cv2.cvtColor(frame1_reduced, cv2.COLOR_BGR2GRAY)
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
@@ -132,14 +176,14 @@ while(cap1.isOpened() and cap2.isOpened()):
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation
         
-        if(loadWeightsFromFile == False and fixWeightsMatrix == False):
+        if(LOAD_FROM_FILE == False and FIX_WEIGHTS_MATRIX == False):
             #the elements that add value to the weights
-            elem1  = alpha * var_img1.item(i,j) * var_img2
+            elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
             
             #the elements that subtract value to the weights
             elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
-            elem4 = elem3 * beta
+            elem4 = elem3 * BETA
             
             #Subtraction of both elems
             elem5 = np.subtract(elem2,elem4)
@@ -177,57 +221,39 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     #### PREDICTOR MAPS ######
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
-   
-    # median blur, maybe effective with webcams images   
-    if medianFlag == True:
-       adaptTypePredictor = cv2.medianBlur(adaptTypePredictor,3)
-
-    # Gaussian blur, maybe effective with webcams images   
-    if gaussianFlag == True:
-       adaptTypePredictor = cv2.GaussianBlur(adaptTypePredictor,(3,3),0)
-
-    # 2d convolution
-    if convolutionFlag == True:
-       kernel = np.ones((3,3),np.float32)/9
-       adaptTypePredictor = cv2.filter2D(adaptTypePredictor,-1,kernel)
-
     cv2.namedWindow('Predictor 2', cv2.WINDOW_NORMAL)     
     cv2.imshow('Predictor 2', adaptTypePredictor)
 
     #### SHOW ORIGINAL IMAGES ######
-    cv2.namedWindow('Frame 1 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
-    cv2.namedWindow('Frame 2 (Reduced, gray, then extended again)', cv2.WINDOW_NORMAL)     
+    cv2.namedWindow('Frame 1', cv2.WINDOW_NORMAL)     
+    cv2.namedWindow('Frame 2', cv2.WINDOW_NORMAL)     
 
     if ACTUAL_IMAGES == True:
-        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', image_1_t_0)
-        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', image_2_t_0)
+        cv2.imshow('Frame 1', image_1_t_0)
+        cv2.imshow('Frame 2', image_2_t_0)
     else:
-        cv2.imshow('Frame 1 (Reduced, gray, then extended again)', var_img1)
-        cv2.imshow('Frame 2 (Reduced, gray, then extended again)', var_img2)
+        cv2.imshow('Frame 1', var_img1)
+        cv2.imshow('Frame 2', var_img2)
     
-#    #### WEIGHT MAPS ####
-#    adaptTypeWeight = cv2.multiply(weightMatrix, 255).astype(np.uint8)
-#    cv2.namedWindow('WeightMatrix', cv2.WINDOW_NORMAL)         
-#    cv2.imshow('WeightMatrix',adaptTypeWeight)
-
     #### ERROR MAPS ###### 
-    if ACTUAL_IMAGES == True:
-        error_image_2 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
-    else:
-        error_image_2 = cv2.absdiff(adaptTypePredictor, (var_img2*255).astype(np.uint8))
-    cv2.namedWindow('Error 2', cv2.WINDOW_NORMAL)         
-    cv2.imshow('Error 2', error_image_2)
-  #  print np.sum(error_image_2)
+    cv2.namedWindow('Error (Frame 2, Prediction)', cv2.WINDOW_NORMAL)         
 
-    k = cv2.waitKey(msToWait) & 0xFF
+    if ACTUAL_IMAGES == True:
+        error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+    else:
+        error_image = cv2.absdiff(adaptTypePredictor, (var_img2*255).astype(np.uint8))
+    
+    cv2.imshow('Error (Frame 2, Prediction)', error_image)
+
+    k = cv2.waitKey(MS_TO_WAIT) & 0xFF # not use AND (logic), use & (bitwise)
     
     if k == ord('f'):
-        fixWeightsMatrix = True        
+        FIX_WEIGHTS_MATRIX = True        
         print '[INFO] WeightsMatrix Fixed'
 
     if k == ord('q'):
-        if(saveWeightsToFile == True):
-            np.save(weightsFilename, weightMatrix)
+        if(SAVE_TO_FILE == True):
+            np.save(FILENAME, weightMatrix)
         break
 
 #########################################################
