@@ -213,7 +213,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
   #  print np.sum(error_image_2)
 
-    k = cv2.waitKey(msToWait) and 0xFF
+    k = cv2.waitKey(msToWait) & 0xFF
     
     if k == ord('f'):
         fixWeightsMatrix = True        
