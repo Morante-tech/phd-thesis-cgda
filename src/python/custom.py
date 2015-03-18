@@ -13,18 +13,18 @@ from itertools import product
     
 
 # tatup video
-#cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-#cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 
 #synthetic
 #cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 #cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 
 #from webcam
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
-cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap1 = cv2.VideoCapture(0)
+#cap2 = cv2.VideoCapture(1)
+#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 
 ##### some variables ###############################
@@ -45,7 +45,7 @@ else:
 ######################################################
 
 ##### MAIN PARAMETERS ###########
-ROWS_1 = int(60)
+ROWS_1 = int(40)
 ''' 
 image 1 rows in reduced image to feed the network with
 '''
@@ -55,7 +55,7 @@ COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
 image 1 cols in reduced image to feed the network with
 '''
 
-ROWS_2 = int(60)
+ROWS_2 = int(40)
 ''' 
 image 2 rows in reduced image to feed the network with
 '''
@@ -95,7 +95,7 @@ FILENAME = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
 '''
 filename to load from / save to the weights matrix
 '''
-ACTUAL_IMAGES = True
+ACTUAL_IMAGES = False
 '''
 it determines wheter to predict variations or images
 '''

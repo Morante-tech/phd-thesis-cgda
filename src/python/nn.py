@@ -16,18 +16,18 @@ from fann2 import _libfann
 ##### CAMS PARAMS #####
 #from webcam
 # tatup video
-#cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-#cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 
 #synthetic
 #cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 #cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
 
 #from webcam
-cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
-cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap1 = cv2.VideoCapture(0)
+#cap2 = cv2.VideoCapture(1)
+#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 ##### some variables ###############################
 if(cap1.isOpened() & cap2.isOpened()):
@@ -248,7 +248,7 @@ MS_TO_WAIT = int(1)
 ms to wait for a key in opencv
 '''
 
-ACTUAL_IMAGES = True
+ACTUAL_IMAGES = False
 '''
 it determines wheter to predict variations or images
 '''
@@ -380,8 +380,8 @@ while(cap1.isOpened() and cap2.isOpened()):
     else:
         error_image = cv2.absdiff(adaptTypePredictor, var_img2)
 
-    cv2.namedWindow('Error', cv2.WINDOW_NORMAL)         
-    cv2.imshow('Error', error_image)
+    cv2.namedWindow('Error (Frame 2, Prediction)', cv2.WINDOW_NORMAL)         
+    cv2.imshow('Error (Frame 2, Prediction)', error_image)
 
     #### Keys ###
     k = cv2.waitKey(MS_TO_WAIT) & 0xFF # not use AND (logic), use & (bitwise)
