@@ -1,4 +1,4 @@
 # toDo Python
 
-        * Affordances: force-visio, etc.
-        * Custom error function
+        * Affordances: force-vision, etc.
+        * Custom error function?
