@@ -16,7 +16,7 @@ from fann2 import _libfann
 ##### CAMS PARAMS #####
 #from webcam
 cap1 = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(1)
+cap2 = cv2.VideoCapture(2)
 cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
@@ -367,7 +367,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     cv2.imshow('Error 2', error_image_2)
 
     #### Keys ###
-    k = cv2.waitKey(MSTOWAIT) & 0xFF # not use AND, use &
+    k = cv2.waitKey(MSTOWAIT) & 0xFF # not use AND (logic), use & (bitwise)
     if k == ord('f'):
         FIXWEIGHTSMATRIX = True        
         print '[INFO] WeightsMatrix Fixed'
