@@ -10,21 +10,35 @@ to relate both images. After training (in fact, it is online, so I should say
 import numpy as np
 import cv2
 from itertools import product
-    
+import time
+
 
 # tatup video
-cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+SOURCE_1 = "../../feed/videos/tatup.mp4"
+'''
+source 1, input to network
+'''
 
-#synthetic
-#cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
-#cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
+SOURCE_2 = "../../feed/videos/tatup.mp4"
+'''
+source 2, output to network (to compare with prediction)
+'''
 
-#from webcam
-#cap1 = cv2.VideoCapture(0)
-#cap2 = cv2.VideoCapture(1)
-#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+## synthetic video
+#SOURCE_1 = "../../feed/videos/synthetic2.ogg"
+#SOURCE_2 = "../../feed/videos/synthetic2.ogg"
+#
+## webcam
+#SOURCE_1 = 0
+#SOURCE_2 = 1
+
+# capture
+cap1 = cv2.VideoCapture(SOURCE_1)
+cap2 = cv2.VideoCapture(SOURCE_2)
+
+if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
+    cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+    cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
 
 ##### some variables ###############################
@@ -81,20 +95,6 @@ This param is used to fix the network in a specific moment,
 and dont train it more
 '''
 
-LOAD_FROM_FILE = False
-'''
-To load from file the weights matrix
-'''
-
-SAVE_TO_FILE   = False
-'''
-To save to file the weights matrix
-'''
-
-FILENAME = 'data/weightMatrix' + str(ROWS_1)+ '-' + str(ROWS_2) + '.npy'
-'''
-filename to load from / save to the weights matrix
-'''
 ACTUAL_IMAGES = False
 '''
 it determines wheter to predict variations or images
@@ -115,9 +115,50 @@ INTER_AREA - resampling using pixel area relation.
 INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
+
+LOAD_WEIGHTS_FROM_FILE = True
+'''
+To load from file the weights matrix
+'''
+
+SAVE_EXPERIMENTS   = False
+'''
+To save WEIGHTS, PARAMS AND RESULTS
+'''
+
+TIME = time.strftime("%H:%M:%S")
+'''
+time of the experiment
+'''
+ 
+DATE = time.strftime("%d.%b.%Y")
+'''
+date of the experiment
+'''
+
+FILENAME_WEIGHTS = '../../cross-validation/experiments/weights/custom_weights_' \
++ DATE + '_' + TIME +  '.npy'
+'''
+filename to save the weights matrix
+'''
+
+FILENAME_RESULTS = '../../cross-validation/experiments/results/custom_results_' \
++ DATE + '_' + TIME + '.csv'
+'''
+filename to save the results
+'''
+
+FILENAME_PARAMS = '../../cross-validation/experiments/params/custom_params_'   \
++ DATE + '_' + TIME  + '.md'
+'''
+filename to save the params
+'''
 ###############################
-if(LOAD_FROM_FILE==True):
-    weightMatrix = np.load(FILENAME).astype(np.float32)
+weight_path = "../../cross-validation/experiments/weights/"
+weigth_name = "custom_weights_19.Mar.2015_16:12:22.npy"
+if(LOAD_WEIGHTS_FROM_FILE==True):
+    weightMatrix = np.load(weight_path + weigth_name).astype(np.float32) 
+    print "[INFO] Using loaded weight matrix"
 else:    
     weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
 
@@ -136,6 +177,7 @@ image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
+mse = [] 
 
 ###############################
 ############ LOOP #############
@@ -171,12 +213,12 @@ while(cap1.isOpened() and cap2.isOpened()):
        
         # find submatrix in DB and change currentweight value
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) ,
-                                               j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
+j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation
         
-        if(LOAD_FROM_FILE == False and FIX_WEIGHTS_MATRIX == False):
+        if(LOAD_WEIGHTS_FROM_FILE == False and FIX_WEIGHTS_MATRIX == False):
             #the elements that add value to the weights
             elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
@@ -240,20 +282,76 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     if ACTUAL_IMAGES == True:
         error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+        mse_temp_1 = cv2.absdiff(predictor_image_2, np.array(image_2_t_0).astype(np.float32))
+
     else:
         error_image = cv2.absdiff(adaptTypePredictor, (var_img2*255).astype(np.uint8))
-    
+        mse_temp_1 = cv2.absdiff(predictor_image_2, var_img2*255)
+
     cv2.imshow('Error (Frame 2, Prediction)', error_image)
 
-    k = cv2.waitKey(MS_TO_WAIT) & 0xFF # not use AND (logic), use & (bitwise)
+    mse_temp_2 = cv2.multiply(mse_temp_1, mse_temp_1) / (ROWS_2*COLS_2)
+    mse_value = sum(np.array(mse_temp_2).flatten())
+    #print "[INFO] MSE: ", mse_value, "\n"
+    mse.append(np.float32(mse_value))
+
+    ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT)    
+    k = cv2.waitKey(MS_TO_WAIT) & 0xFF # dont use AND (logic), use & (bitwise)
     
     if k == ord('f'):
         FIX_WEIGHTS_MATRIX = True        
-        print '[INFO] WeightsMatrix Fixed'
+        print "[INFO] WeightsMatrix Fixed"
 
     if k == ord('q'):
-        if(SAVE_TO_FILE == True):
-            np.save(FILENAME, weightMatrix)
+        if(SAVE_EXPERIMENTS == True):
+            print "[INFO] Saving experiment"
+
+            np.save(FILENAME_WEIGHTS, weightMatrix)
+            
+            file_results = open(FILENAME_RESULTS, "w")
+            file_results.write("\n".join(map(lambda x: str(x), mse)))
+            file_results.close()  
+            
+            
+            file_params = open(FILENAME_PARAMS, "w")
+            text_params = \
+"## Experiment Parameters \n\n" + \
+"* **SOURCE_1 = " + str(SOURCE_1) + "**\n\n" + \
+"source 1, input to network" + "\n\n" + \
+"* **SOURCE_2 = " + str(SOURCE_2) + "**\n\n" + \
+"source 2, output to network (to compare with prediction)" + "\n\n" + \
+"* **FILENAME_WEIGHTS = " + str(FILENAME_WEIGHTS) + "**\n\n" + \
+"filename to save the weights matrix" + "\n\n" + \
+"* **FILENAME_RESULTS = " + str(FILENAME_RESULTS) + "**\n\n" + \
+"filename to save the results" + "\n\n" + \
+"* **FILENAME_PARAMS = " + str(FILENAME_PARAMS) + "**\n\n" + \
+"filename to save the params" + "\n\n" + \
+"* ROWS_1 = " + str(ROWS_1) + "\n\n" + \
+"image 1 rows in reduced image to feed the network with" + "\n\n" + \
+"* COLS_1 = " + str(COLS_1) + "\n\n" + \
+"image 1 cols in reduced image to feed the network with" + "\n\n" + \
+"* ROWS_2 = " + str(ROWS_2) + "\n\n" + \
+"image 2 rows in reduced image to feed the network with" + "\n\n" + \
+"* COLS_2 = " + str(COLS_2) + "\n\n" + \
+"image 2 cols in reduced image to feed the network with" + "\n\n" + \
+"* ALPHA = " + str(ALPHA) + "\n\n" + \
+"The learning rate is used to determine how aggressive training should be" + "\n\n" + \
+"* BETA =  " + str(BETA) + "\n\n" + \
+"Determine the decay, it counterweights alpha" + "\n\n" + \
+"* ACTUAL_IMAGES = " + str(ACTUAL_IMAGES) + "\n\n" + \
+"it determines wheter to predict variations or images" + "\n\n" + \
+"* INTERPOLATION_TYPE = " + str(INTERPOLATION_TYPE) + "\n\n" + \
+"INTER_NEAREST - a nearest-neighbor interpolation \n\
+INTER_LINEAR - a bilinear interpolation (used by default) \n\
+INTER_AREA - resampling using pixel area relation.  It may be a preferred \
+method for image decimation, as it gives moire’-free results. But when the \
+image is zoomed, it is similar to the INTER_NEAREST method. \n\
+INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge \n\
+INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood" + "\n\n"
+            file_params.write(text_params)
+            file_params.close()            
+            
+        print "[INFO] Quitting program!"
         break
 
 #########################################################
