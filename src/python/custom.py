@@ -116,12 +116,12 @@ INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better t
 INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
 '''
 
-LOAD_WEIGHTS_FROM_FILE = True
+LOAD_WEIGHTS_FROM_FILE = False
 '''
 To load from file the weights matrix
 '''
 
-SAVE_EXPERIMENTS   = False
+SAVE_EXPERIMENTS   = True
 '''
 To save WEIGHTS, PARAMS AND RESULTS
 '''
@@ -154,6 +154,8 @@ FILENAME_PARAMS = '../../cross-validation/experiments/params/custom_params_'   \
 filename to save the params
 '''
 ###############################
+
+### LOADING FROM FILE ###
 weight_path = "../../cross-validation/experiments/weights/"
 weigth_name = "custom_weights_19.Mar.2015_16:12:22.npy"
 if(LOAD_WEIGHTS_FROM_FILE==True):
@@ -311,7 +313,6 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             file_results = open(FILENAME_RESULTS, "w")
             file_results.write("\n".join(map(lambda x: str(x), mse)))
             file_results.close()  
-            
             
             file_params = open(FILENAME_PARAMS, "w")
             text_params = \
