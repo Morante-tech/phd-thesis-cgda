@@ -11,176 +11,134 @@ import numpy as np
 import cv2
 from itertools import product
 import time
+import csv
+import sys
+import os
 
+REPRODUCE_EXPERIMENT = False    
+EXPERIMENT_PARAMS_FILENAME = ""
+
+#### REPRODUCING EXPERIMENT ####
+if len(sys.argv) > 2:
+    sys.exit("Usage: script.py params_file.csv")
     
-# tatup video
-SOURCE_1 = "../../feed/videos/tatup.mp4"
-'''
-source 1, input to network
-'''
+elif len(sys.argv) == 2:
+    if not os.path.exists(sys.argv[1]):
+        sys.exit("[ERROR] File %s was not found!" % sys.argv[1])
+    else:
+        EXPERIMENT_PARAMS_FILENAME = sys.argv[1]
+        print "[INFO] Reproducing experiment with params: " + str(sys.argv[1])  
+        REPRODUCE_EXPERIMENT = True    
 
-SOURCE_2 = "../../feed/videos/tatup.mp4"
-'''
-source 2, output to network (to compare with prediction)
-'''
 
-## synthetic video
-#SOURCE_1 = "../../feed/videos/synthetic2.ogg"
-#SOURCE_2 = "../../feed/videos/synthetic2.ogg"
-#
-## webcam
-#SOURCE_1 = 0
-#SOURCE_2 = 1
 
-# capture
+#### SAVING EXPERIMENT ####
+SAVE_EXPERIMENT   = False
+
+if SAVE_EXPERIMENT == True:
+    TIME = time.strftime("%H:%M:%S")
+    DATE = time.strftime("%d.%b.%Y")
+    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/custom_weights_" \
+    + DATE + "_" + TIME +  ".npy"
+    
+    FILENAME_RESULTS = "../../cross-validation/experiments/results/custom_results_" \
+    + DATE + "_" + TIME + ".csv"
+    
+    FILENAME_PARAMS = "../../cross-validation/experiments/params/custom_params_"   \
+    + DATE + "_" + TIME  + ".csv"    
+        
+#### REPRODUCING EXPERIMENT ####
+
+if REPRODUCE_EXPERIMENT == True:
+    experiment_list=[]
+    with open(EXPERIMENT_PARAMS_FILENAME, "rb") as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            experiment_list.append(row)
+    print "[INFO] Experiment raw data: ", experiment_list [1]
+    
+    SOURCE_1 = experiment_list [1][0]
+    SOURCE_2 = experiment_list [1][1]
+    FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
+    ROWS_1 = int(experiment_list [1][5])
+    COLS_1 = int(experiment_list [1][6])
+    ROWS_2 = int(experiment_list [1][7])
+    COLS_2 = int(experiment_list [1][8])
+    ALPHA = float(experiment_list [1][9])
+    BETA = float(experiment_list [1][10])
+    if experiment_list [1][11] == "True":
+        ACTUAL_IMAGES = True
+    elif(experiment_list [1][11] == "False"):
+        ACTUAL_IMAGES = False
+    else:
+        raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
+
+    INTERPOLATION_TYPE = int(experiment_list [1][12])
+
+    weightMatrix = np.load(FILENAME_PRECOMPUTED_WEIGHTS).astype(np.float32)
+    np.ascontiguousarray(weightMatrix)    
+    print "[INFO] Using loaded weight matrix"
+else:         
+    ##### PARAMETERS ###########  
+    # tatup video
+    SOURCE_1 = "../../feed/videos/tatup.mp4"
+    SOURCE_2 = "../../feed/videos/tatup.mp4"
+
+    ## synthetic video
+    #SOURCE_1 = "../../feed/videos/synthetic2.ogg"
+    #SOURCE_2 = "../../feed/videos/synthetic2.ogg"
+    #
+    ## webcam
+    #SOURCE_1 = 0
+    #SOURCE_2 = 1
+
+##### CAMERA ###############################
 cap1 = cv2.VideoCapture(SOURCE_1)
 cap2 = cv2.VideoCapture(SOURCE_2)
-
+if not (cap1.isOpened() and cap2.isOpened()):
+    raise NameError("[ERROR] Cannot extract images from video")    
+    
 if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
     cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
     cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+############################################
 
 
-##### some variables ###############################
-if(cap1.isOpened() & cap2.isOpened()):
-
-    cap1.grab() # faster image adquisition than read
-    cap2.grab() # faster image adquisition than read
-    
-    ret1, frame1 = cap1.retrieve() # read = grab + retrieve (processing)
-    ret2, frame2 = cap2.retrieve() # read = grab + retrieve (processing)
-    
+if REPRODUCE_EXPERIMENT == False:
+    ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
+    ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
     frame1Rows = frame1.shape[0]
     frame1Cols = frame1.shape[1]
     frame2Rows = frame2.shape[0]
     frame2Cols = frame2.shape[1]
-else:
-    raise NameError('[ERROR] Cannot extract images from video')    
-######################################################
 
-##### MAIN PARAMETERS ###########
-ROWS_1 = int(40)
-''' 
-image 1 rows in reduced image to feed the network with
-'''
+    ##### PARAMETERS ###########
+    ROWS_1 = int(40)
+    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
+    ROWS_2 = int(40)
+    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
+    ALPHA = np.float32(0.05)
+    BETA =  np.float32(0.5)
+    ACTUAL_IMAGES = False
+    INTERPOLATION_TYPE = cv2.INTER_AREA
+    weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
+    np.ascontiguousarray(weightMatrix)    
+    ############################
 
-COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-''' 
-image 1 cols in reduced image to feed the network with
-'''
-
-ROWS_2 = int(40)
-''' 
-image 2 rows in reduced image to feed the network with
-'''
-
-COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-''' 
-image 2 cols in reduced image to feed the network with
-'''
-
-ALPHA = np.float32(0.05)
-'''
-The learning rate is used to determine how aggressive training should be
-'''
-
-BETA =  np.float32(0.5)
-'''
-Determine the decay, it counterweights alpha
-'''
-
-FIX_WEIGHTS_MATRIX = False
-'''
-This param is used to fix the network in a specific moment, 
-and dont train it more
-'''
-
-ACTUAL_IMAGES = False
-'''
-it determines wheter to predict variations or images
-'''
-
-MS_TO_WAIT = int(1)
-'''
-ms to wait for a key in opencv
-'''
-
-INTERPOLATION_TYPE = cv2.INTER_AREA
-'''
-INTER_NEAREST - a nearest-neighbor interpolation
-INTER_LINEAR - a bilinear interpolation (used by default)
-INTER_AREA - resampling using pixel area relation. 
-      It may be a preferred method for image decimation, as it gives moire’-free results. 
-      But when the image is zoomed, it is similar to the INTER_NEAREST method.
-INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
-INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
-'''
-
-LOAD_WEIGHTS_FROM_FILE = False
-'''
-To load from file the weights matrix
-'''
-
-SAVE_EXPERIMENTS   = True
-'''
-To save WEIGHTS, PARAMS AND RESULTS
-'''
-
-TIME = time.strftime("%H:%M:%S")
-'''
-time of the experiment
-'''
- 
-DATE = time.strftime("%d.%b.%Y")
-'''
-date of the experiment
-'''
-
-FILENAME_WEIGHTS = '../../cross-validation/experiments/weights/custom_weights_' \
-+ DATE + '_' + TIME +  '.npy'
-'''
-filename to save the weights matrix
-'''
-
-FILENAME_RESULTS = '../../cross-validation/experiments/results/custom_results_' \
-+ DATE + '_' + TIME + '.csv'
-'''
-filename to save the results
-'''
-
-FILENAME_PARAMS = '../../cross-validation/experiments/params/custom_params_'   \
-+ DATE + '_' + TIME  + '.csv'
-'''
-filename to save the params
-'''
-###############################
-
-### LOADING FROM FILE ###
-weight_path = "../../cross-validation/experiments/weights/"
-weigth_name = "custom_weights_19.Mar.2015_16:12:22.npy"
-if(LOAD_WEIGHTS_FROM_FILE==True):
-    weightMatrix = np.load(weight_path + weigth_name).astype(np.float32) 
-    print "[INFO] Using loaded weight matrix"
-else:    
-    weightMatrix  =  np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
-
-np.ascontiguousarray(weightMatrix)    
-###############################
-
-## create dataframe                  
+#### INITIALIZATION #########
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
-
-## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
+FIX_WEIGHTS_MATRIX = False
+MS_TO_WAIT = int(1)
 mse = [] 
 
-###############################
-############ LOOP #############
+##############################################################
+############ LOOP ############################################
 while(cap1.isOpened() and cap2.isOpened()):
     cap1.grab()
     cap2.grab()
@@ -189,8 +147,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     ret2, frame2 = cap2.retrieve()
  
     if(ret1==False or ret2==False):
-        print '[ERROR] No stream of images!!'
-        break
+        raise NameError("[ERROR] No stream of images")    
     
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = INTERPOLATION_TYPE)
@@ -218,7 +175,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation
         
-        if(LOAD_WEIGHTS_FROM_FILE == False and FIX_WEIGHTS_MATRIX == False):
+        if(REPRODUCE_EXPERIMENT == False and FIX_WEIGHTS_MATRIX == False):
             #the elements that add value to the weights
             elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
@@ -294,10 +251,10 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
     mse_temp_2 = cv2.multiply(mse_temp_1, mse_temp_1) / (ROWS_2*COLS_2)
     mse_value = sum(np.array(mse_temp_2).flatten())
-    #print "[INFO] MSE: ", mse_value, "\n"
     mse.append(np.float32(mse_value))
+    #print "[INFO] MSE: ", mse_value, "\n"
 
-    ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT)    
+    ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT) #########
     k = cv2.waitKey(MS_TO_WAIT) & 0xFF # dont use AND (logic), use & (bitwise)
     
     if k == ord('f'):
@@ -305,7 +262,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         print "[INFO] WeightsMatrix Fixed"
 
     if k == ord('q'):
-        if(SAVE_EXPERIMENTS == True):
+        if(SAVE_EXPERIMENT == True):
             print "[INFO] Saving experiment"
 
             # save weights matrix
@@ -344,5 +301,4 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
 cap1.release()
 cap2.release()
-
 cv2.destroyAllWindows()
