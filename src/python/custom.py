@@ -311,6 +311,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             np.save(FILENAME_WEIGHTS, weightMatrix)
             
             file_results = open(FILENAME_RESULTS, "w")
+            file_results.write("Mean Square Error\n")
             file_results.write("\n".join(map(lambda x: str(x), mse)))
             file_results.close()  
             
