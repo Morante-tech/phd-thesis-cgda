@@ -68,3 +68,4 @@ CMakeLists.txt.user
 /src/cpp/connectedMatrices/build/cmake_install.cmake
 /src/cpp/connectedMatrices/build/connectedMatrices
 /src/cpp/connectedMatrices/build/connectedMatrices.cbp
+/cross-validation/experiments/.Rhistory
