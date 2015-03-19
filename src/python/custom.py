@@ -121,7 +121,7 @@ LOAD_WEIGHTS_FROM_FILE = False
 To load from file the weights matrix
 '''
 
-SAVE_EXPERIMENTS   = False
+SAVE_EXPERIMENTS   = True
 '''
 To save WEIGHTS, PARAMS AND RESULTS
 '''
@@ -149,7 +149,7 @@ filename to save the results
 '''
 
 FILENAME_PARAMS = '../../cross-validation/experiments/params/custom_params_'   \
-+ DATE + '_' + TIME  + '.md'
++ DATE + '_' + TIME  + '.csv'
 '''
 filename to save the params
 '''
@@ -308,49 +308,32 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         if(SAVE_EXPERIMENTS == True):
             print "[INFO] Saving experiment"
 
+            # save weights matrix
             np.save(FILENAME_WEIGHTS, weightMatrix)
             
+            # save results
             file_results = open(FILENAME_RESULTS, "w")
             file_results.write("Mean Square Error\n")
             file_results.write("\n".join(map(lambda x: str(x), mse)))
+            file_results.write("\n")            
             file_results.close()  
             
+            # save params
             file_params = open(FILENAME_PARAMS, "w")
-            text_params = \
-"## Experiment Parameters \n\n" + \
-"* **SOURCE_1 = " + str(SOURCE_1) + "**\n\n" + \
-"source 1, input to network" + "\n\n" + \
-"* **SOURCE_2 = " + str(SOURCE_2) + "**\n\n" + \
-"source 2, output to network (to compare with prediction)" + "\n\n" + \
-"* **FILENAME_WEIGHTS = " + str(FILENAME_WEIGHTS) + "**\n\n" + \
-"filename to save the weights matrix" + "\n\n" + \
-"* **FILENAME_RESULTS = " + str(FILENAME_RESULTS) + "**\n\n" + \
-"filename to save the results" + "\n\n" + \
-"* **FILENAME_PARAMS = " + str(FILENAME_PARAMS) + "**\n\n" + \
-"filename to save the params" + "\n\n" + \
-"* ROWS_1 = " + str(ROWS_1) + "\n\n" + \
-"image 1 rows in reduced image to feed the network with" + "\n\n" + \
-"* COLS_1 = " + str(COLS_1) + "\n\n" + \
-"image 1 cols in reduced image to feed the network with" + "\n\n" + \
-"* ROWS_2 = " + str(ROWS_2) + "\n\n" + \
-"image 2 rows in reduced image to feed the network with" + "\n\n" + \
-"* COLS_2 = " + str(COLS_2) + "\n\n" + \
-"image 2 cols in reduced image to feed the network with" + "\n\n" + \
-"* ALPHA = " + str(ALPHA) + "\n\n" + \
-"The learning rate is used to determine how aggressive training should be" + "\n\n" + \
-"* BETA =  " + str(BETA) + "\n\n" + \
-"Determine the decay, it counterweights alpha" + "\n\n" + \
-"* ACTUAL_IMAGES = " + str(ACTUAL_IMAGES) + "\n\n" + \
-"it determines wheter to predict variations or images" + "\n\n" + \
-"* INTERPOLATION_TYPE = " + str(INTERPOLATION_TYPE) + "\n\n" + \
-"INTER_NEAREST - a nearest-neighbor interpolation \n\
-INTER_LINEAR - a bilinear interpolation (used by default) \n\
-INTER_AREA - resampling using pixel area relation.  It may be a preferred \
-method for image decimation, as it gives moire’-free results. But when the \
-image is zoomed, it is similar to the INTER_NEAREST method. \n\
-INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge \n\
-INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood" + "\n\n"
-            file_params.write(text_params)
+            list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
+                                  "FILENAME_RESULTS", "FILENAME_PARAMS","ROWS_1",
+                                  "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "BETA", 
+                                  "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
+            
+            list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
+                                 FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1, 
+                                 COLS_1, ROWS_2, COLS_2, ALPHA, BETA, 
+                                 ACTUAL_IMAGES, INTERPOLATION_TYPE]
+                                 
+            file_params.write(",".join(map(lambda x: str(x), list_params_names)))
+            file_params.write("\n")
+            file_params.write(",".join(map(lambda x: str(x), list_params_values)))
+            file_params.write("\n")
             file_params.close()            
             
         print "[INFO] Quitting program!"

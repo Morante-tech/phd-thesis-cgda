@@ -69,3 +69,4 @@ CMakeLists.txt.user
 /src/cpp/connectedMatrices/build/connectedMatrices
 /src/cpp/connectedMatrices/build/connectedMatrices.cbp
 /cross-validation/experiments/.Rhistory
+/cross-validation/experiments/params/.Rhistory
