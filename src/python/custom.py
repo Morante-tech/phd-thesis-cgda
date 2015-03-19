@@ -12,7 +12,7 @@ import cv2
 from itertools import product
 import time
 
-
+    
 # tatup video
 SOURCE_1 = "../../feed/videos/tatup.mp4"
 '''
@@ -121,7 +121,7 @@ LOAD_WEIGHTS_FROM_FILE = False
 To load from file the weights matrix
 '''
 
-SAVE_EXPERIMENTS   = True
+SAVE_EXPERIMENTS   = False
 '''
 To save WEIGHTS, PARAMS AND RESULTS
 '''
@@ -170,8 +170,6 @@ np.ascontiguousarray(weightMatrix)
 ## create dataframe                  
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
-ROWS_2_list = range(ROWS_2)
-COLS_2_list = range(COLS_2)
 
 ## some neccesary initialization
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
@@ -236,7 +234,8 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             newWeightSubMatrix = np.clip(elem5, 0, 1)
             
             #assign new weight to cell in DB
-            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
+            weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), 
+                         j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
             totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
 
         else:
@@ -244,7 +243,8 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
      ###### calculate prediction image
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
-        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , j*COLS_2:(j*COLS_2+COLS_2)]
+        currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , 
+                                               j*COLS_2:(j*COLS_2+COLS_2)]
         
         if ACTUAL_IMAGES == True:
             img1DotWeight = np.multiply(image_1_t_0.item(i,j), currWeightSubMatrixR2C2)
