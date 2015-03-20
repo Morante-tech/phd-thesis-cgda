@@ -71,3 +71,5 @@ CMakeLists.txt.user
 /cross-validation/experiments/.Rhistory
 /cross-validation/experiments/params/.Rhistory
 /cross-validation/experiments/results/.Rhistory
+/cross-validation/experiments/scripts/.Rhistory
+/cross-validation/.Rhistory
