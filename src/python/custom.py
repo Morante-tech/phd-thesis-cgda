@@ -8,15 +8,17 @@ to relate both images. After training (in fact, it is online, so I should say
 """
 
 import numpy as np
-import cv2
 from itertools import product
+import cv2
 import time
 import csv
 import sys
 import os
+############################
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -30,11 +32,7 @@ elif len(sys.argv) == 2:
         print "[INFO] Reproducing experiment with params: " + str(sys.argv[1])  
         REPRODUCE_EXPERIMENT = True    
 
-
-
-#### SAVING EXPERIMENT ####
-SAVE_EXPERIMENT   = False
-
+#### SAVE EXPERIMENT PARAMS ####
 if SAVE_EXPERIMENT == True:
     TIME = time.strftime("%H:%M:%S")
     DATE = time.strftime("%d.%b.%Y")
@@ -46,10 +44,10 @@ if SAVE_EXPERIMENT == True:
     
     FILENAME_PARAMS = "../../cross-validation/experiments/params/custom_params_"   \
     + DATE + "_" + TIME  + ".csv"    
-        
-#### REPRODUCING EXPERIMENT ####
-
+ 
+#### EXPERIMENT PARAMS ####
 if REPRODUCE_EXPERIMENT == True:
+    #### REPRODUCE EXPERIMENT ####
     experiment_list=[]
     with open(EXPERIMENT_PARAMS_FILENAME, "rb") as csvfile:
         reader = csv.reader(csvfile)
@@ -74,12 +72,24 @@ if REPRODUCE_EXPERIMENT == True:
         raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
 
     INTERPOLATION_TYPE = int(experiment_list [1][12])
-
+    
     weightMatrix = np.load(FILENAME_PRECOMPUTED_WEIGHTS).astype(np.float32)
     np.ascontiguousarray(weightMatrix)    
     print "[INFO] Using loaded weight matrix"
+    
+    ##### CAMERA ###############################
+    cap1 = cv2.VideoCapture(SOURCE_1)
+    cap2 = cv2.VideoCapture(SOURCE_2)
+    if not (cap1.isOpened() and cap2.isOpened()):
+        raise NameError("[ERROR] Cannot extract images from video")    
+        
+    if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
+        FPS = int(15)
+        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+    ############################################
 else:         
-    ##### PARAMETERS ###########  
+    ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
     SOURCE_1 = "../../feed/videos/tatup.mp4"
     SOURCE_2 = "../../feed/videos/tatup.mp4"
@@ -92,19 +102,17 @@ else:
     #SOURCE_1 = 0
     #SOURCE_2 = 1
 
-##### CAMERA ###############################
-cap1 = cv2.VideoCapture(SOURCE_1)
-cap2 = cv2.VideoCapture(SOURCE_2)
-if not (cap1.isOpened() and cap2.isOpened()):
-    raise NameError("[ERROR] Cannot extract images from video")    
-    
-if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
-    cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-    cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-############################################
+    ##### CAMERA #####
+    cap1 = cv2.VideoCapture(SOURCE_1)
+    cap2 = cv2.VideoCapture(SOURCE_2)
+    if not (cap1.isOpened() and cap2.isOpened()):
+        raise NameError("[ERROR] Cannot extract images from video")    
+        
+    if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
+        FPS = int(15)
+        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
 
-
-if REPRODUCE_EXPERIMENT == False:
     ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
     ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
     frame1Rows = frame1.shape[0]
@@ -121,6 +129,7 @@ if REPRODUCE_EXPERIMENT == False:
     BETA =  np.float32(0.5)
     ACTUAL_IMAGES = False
     INTERPOLATION_TYPE = cv2.INTER_AREA
+    ############################
     weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
     np.ascontiguousarray(weightMatrix)    
     ############################
@@ -133,7 +142,7 @@ image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
-FIX_WEIGHTS_MATRIX = False
+fix_weights_matrix = False
 MS_TO_WAIT = int(1)
 mse = [] 
 
@@ -159,8 +168,9 @@ while(cap1.isOpened() and cap2.isOpened()):
     # 255.0 forcing float type
     var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
     var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
-        
-    predictor_image_2 = 0 #first predictor map 2
+    
+    #predictor image 2
+    predictor_image_2 = 0
     
     # initialize total weights sum
     totalWeights = 0
@@ -175,7 +185,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation
         
-        if(REPRODUCE_EXPERIMENT == False and FIX_WEIGHTS_MATRIX == False):
+        if(REPRODUCE_EXPERIMENT == False and fix_weights_matrix == False):
             #the elements that add value to the weights
             elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
@@ -193,6 +203,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             #assign new weight to cell in DB
             weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2), 
                          j*COLS_2:(j*COLS_2+COLS_2)] = newWeightSubMatrix
+            
             totalWeights= cv2.add(totalWeights, newWeightSubMatrix)
 
         else:
@@ -258,7 +269,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
     k = cv2.waitKey(MS_TO_WAIT) & 0xFF # dont use AND (logic), use & (bitwise)
     
     if k == ord('f'):
-        FIX_WEIGHTS_MATRIX = True        
+        fix_weights_matrix = True        
         print "[INFO] WeightsMatrix Fixed"
 
     if k == ord('q'):
