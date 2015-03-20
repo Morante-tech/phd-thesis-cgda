@@ -11,7 +11,7 @@ Algorithms to connect movements between images. We are currently developing two 
 
 * In `src` folder you can find the source code, both python and c++ versions.
 
-* In `video-execution` folder you can find some videos showing the execution of the code
+* In `video-execution` folder you can find some videos showing the execution of the code.
 
 ## Performance 
 The best performance, in quality, currently corresponds to: python neural network.
