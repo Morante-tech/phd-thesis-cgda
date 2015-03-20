@@ -18,7 +18,7 @@ import os
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = False
+SAVE_EXPERIMENT   = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -220,6 +220,9 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             img1DotWeight = 255*np.multiply(var_img1.item(i,j), currWeightSubMatrixR2C2)
         
         img1DotWeightOverTotal =  np.divide(img1DotWeight, totalWeights)
+        
+        # avoid nan when dividing by zero
+        img1DotWeightOverTotal = np.nan_to_num(img1DotWeightOverTotal)
         temp_pred_2= cv2.add(predictor_image_2 , img1DotWeightOverTotal)
         predictor_image_2 = np.clip(temp_pred_2, 0, 255)  
 
