@@ -16,11 +16,14 @@ import time
 import csv
 import sys
 import os
+import tarfile
+import zipfile
+
 ############################
 
-REPRODUCE_EXPERIMENT = False    
-EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+REPRODUCE_EXPERIMENT = True    
+EXPERIMENT_PARAMS_FILENAME = "/home/santi/Repositories/connected-images/cross-validation/experiments/params/nn_params_20.Mar.2015_16:06:52.csv"
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -60,7 +63,10 @@ if REPRODUCE_EXPERIMENT == True:
     
     SOURCE_1 = experiment_list [1][0]
     SOURCE_2 = experiment_list [1][1]
-    FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
+    
+    #overload temporal
+    #FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
+    FILENAME_PRECOMPUTED_WEIGHTS = "/home/santi/Repositories/connected-images/cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net.bz2"
     ROWS_1 = int(experiment_list [1][5])
     COLS_1 = int(experiment_list [1][6])
     ROWS_2 = int(experiment_list [1][7])
@@ -103,7 +109,33 @@ if REPRODUCE_EXPERIMENT == True:
         FPS = int(15)
         cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
         cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
-    ############################################    
+    ############################################
+            #########  NN ############
+        
+        ## TODO: compressed / decompressed / read and write / borrar overload temporal
+    # setting
+    ann = libfann.neural_net()
+ 
+#    opener = tarfile.open
+# 
+#    cwd = os.getcwd() # copy current working dir
+#    os.chdir("../../cross-validation/experiments/weights/")
+#    
+#    try:
+#        file = opener("/home/santi/Repositories/connected-images/cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net.bz2", 'r:bz2')
+#        try: file.extractall()
+#        finally: file.close()
+#    finally:
+#        os.chdir(cwd)
+
+   # ann.create_from_file("../../cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net")
+    
+    # Getting info from NN
+    print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
+    print "[INFO] total number of neurons: " , ann.get_total_neurons()
+    print "[INFO] total number of connections: " , ann.get_total_connections()
+    print "[INFO] ann params: ", ann.print_parameters()
+
 
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
@@ -156,206 +188,30 @@ else:
     ############################
 
 
-#########  NN ############
-# setting
-ann = libfann.neural_net()
-if HIDDEN == True:
-    ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
-    ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
-else:
-    ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
-
-ann.set_learning_rate(ALPHA)
-ann.set_learning_momentum(MOMENTUM)
-ann.set_training_algorithm(TRAINING_ALGORITHM)
-ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
-ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
-ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
-
-# Getting info from NN
-print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
-print "[INFO] total number of neurons: " , ann.get_total_neurons()
-print "[INFO] total number of connections: " , ann.get_total_connections()
-print "[INFO] ann params: ", ann.print_parameters()
+    #########  NN ############
+    # setting
+    ann = libfann.neural_net()
+    if HIDDEN == True:
+        ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
+        ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
+    else:
+        ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+    
+    ann.set_learning_rate(ALPHA)
+    ann.set_learning_momentum(MOMENTUM)
+    ann.set_training_algorithm(TRAINING_ALGORITHM)
+    ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
+    ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
+    ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
+    
+    # Getting info from NN
+    print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
+    print "[INFO] total number of neurons: " , ann.get_total_neurons()
+    print "[INFO] total number of connections: " , ann.get_total_connections()
+    print "[INFO] ann params: ", ann.print_parameters()
 
        
 ######################################################
-
-##### PARAMETERS ###########
-#ALPHA = float(0.3) 
-#'''
-#The learning rate is used to determine how aggressive training should be for 
-#some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
-#FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
-#'''
-#
-#MOMENTUM = float(0.0)
-#'''
-#Get the learning momentum.
-#The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
-#A too high momentum will however not benefit training.  Setting momentum to 0 
-#will be the same as not using the momentum parameter.  The recommended value 
-#of this parameter is between 0.0 and 1.0.
-#The default momentum is 0.
-#'''
-#
-#HIDDEN = False
-#'''
-#Select if a hidden layer is used or not. Default size = same as input layer
-#'''
-#
-#TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
-#'''
-#TRAIN_INCREMENTAL	Standard backpropagation algorithm, 
-#where the weights are updated after each training pattern.  
-#This means that the weights are updated many times during a single epoch.  
-#For this reason some problems, will train very fast with this algorithm, 
-#while other more advanced problems will not train very well.
-#
-#TRAIN_BATCH	Standard backpropagation algorithm, where the weights are 
-#updated after calculating the mean square error for the whole training set.  
-#This means that the weights are only updated once during a epoch.  For this 
-#reason some problems, will train slower with this algorithm.  But since the 
-#mean square error is calculated more correctly than in incremental training,
-#some problems will reach a better solutions with this algorithm.
-#
-#TRAIN_RPROP	A more advanced batch training algorithm which achieves good 
-#results for many problems.  The RPROP training algorithm is adaptive, and does 
-#therefore not use the learning_rate.  Some other parameters can however be set 
-#to change the way the RPROP algorithm works, but it is only recommended for 
-#users with insight in how the RPROP training algorithm works.  The RPROP 
-#training algorithm is described by [Riedmiller and Braun, 1993], but the actual 
-#learning algorithm used here is the iRPROP- training algorithm which is 
-#described by [Igel and Husken, 2000] which is an variety of the standard RPROP 
-#training algorithm.
-#
-#TRAIN_QUICKPROP	A more advanced batch training algorithm which achieves 
-#good results for many problems.  The quickprop training algorithm uses the 
-#learning_rate parameter along with other more advanced parameters, but it is 
-#only recommended to change these advanced parameters, for users with insight 
-#in how the quickprop training algorithm works.  The quickprop training 
-#algorithm is described by [Fahlman, 1988].
-#'''
-
-#TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
-#'''
-#ERRORFUNC_LINEAR	Standard linear error function.
-#ERRORFUNC_TANH	Tanh error function, usually better but can require a 
-#lower learning rate.  This error function agressively targets outputs that 
-#differ much from the desired, while not targetting outputs that only differ 
-#a little that much.  This activation function is not recommended for cascade 
-#training and incremental training.
-#'''
-#TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
-#'''
-#STOPFUNC_MSE	Stop criteria is Mean Square Error (MSE) value.
-#
-#STOPFUNC_BIT	Stop criteria is number of bits that fail.  The number 
-#of bits; means the number of output neurons which differ more than the bit 
-#fail limit (see fann_get_bit_fail_limit, fann_set_bit_fail_limit).  The bits 
-#are counted in all of the training data, so this number can be higher than the 
-#number of training data.
-#'''
-
-#ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
-#ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-#'''
-#The functions are described with functions where
-#x is the input to the activation function,
-#y is the output,
-#s is the steepness and
-#d is the derivation.
-#
-#LINEAR	Linear activation function.
-#span: -inf < y < inf
-#y = x*s, d = 1*s
-#Can NOT be used in fixed point.
-#
-#THRESHOLD	Threshold activation function.
-#x < 0 -> y = 0, x >= 0 -> y = 1
-#Can NOT be used during training.
-#
-#THRESHOLD_SYMMETRIC	Threshold activation function.
-#x < 0 -> y = 0, x >= 0 -> y = 1
-#Can NOT be used during training.
-#
-#SIGMOID	Sigmoid activation function.
-#One of the most used activation functions.
-#span: 0 < y < 1
-#y = 1/(1 + exp(-2*s*x))
-#d = 2*s*y*(1 - y)
-#
-#-> SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
-#Faster than sigmoid but a bit less precise.
-#
-#SIGMOID_SYMMETRIC
-#Symmetric sigmoid activation function, aka. tanh.
-#One of the most used activation functions.
-#span: -1 < y < 1
-#y = tanh(s*x) = 2/(1 + exp(-2*s*x)) - 1
-#d = s*(1-(y*y))
-#
-#GAUSSIAN	Gaussian activation function.
-#0 when x = -inf, 1 when x = 0 and 0 when x = inf
-#span: 0 < y < 1
-#y = exp(-x*s*x*s)
-#d = -2*x*s*y*s
-#
-#GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
-#-1 when x = -inf, 1 when x = 0 and 0 when x = inf
-#span: -1 < y < 1
-#y = exp(-x*s*x*s)*2-1
-#d = -2*x*s*(y+1)*s
-#
-#ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
-#span: 0 < y < 1
-#y = ((x*s) / 2) / (1 + |x*s|) + 0.5
-#d = s*1/(2*(1+|x*s|)*(1+|x*s|))
-#
-#ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
-#span: -1 < y < 1
-#y = (x*s) / (1 + |x*s|)
-#d = s*1/((1+|x*s|)*(1+|x*s|))
-#
-#LINEAR_PIECE	Bounded linear activation function.
-#span: 0 <= y <= 1
-#y = x*s, d = 1*s
-#
-#LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
-#span: -1 <= y <= 1
-#y = x*s, d = 1*s
-#
-#SIN_SYMMETRIC	Periodical sinus activation function.
-#span: -1 <= y <= 1
-#y = sin(x*s)
-#d = s*cos(x*s)
-#
-#COS_SYMMETRIC	Periodical cosinus activation function.
-#span: -1 <= y <= 1
-#y = cos(x*s)
-#d = s*-sin(x*s)
-#
-#SIN	Periodical sinus activation function.
-#span: 0 <= y <= 1
-#y = sin(x*s)/2+0.5
-#d = s*cos(x*s)/2
-#
-#COS	Periodical cosinus activation function.
-#span: 0 <= y <= 1
-#y = cos(x*s)/2+0.5
-#d = s*-sin(x*s)/2
-#'''
-
-#MVMNT_THRES = 10
-#'''
-#Movement is detected by pixel. If no movement in the image, its "variation image"
-#value  is zero. This threshold is used to avoid training the NN with static images,
-#that is, images were there is no movement. This params is compared with the sum
-#os all the values of all pixel in each "variation image". Pixel values are
-#normalize 0-1.
-#
-#'''
-
 
 ## INITIALIZATION ##
 image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
