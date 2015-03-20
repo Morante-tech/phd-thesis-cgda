@@ -20,8 +20,8 @@ cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
 
 #synthetic
-#cap1 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
-#cap2 = cv2.VideoCapture("../../feed/videos/synthetic2.ogg")
+#cap1 = cv2.VideoCapture("../../feed/videos/squares2.ogg")
+#cap2 = cv2.VideoCapture("../../feed/videos/squares2.ogg")
 
 #from webcam
 #cap1 = cv2.VideoCapture(0)

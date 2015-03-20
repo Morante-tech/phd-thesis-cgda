@@ -7,7 +7,7 @@ Algorithms to connect movements between images. We are currently developing two 
 ### Organization
 * In `cross-validation` folder you can find all the data related to the experiments.
 
-* In `feed` folder there are several videos to be used during development as example video files.
+* In `synthetic` folder there are several videos to be used during development as examples of synthetic video files.
 
 * In `src` folder you can find the source code, both python and c++ versions.
 

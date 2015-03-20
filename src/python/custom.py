@@ -91,13 +91,13 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../feed/videos/tatup.mp4"
-    SOURCE_2 = "../../feed/videos/tatup.mp4"
+    #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
+    #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
 
     ## synthetic video
-    #SOURCE_1 = "../../feed/videos/synthetic2.ogg"
-    #SOURCE_2 = "../../feed/videos/synthetic2.ogg"
-    #
+    SOURCE_1 = "../../synthetic/videos/squares2.ogg"
+    SOURCE_2 = "../../synthetic/videos/squares2.ogg"
+    
     ## webcam
     #SOURCE_1 = 0
     #SOURCE_2 = 1
@@ -127,7 +127,7 @@ else:
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = np.float32(0.05)
     BETA =  np.float32(0.5)
-    ACTUAL_IMAGES = False
+    ACTUAL_IMAGES = True
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
     weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
