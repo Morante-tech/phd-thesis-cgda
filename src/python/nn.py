@@ -12,258 +12,149 @@ import numpy as np
 import cv2
 from fann2 import libfann
 from fann2 import _libfann
+import time
+import csv
+import sys
+import os
+############################
 
-##### CAMS PARAMS #####
-#from webcam
-# tatup video
-cap1 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
-cap2 = cv2.VideoCapture("../../feed/videos/tatup.mp4")
+REPRODUCE_EXPERIMENT = False    
+EXPERIMENT_PARAMS_FILENAME = ""
+SAVE_EXPERIMENT   = True
 
-#synthetic
-#cap1 = cv2.VideoCapture("../../feed/videos/squares2.ogg")
-#cap2 = cv2.VideoCapture("../../feed/videos/squares2.ogg")
-
-#from webcam
-#cap1 = cv2.VideoCapture(0)
-#cap2 = cv2.VideoCapture(1)
-#cap1.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-#cap2.set(cv2.cv.CV_CAP_PROP_FPS, 15)
-
-##### some variables ###############################
-if(cap1.isOpened() & cap2.isOpened()):
-
-    cap1.grab() # faster image adquisition than read
-    cap2.grab() # faster image adquisition than read
+#### REPRODUCING EXPERIMENT ####
+if len(sys.argv) > 2:
+    sys.exit("Usage: script.py params_file.csv")
     
-    ret1, frame1 = cap1.retrieve() # read = grab + retrieve (processing)
-    ret2, frame2 = cap2.retrieve() # read = grab + retrieve (processing)
+elif len(sys.argv) == 2:
+    if not os.path.exists(sys.argv[1]):
+        sys.exit("[ERROR] File %s was not found!" % sys.argv[1])
+    else:
+        EXPERIMENT_PARAMS_FILENAME = sys.argv[1]
+        print "[INFO] Reproducing experiment with params: " + str(sys.argv[1])  
+        REPRODUCE_EXPERIMENT = True  
+        
+        #### SAVE EXPERIMENT PARAMS ####
+if SAVE_EXPERIMENT == True:
+    TIME = time.strftime("%H:%M:%S")
+    DATE = time.strftime("%d.%b.%Y")
+    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/nn_weights_" \
+    + DATE + "_" + TIME +  ".net"
     
+    FILENAME_RESULTS = "../../cross-validation/experiments/results/nn_results_" \
+    + DATE + "_" + TIME + ".csv"
+    
+    FILENAME_PARAMS = "../../cross-validation/experiments/params/nn_params_"   \
+    + DATE + "_" + TIME  + ".csv"  
+    
+    
+#### EXPERIMENT PARAMS ####
+if REPRODUCE_EXPERIMENT == True:
+    #### REPRODUCE EXPERIMENT ####
+    experiment_list=[]
+    with open(EXPERIMENT_PARAMS_FILENAME, "rb") as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            experiment_list.append(row)
+    print "[INFO] Experiment raw data: ", experiment_list [1]
+    
+    SOURCE_1 = experiment_list [1][0]
+    SOURCE_2 = experiment_list [1][1]
+    FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
+    ROWS_1 = int(experiment_list [1][5])
+    COLS_1 = int(experiment_list [1][6])
+    ROWS_2 = int(experiment_list [1][7])
+    COLS_2 = int(experiment_list [1][8])
+    ALPHA = float(experiment_list [1][9])
+    MOMENTUM = float(experiment_list [1][10])
+
+    if experiment_list [1][11] == "True":
+        HIDDEN = True
+    elif(experiment_list [1][11] == "False"):
+        HIDDEN = False
+    else:
+        raise NameError("[ERROR] Undefined HIDDEN from file")      
+       
+    TRAINING_ALGORITHM = int(experiment_list [1][12])
+    TRAIN_ERROR_FUNCTION = int(experiment_list [1][13])
+    TRAIN_STOP_FUNCTION = int(experiment_list [1][14])
+    ACTIVATION_FUNCTION_HIDDEN = int(experiment_list [1][15])
+    ACTIVATION_FUNCTION_OUTPUT = int(experiment_list [1][16])
+    MVMNT_THRES = int(experiment_list [1][17])
+    
+    if experiment_list [1][18] == "True":
+        ACTUAL_IMAGES = True
+    elif(experiment_list [1][18] == "False"):
+        ACTUAL_IMAGES = False
+    else:
+        raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
+
+    INTERPOLATION_TYPE = int(experiment_list [1][19])
+
+    print "[INFO] Using loaded neural network"    
+
+    ##### CAMERA ###############################
+    cap1 = cv2.VideoCapture(SOURCE_1)
+    cap2 = cv2.VideoCapture(SOURCE_2)
+    if not (cap1.isOpened() and cap2.isOpened()):
+        raise NameError("[ERROR] Cannot extract images from video")    
+        
+    if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
+        FPS = int(15)
+        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+    ############################################    
+
+else:         
+    ##### CONFIGURE NEW EXPERIMENT ###########  
+    # tatup video
+    #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
+    #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
+    
+    ## synthetic video
+    SOURCE_1 = "../../synthetic/videos/squares2.ogg"
+    SOURCE_2 = "../../synthetic/videos/squares2.ogg"
+    
+    ## webcam
+    #SOURCE_1 = 0
+    #SOURCE_2 = 1
+    
+    ##### CAMERA #####
+    cap1 = cv2.VideoCapture(SOURCE_1)
+    cap2 = cv2.VideoCapture(SOURCE_2)
+    if not (cap1.isOpened() and cap2.isOpened()):
+        raise NameError("[ERROR] Cannot extract images from video")    
+        
+    if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
+        FPS = int(15)
+        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+    
+    ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
+    ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
     frame1Rows = frame1.shape[0]
     frame1Cols = frame1.shape[1]
     frame2Rows = frame2.shape[0]
     frame2Cols = frame2.shape[1]
-else:
-    raise NameError('[ERROR] Cannot extract images from video')    
-######################################################
+    
+    ##### PARAMETERS ###########
+    ROWS_1 = int(40)
+    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
+    ROWS_2 = int(40)
+    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
+    ALPHA = float(0.3)
+    MOMENTUM =  float(0.0)
+    HIDDEN = False
+    TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
+    TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
+    TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
+    ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
+    ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
+    MVMNT_THRES = 10
+    ACTUAL_IMAGES = True
+    INTERPOLATION_TYPE = cv2.INTER_AREA
+    ############################
 
-##### PARAMETERS ###########
-ROWS_1 = int(40) 
-''' 
-image 1 rows in reduced image to feed the NN with
-'''
-COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows) 
-''' 
-image 1 cols in reduced image to feed the NN with
-'''
-ROWS_2 = int(40)
-''' 
-image 2 rows in reduced image to feed the NN with
-'''
-COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-''' 
-image 2 cols in reduced image to feed the NN with
-'''
-
-ALPHA = float(0.3) 
-'''
-The learning rate is used to determine how aggressive training should be for 
-some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
-FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
-'''
-
-MOMENTUM = float(0.0)
-'''
-Get the learning momentum.
-The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
-A too high momentum will however not benefit training.  Setting momentum to 0 
-will be the same as not using the momentum parameter.  The recommended value 
-of this parameter is between 0.0 and 1.0.
-The default momentum is 0.
-'''
-
-HIDDEN = False
-'''
-Select if a hidden layer is used or not. Default size = same as input layer
-'''
-
-TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
-'''
-TRAIN_INCREMENTAL	Standard backpropagation algorithm, 
-where the weights are updated after each training pattern.  
-This means that the weights are updated many times during a single epoch.  
-For this reason some problems, will train very fast with this algorithm, 
-while other more advanced problems will not train very well.
-
-TRAIN_BATCH	Standard backpropagation algorithm, where the weights are 
-updated after calculating the mean square error for the whole training set.  
-This means that the weights are only updated once during a epoch.  For this 
-reason some problems, will train slower with this algorithm.  But since the 
-mean square error is calculated more correctly than in incremental training,
-some problems will reach a better solutions with this algorithm.
-
-TRAIN_RPROP	A more advanced batch training algorithm which achieves good 
-results for many problems.  The RPROP training algorithm is adaptive, and does 
-therefore not use the learning_rate.  Some other parameters can however be set 
-to change the way the RPROP algorithm works, but it is only recommended for 
-users with insight in how the RPROP training algorithm works.  The RPROP 
-training algorithm is described by [Riedmiller and Braun, 1993], but the actual 
-learning algorithm used here is the iRPROP- training algorithm which is 
-described by [Igel and Husken, 2000] which is an variety of the standard RPROP 
-training algorithm.
-
-TRAIN_QUICKPROP	A more advanced batch training algorithm which achieves 
-good results for many problems.  The quickprop training algorithm uses the 
-learning_rate parameter along with other more advanced parameters, but it is 
-only recommended to change these advanced parameters, for users with insight 
-in how the quickprop training algorithm works.  The quickprop training 
-algorithm is described by [Fahlman, 1988].
-'''
-
-TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
-'''
-ERRORFUNC_LINEAR	Standard linear error function.
-ERRORFUNC_TANH	Tanh error function, usually better but can require a 
-lower learning rate.  This error function agressively targets outputs that 
-differ much from the desired, while not targetting outputs that only differ 
-a little that much.  This activation function is not recommended for cascade 
-training and incremental training.
-'''
-TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
-'''
-STOPFUNC_MSE	Stop criteria is Mean Square Error (MSE) value.
-
-STOPFUNC_BIT	Stop criteria is number of bits that fail.  The number 
-of bits; means the number of output neurons which differ more than the bit 
-fail limit (see fann_get_bit_fail_limit, fann_set_bit_fail_limit).  The bits 
-are counted in all of the training data, so this number can be higher than the 
-number of training data.
-'''
-
-ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
-ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-'''
-The functions are described with functions where
-x is the input to the activation function,
-y is the output,
-s is the steepness and
-d is the derivation.
-
-LINEAR	Linear activation function.
-span: -inf < y < inf
-y = x*s, d = 1*s
-Can NOT be used in fixed point.
-
-THRESHOLD	Threshold activation function.
-x < 0 -> y = 0, x >= 0 -> y = 1
-Can NOT be used during training.
-
-THRESHOLD_SYMMETRIC	Threshold activation function.
-x < 0 -> y = 0, x >= 0 -> y = 1
-Can NOT be used during training.
-
-SIGMOID	Sigmoid activation function.
-One of the most used activation functions.
-span: 0 < y < 1
-y = 1/(1 + exp(-2*s*x))
-d = 2*s*y*(1 - y)
-
--> SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
-Faster than sigmoid but a bit less precise.
-
-SIGMOID_SYMMETRIC
-Symmetric sigmoid activation function, aka. tanh.
-One of the most used activation functions.
-span: -1 < y < 1
-y = tanh(s*x) = 2/(1 + exp(-2*s*x)) - 1
-d = s*(1-(y*y))
-
-GAUSSIAN	Gaussian activation function.
-0 when x = -inf, 1 when x = 0 and 0 when x = inf
-span: 0 < y < 1
-y = exp(-x*s*x*s)
-d = -2*x*s*y*s
-
-GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
--1 when x = -inf, 1 when x = 0 and 0 when x = inf
-span: -1 < y < 1
-y = exp(-x*s*x*s)*2-1
-d = -2*x*s*(y+1)*s
-
-ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
-span: 0 < y < 1
-y = ((x*s) / 2) / (1 + |x*s|) + 0.5
-d = s*1/(2*(1+|x*s|)*(1+|x*s|))
-
-ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
-span: -1 < y < 1
-y = (x*s) / (1 + |x*s|)
-d = s*1/((1+|x*s|)*(1+|x*s|))
-
-LINEAR_PIECE	Bounded linear activation function.
-span: 0 <= y <= 1
-y = x*s, d = 1*s
-
-LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
-span: -1 <= y <= 1
-y = x*s, d = 1*s
-
-SIN_SYMMETRIC	Periodical sinus activation function.
-span: -1 <= y <= 1
-y = sin(x*s)
-d = s*cos(x*s)
-
-COS_SYMMETRIC	Periodical cosinus activation function.
-span: -1 <= y <= 1
-y = cos(x*s)
-d = s*-sin(x*s)
-
-SIN	Periodical sinus activation function.
-span: 0 <= y <= 1
-y = sin(x*s)/2+0.5
-d = s*cos(x*s)/2
-
-COS	Periodical cosinus activation function.
-span: 0 <= y <= 1
-y = cos(x*s)/2+0.5
-d = s*-sin(x*s)/2
-'''
-
-MVMNT_THRES = 10
-'''
-Movement is detected by pixel. If no movement in the image, its "variation image"
-value  is zero. This threshold is used to avoid training the NN with static images,
-that is, images were there is no movement. This params is compared with the sum
-os all the values of all pixel in each "variation image". Pixel values are
-normalize 0-1.
-
-'''
-
-FIX_WEIGHTS_MATRIX = False
-'''
-This param is used to fix the NN in a specific moment, and dont train it more
-'''
-
-MS_TO_WAIT = int(1)
-'''
-ms to wait for a key in opencv
-'''
-
-ACTUAL_IMAGES = False
-'''
-it determines wheter to predict variations or images
-'''
-
-INTERPOLATION_TYPE = cv2.INTER_AREA
-'''
-INTER_NEAREST - a nearest-neighbor interpolation
-INTER_LINEAR - a bilinear interpolation (used by default)
-INTER_AREA - resampling using pixel area relation. 
-      It may be a preferred method for image decimation, as it gives moire’-free results. 
-      But when the image is zoomed, it is similar to the INTER_NEAREST method.
-INTER_CUBIC - a bicubic interpolation over 4x4 pixel neighborhood. slow better to enlarge
-INTER_LANCZOS4 - a Lanczos interpolation over 8x8 pixel neighborhood
-'''
-############################
 
 #########  NN ############
 # setting
@@ -286,14 +177,196 @@ print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
 print "[INFO] total number of neurons: " , ann.get_total_neurons()
 print "[INFO] total number of connections: " , ann.get_total_connections()
 print "[INFO] ann params: ", ann.print_parameters()
-################################
 
-## Some neccesary initialization
+       
+######################################################
+
+##### PARAMETERS ###########
+#ALPHA = float(0.3) 
+#'''
+#The learning rate is used to determine how aggressive training should be for 
+#some of the training algorithms (FANN_TRAIN_INCREMENTAL, FANN_TRAIN_BATCH, 
+#FANN_TRAIN_QUICKPROP).  Do however note that it is not used in FANN_TRAIN_RPROP.
+#'''
+#
+#MOMENTUM = float(0.0)
+#'''
+#Get the learning momentum.
+#The learning momentum can be used to speed up FANN_TRAIN_INCREMENTAL training.  
+#A too high momentum will however not benefit training.  Setting momentum to 0 
+#will be the same as not using the momentum parameter.  The recommended value 
+#of this parameter is between 0.0 and 1.0.
+#The default momentum is 0.
+#'''
+#
+#HIDDEN = False
+#'''
+#Select if a hidden layer is used or not. Default size = same as input layer
+#'''
+#
+#TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
+#'''
+#TRAIN_INCREMENTAL	Standard backpropagation algorithm, 
+#where the weights are updated after each training pattern.  
+#This means that the weights are updated many times during a single epoch.  
+#For this reason some problems, will train very fast with this algorithm, 
+#while other more advanced problems will not train very well.
+#
+#TRAIN_BATCH	Standard backpropagation algorithm, where the weights are 
+#updated after calculating the mean square error for the whole training set.  
+#This means that the weights are only updated once during a epoch.  For this 
+#reason some problems, will train slower with this algorithm.  But since the 
+#mean square error is calculated more correctly than in incremental training,
+#some problems will reach a better solutions with this algorithm.
+#
+#TRAIN_RPROP	A more advanced batch training algorithm which achieves good 
+#results for many problems.  The RPROP training algorithm is adaptive, and does 
+#therefore not use the learning_rate.  Some other parameters can however be set 
+#to change the way the RPROP algorithm works, but it is only recommended for 
+#users with insight in how the RPROP training algorithm works.  The RPROP 
+#training algorithm is described by [Riedmiller and Braun, 1993], but the actual 
+#learning algorithm used here is the iRPROP- training algorithm which is 
+#described by [Igel and Husken, 2000] which is an variety of the standard RPROP 
+#training algorithm.
+#
+#TRAIN_QUICKPROP	A more advanced batch training algorithm which achieves 
+#good results for many problems.  The quickprop training algorithm uses the 
+#learning_rate parameter along with other more advanced parameters, but it is 
+#only recommended to change these advanced parameters, for users with insight 
+#in how the quickprop training algorithm works.  The quickprop training 
+#algorithm is described by [Fahlman, 1988].
+#'''
+
+#TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
+#'''
+#ERRORFUNC_LINEAR	Standard linear error function.
+#ERRORFUNC_TANH	Tanh error function, usually better but can require a 
+#lower learning rate.  This error function agressively targets outputs that 
+#differ much from the desired, while not targetting outputs that only differ 
+#a little that much.  This activation function is not recommended for cascade 
+#training and incremental training.
+#'''
+#TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
+#'''
+#STOPFUNC_MSE	Stop criteria is Mean Square Error (MSE) value.
+#
+#STOPFUNC_BIT	Stop criteria is number of bits that fail.  The number 
+#of bits; means the number of output neurons which differ more than the bit 
+#fail limit (see fann_get_bit_fail_limit, fann_set_bit_fail_limit).  The bits 
+#are counted in all of the training data, so this number can be higher than the 
+#number of training data.
+#'''
+
+#ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
+#ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
+#'''
+#The functions are described with functions where
+#x is the input to the activation function,
+#y is the output,
+#s is the steepness and
+#d is the derivation.
+#
+#LINEAR	Linear activation function.
+#span: -inf < y < inf
+#y = x*s, d = 1*s
+#Can NOT be used in fixed point.
+#
+#THRESHOLD	Threshold activation function.
+#x < 0 -> y = 0, x >= 0 -> y = 1
+#Can NOT be used during training.
+#
+#THRESHOLD_SYMMETRIC	Threshold activation function.
+#x < 0 -> y = 0, x >= 0 -> y = 1
+#Can NOT be used during training.
+#
+#SIGMOID	Sigmoid activation function.
+#One of the most used activation functions.
+#span: 0 < y < 1
+#y = 1/(1 + exp(-2*s*x))
+#d = 2*s*y*(1 - y)
+#
+#-> SIGMOID_STEPWISE	Stepwise linear approximation to sigmoid.
+#Faster than sigmoid but a bit less precise.
+#
+#SIGMOID_SYMMETRIC
+#Symmetric sigmoid activation function, aka. tanh.
+#One of the most used activation functions.
+#span: -1 < y < 1
+#y = tanh(s*x) = 2/(1 + exp(-2*s*x)) - 1
+#d = s*(1-(y*y))
+#
+#GAUSSIAN	Gaussian activation function.
+#0 when x = -inf, 1 when x = 0 and 0 when x = inf
+#span: 0 < y < 1
+#y = exp(-x*s*x*s)
+#d = -2*x*s*y*s
+#
+#GAUSSIAN_SYMMETRIC	Symmetric gaussian activation function.
+#-1 when x = -inf, 1 when x = 0 and 0 when x = inf
+#span: -1 < y < 1
+#y = exp(-x*s*x*s)*2-1
+#d = -2*x*s*(y+1)*s
+#
+#ELLIOT	Fast (sigmoid like) activation function defined by David Elliott
+#span: 0 < y < 1
+#y = ((x*s) / 2) / (1 + |x*s|) + 0.5
+#d = s*1/(2*(1+|x*s|)*(1+|x*s|))
+#
+#ELLIOT_SYMMETRIC	Fast (symmetric sigmoid like) activation function defined by David Elliott
+#span: -1 < y < 1
+#y = (x*s) / (1 + |x*s|)
+#d = s*1/((1+|x*s|)*(1+|x*s|))
+#
+#LINEAR_PIECE	Bounded linear activation function.
+#span: 0 <= y <= 1
+#y = x*s, d = 1*s
+#
+#LINEAR_PIECE_SYMMETRIC	Bounded linear activation function.
+#span: -1 <= y <= 1
+#y = x*s, d = 1*s
+#
+#SIN_SYMMETRIC	Periodical sinus activation function.
+#span: -1 <= y <= 1
+#y = sin(x*s)
+#d = s*cos(x*s)
+#
+#COS_SYMMETRIC	Periodical cosinus activation function.
+#span: -1 <= y <= 1
+#y = cos(x*s)
+#d = s*-sin(x*s)
+#
+#SIN	Periodical sinus activation function.
+#span: 0 <= y <= 1
+#y = sin(x*s)/2+0.5
+#d = s*cos(x*s)/2
+#
+#COS	Periodical cosinus activation function.
+#span: 0 <= y <= 1
+#y = cos(x*s)/2+0.5
+#d = s*-sin(x*s)/2
+#'''
+
+#MVMNT_THRES = 10
+#'''
+#Movement is detected by pixel. If no movement in the image, its "variation image"
+#value  is zero. This threshold is used to avoid training the NN with static images,
+#that is, images were there is no movement. This params is compared with the sum
+#os all the values of all pixel in each "variation image". Pixel values are
+#normalize 0-1.
+#
+#'''
+
+
+## INITIALIZATION ##
 image_1_t_0  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_0  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
+FIX_WEIGHTS_MATRIX = False
+MS_TO_WAIT = int(1)
+mse_fann = [] 
+mse_own = [] 
 
 ##############################################################
 ############ LOOP ############################################
@@ -305,8 +378,8 @@ while(cap1.isOpened() and cap2.isOpened()):
     ret2, frame2 = cap2.retrieve()
  
     if(ret1==False or ret2==False):
-        print '[ERROR] No stream of images!!'
-        break
+        raise NameError("[ERROR] No stream of images")    
+
     
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = INTERPOLATION_TYPE)
@@ -316,8 +389,8 @@ while(cap1.isOpened() and cap2.isOpened()):
     image_2_t_0 = cv2.cvtColor(frame2_reduced, cv2.COLOR_BGR2GRAY)
 
     # variation image
-    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1)
-    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1)
+    var_img1 = cv2.absdiff(image_1_t_0, image_1_t_1).astype(np.float32)
+    var_img2 = cv2.absdiff(image_2_t_0, image_2_t_1).astype(np.float32)
 
     
     if ACTUAL_IMAGES == True:
@@ -325,12 +398,12 @@ while(cap1.isOpened() and cap2.isOpened()):
         img2 = np.array(image_2_t_0).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
 
         #calculating total change in pixels
-        total_change_img1 = int(sum(np.array(var_img1).flatten().astype(np.float32) / 255.0))
-        total_change_img2 = int(sum(np.array(var_img2).flatten().astype(np.float32) / 255.0))
+        total_change_img1 = int(sum(np.array(var_img1).flatten() / 255.0))
+        total_change_img2 = int(sum(np.array(var_img2).flatten() / 255.0))
 
     else:
-        img1 = np.array(var_img1).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
-        img2 = np.array(var_img2).flatten().astype(np.float32) / 255.0 # normalize 0-1 for NN
+        img1 = np.array(var_img1).flatten() / 255.0 # normalize 0-1 for NN
+        img2 = np.array(var_img2).flatten() / 255.0 # normalize 0-1 for NN
         
         #calculating total change in pixels
         total_change_img1 = int(sum(img1))
@@ -340,9 +413,11 @@ while(cap1.isOpened() and cap2.isOpened()):
   #  print "[INFO] Sum movement 2: ", total_change_img2, "\n"
     
     # train only if enough movement has ocurred
-    if FIX_WEIGHTS_MATRIX == False and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:    
+    if REPRODUCE_EXPERIMENT == False and FIX_WEIGHTS_MATRIX == False \
+    and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:    
         ann.train(img1, img2)  #train 1 sample (incremental)
    
+    mse_fann.append(np.float32(ann.get_MSE()))
    # print "[INFO] MSE: ", ann.get_MSE()
 
     ## PREDICTING SAMPLE
@@ -357,7 +432,7 @@ while(cap1.isOpened() and cap2.isOpened()):
 ###########################################
 
     #### PREDICTOR MAPS ######
-    predictor_image_2 = 255* np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))   
+    predictor_image_2 = (255* np.array(predictor_image_2_list).reshape((ROWS_2, COLS_2))).astype(np.float32)
     adaptTypePredictor= predictor_image_2.astype(np.uint8)
    
     cv2.namedWindow('Predictor', cv2.WINDOW_NORMAL)     
@@ -371,18 +446,25 @@ while(cap1.isOpened() and cap2.isOpened()):
         cv2.imshow('Frame 1', image_1_t_0)
         cv2.imshow('Frame 2', image_2_t_0)    
     else:    
-        cv2.imshow('Frame 1', var_img1)
-        cv2.imshow('Frame 2', var_img2)    
+        cv2.imshow('Frame 1', var_img1.astype(np.uint8))
+        cv2.imshow('Frame 2', var_img2.astype(np.uint8))    
 
     #### ERROR MAPS ###### 
+    cv2.namedWindow('Error (Frame 2, Prediction)', cv2.WINDOW_NORMAL)         
+
     if ACTUAL_IMAGES == True:
         error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
+        mse_temp_1 = cv2.absdiff(predictor_image_2, np.array(image_2_t_0).astype(np.float32))
+
     else:
-        error_image = cv2.absdiff(adaptTypePredictor, var_img2)
+        error_image = cv2.absdiff(predictor_image_2, var_img2)
+        mse_temp_1 = cv2.absdiff(predictor_image_2, var_img2*255)
 
-    cv2.namedWindow('Error (Frame 2, Prediction)', cv2.WINDOW_NORMAL)         
-    cv2.imshow('Error (Frame 2, Prediction)', error_image)
-
+    cv2.imshow('Error (Frame 2, Prediction)', error_image.astype(np.uint8))
+    mse_temp_2 = cv2.multiply(mse_temp_1, mse_temp_1) / (ROWS_2*COLS_2)
+    mse_value = sum(np.array(mse_temp_2).flatten())
+    mse_own.append(np.float32(mse_value))
+    
     #### Keys ###
     k = cv2.waitKey(MS_TO_WAIT) & 0xFF # not use AND (logic), use & (bitwise)
     if k == ord('f'):
@@ -390,6 +472,47 @@ while(cap1.isOpened() and cap2.isOpened()):
         print '[INFO] WeightsMatrix Fixed'
 
     if k == ord('q'):
+        if(SAVE_EXPERIMENT == True):
+            print "[INFO] Saving experiment"
+
+            # save network
+            ann.save(FILENAME_WEIGHTS)
+            
+            # save results
+            file_results = open(FILENAME_RESULTS, "w")
+            file_results.write("Mean_Square_Error_FANN,Mean_Square_Error_OWN \n")
+            
+            for i in range(len(mse_fann)):
+                file_results.write(str(mse_fann[i]) + "," + str(mse_own[i]) + "\n")            
+            
+            file_results.write("\n")            
+            file_results.close()  
+                         
+            # save params
+            file_params = open(FILENAME_PARAMS, "w")
+            list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
+                                  "FILENAME_RESULTS", "FILENAME_PARAMS","ROWS_1",
+                                  "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "MOMENTUM", 
+                                  "HIDDEN", "TRAINING_ALGORITHM", 
+                                  "TRAIN_ERROR_FUNCTION", "TRAIN_STOP_FUNCTION",
+                                  "ACTIVATION_FUNCTION_HIDDEN", "ACTIVATION_FUNCTION_OUTPUT",
+                                  "MVMNT_THRES", "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
+            
+            list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS,
+                                  FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1,
+                                  COLS_1, ROWS_2, COLS_2, ALPHA, MOMENTUM, 
+                                  HIDDEN, TRAINING_ALGORITHM, 
+                                  TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION,
+                                  ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT,
+                                  MVMNT_THRES, ACTUAL_IMAGES, INTERPOLATION_TYPE]
+                                 
+            file_params.write(",".join(map(lambda x: str(x), list_params_names)))
+            file_params.write("\n")
+            file_params.write(",".join(map(lambda x: str(x), list_params_values)))
+            file_params.write("\n")
+            file_params.close()            
+            
+        print "[INFO] Quitting program!"
         break
 #########################################################
 #####################   END LOOP   #####################

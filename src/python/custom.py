@@ -143,7 +143,7 @@ error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 totalWeights = np.zeros((ROWS_2,COLS_2), np.float32)
 predictor_image_2 = np.zeros((ROWS_2,COLS_2), np.float32) # first predictor map 2
 fix_weights_matrix = False
-MS_TO_WAIT = int(1)
+ms_to_wait = int(1)
 mse = [] 
 
 ##############################################################
@@ -269,7 +269,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
     #print "[INFO] MSE: ", mse_value, "\n"
 
     ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT) #########
-    k = cv2.waitKey(MS_TO_WAIT) & 0xFF # dont use AND (logic), use & (bitwise)
+    k = cv2.waitKey(ms_to_wait) & 0xFF # dont use AND (logic), use & (bitwise)
     
     if k == ord('f'):
         fix_weights_matrix = True        
