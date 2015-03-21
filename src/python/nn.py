@@ -16,16 +16,14 @@ import time
 import csv
 import sys
 import os
-import tarfile
-import zipfile
 import bz2
 import fileinput
 
 ############################
 
-REPRODUCE_EXPERIMENT = True    
-EXPERIMENT_PARAMS_FILENAME = "/home/santi/Repositories/connected-images/cross-validation/experiments/params/nn_params_20.Mar.2015_16:06:52.csv"
-SAVE_EXPERIMENT   = False
+REPRODUCE_EXPERIMENT = False
+EXPERIMENT_PARAMS_FILENAME = ""
+SAVE_EXPERIMENT = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -67,8 +65,7 @@ if REPRODUCE_EXPERIMENT == True:
     SOURCE_2 = experiment_list [1][1]
     
     #overload temporal
-    #FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
-    FILENAME_PRECOMPUTED_WEIGHTS = "/home/santi/Repositories/connected-images/cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net.bz2"
+    FILENAME_PRECOMPUTED_WEIGHTS = experiment_list [1][2]
     ROWS_1 = int(experiment_list [1][5])
     COLS_1 = int(experiment_list [1][6])
     ROWS_2 = int(experiment_list [1][7])
@@ -112,12 +109,12 @@ if REPRODUCE_EXPERIMENT == True:
         cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
         cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
     ############################################
-            #########  NN ############
+    #########  NN ############
         
-        ## TODO: decompress / read and write / borrar overload temporal
-    # setting
+    # create ann
     ann = libfann.neural_net()
     
+    # decompress file and save it to ascii .net
     input_file = bz2.BZ2File(FILENAME_PRECOMPUTED_WEIGHTS, "rb")
     try:
         decompressed_filename = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
@@ -128,6 +125,7 @@ if REPRODUCE_EXPERIMENT == True:
         input_file.close()
         text_file.close()        
 
+    # assign values to ann
     ann.create_from_file(decompressed_filename)
     
     # Getting info from NN
@@ -365,7 +363,7 @@ while(cap1.isOpened() and cap2.isOpened()):
                                   "ACTIVATION_FUNCTION_HIDDEN", "ACTIVATION_FUNCTION_OUTPUT",
                                   "MVMNT_THRES", "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
             
-            list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS,
+            list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS + ".bz2",
                                   FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1,
                                   COLS_1, ROWS_2, COLS_2, ALPHA, MOMENTUM, 
                                   HIDDEN, TRAINING_ALGORITHM, 
