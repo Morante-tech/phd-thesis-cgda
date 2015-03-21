@@ -18,6 +18,8 @@ import sys
 import os
 import tarfile
 import zipfile
+import bz2
+import fileinput
 
 ############################
 
@@ -112,23 +114,21 @@ if REPRODUCE_EXPERIMENT == True:
     ############################################
             #########  NN ############
         
-        ## TODO: compressed / decompressed / read and write / borrar overload temporal
+        ## TODO: decompress / read and write / borrar overload temporal
     # setting
     ann = libfann.neural_net()
- 
-#    opener = tarfile.open
-# 
-#    cwd = os.getcwd() # copy current working dir
-#    os.chdir("../../cross-validation/experiments/weights/")
-#    
-#    try:
-#        file = opener("/home/santi/Repositories/connected-images/cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net.bz2", 'r:bz2')
-#        try: file.extractall()
-#        finally: file.close()
-#    finally:
-#        os.chdir(cwd)
+    
+    input_file = bz2.BZ2File(FILENAME_PRECOMPUTED_WEIGHTS, "rb")
+    try:
+        decompressed_filename = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
+        text_file = open(decompressed_filename, "w")
+        text_file.write(input_file.read())
+    
+    finally:
+        input_file.close()
+        text_file.close()        
 
-   # ann.create_from_file("../../cross-validation/experiments/weights/nn_weights_20.Mar.2015_16:06:52.net")
+    ann.create_from_file(decompressed_filename)
     
     # Getting info from NN
     print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
@@ -333,6 +333,17 @@ while(cap1.isOpened() and cap2.isOpened()):
 
             # save network
             ann.save(FILENAME_WEIGHTS)
+            
+            # comprese and delete uncompressed file
+            output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+             
+            for line in fileinput.input(FILENAME_WEIGHTS):
+                    output.write(line)
+            output.close()
+        
+            os.remove(FILENAME_WEIGHTS)            
+            
+            
             
             # save results
             file_results = open(FILENAME_RESULTS, "w")
