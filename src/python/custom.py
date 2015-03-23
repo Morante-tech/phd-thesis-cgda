@@ -263,8 +263,8 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
     cv2.imshow('Error (Frame 2, Prediction)', error_image)
 
-    mse_temp_2 = cv2.multiply(mse_temp_1, mse_temp_1) / (ROWS_2*COLS_2)
-    mse_value = sum(np.array(mse_temp_2).flatten())
+    mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
+    mse_value = sum( np.array(mse_temp_2).flatten() )
     mse.append(np.float32(mse_value))
     #print "[INFO] MSE: ", mse_value, "\n"
 

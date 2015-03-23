@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = False
+SAVE_EXPERIMENT = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -272,7 +272,7 @@ while(cap1.isOpened() and cap2.isOpened()):
         ann.train(img1, img2)  #train 1 sample (incremental)
    
     mse_fann.append(np.float32(ann.get_MSE()))
-   # print "[INFO] MSE: ", ann.get_MSE()
+    #print "[INFO] MSE_FANN: ", ann.get_MSE()
 
     ## PREDICTING SAMPLE
     predictor_image_2_list = ann.run(img1)
@@ -308,17 +308,17 @@ while(cap1.isOpened() and cap2.isOpened()):
 
     if ACTUAL_IMAGES == True:
         error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
-        mse_temp_1 = cv2.absdiff(predictor_image_2, np.array(image_2_t_0).astype(np.float32))
-
     else:
         error_image = cv2.absdiff(predictor_image_2, var_img2)
-        mse_temp_1 = cv2.absdiff(predictor_image_2, var_img2*255)
-
-    cv2.imshow('Error (Frame 2, Prediction)', error_image.astype(np.uint8))
-    mse_temp_2 = cv2.multiply(mse_temp_1, mse_temp_1) / (ROWS_2*COLS_2)
-    mse_value = sum(np.array(mse_temp_2).flatten())
-    mse_own.append(np.float32(mse_value))
     
+    cv2.imshow('Error (Frame 2, Prediction)', error_image.astype(np.uint8))
+    
+    mse_temp_1 = predictor_image_2_list - img2
+    mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
+    mse_value = sum( np.array(mse_temp_2).flatten() )
+    mse_own.append(np.float32(mse_value))
+   # print "[INFO] MSE_OWN: ", mse_value
+
     #### Keys ###
     k = cv2.waitKey(MS_TO_WAIT) & 0xFF # not use AND (logic), use & (bitwise)
     if k == ord('f'):
@@ -345,10 +345,17 @@ while(cap1.isOpened() and cap2.isOpened()):
             
             # save results
             file_results = open(FILENAME_RESULTS, "w")
-            file_results.write("Mean_Square_Error_FANN,Mean_Square_Error_OWN \n")
+ 
+#           file_results.write("Mean_Square_Error_FANN,Mean_Square_Error_OWN \n")
+#            
+#            for i in range(len(mse_fann)):
+#                file_results.write(str(mse_fann[i]) + "," + str(mse_own[i]) + "\n")   
+
+
+            file_results.write("Mean Square Error\n")
             
-            for i in range(len(mse_fann)):
-                file_results.write(str(mse_fann[i]) + "," + str(mse_own[i]) + "\n")            
+            for i in range(len(mse_own)):
+                file_results.write(str(mse_own[i]) + "\n")            
             
             file_results.write("\n")            
             file_results.close()  
