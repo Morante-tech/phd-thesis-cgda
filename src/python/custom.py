@@ -18,7 +18,7 @@ import os
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:

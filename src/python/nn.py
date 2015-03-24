@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = True
+SAVE_EXPERIMENT = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -141,9 +141,9 @@ else:
     #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
     #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
     
-    ## synthetic video
-    SOURCE_1 = "../../synthetic/videos/squares2.ogg"
-    SOURCE_2 = "../../synthetic/videos/squares2.ogg"
+    ## video
+    SOURCE_1 = "/home/smorante/Repositories/connected-images/cross-validation/experiments/scripts/output/feed_1_24.Mar.2015_11:26:24.avi"
+    SOURCE_2 = "/home/smorante/Repositories/connected-images/cross-validation/experiments/scripts/output/feed_2_24.Mar.2015_11:26:24.avi"
     
     ## webcam
     #SOURCE_1 = 0
@@ -181,7 +181,7 @@ else:
     ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
     ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
     MVMNT_THRES = 10
-    ACTUAL_IMAGES = True
+    ACTUAL_IMAGES = False
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
 
