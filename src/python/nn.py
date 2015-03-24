@@ -141,13 +141,9 @@ else:
     #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
     #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
     
-    ## video
-    SOURCE_1 = "/home/smorante/Repositories/connected-images/cross-validation/experiments/scripts/output/feed_1_24.Mar.2015_11:26:24.avi"
-    SOURCE_2 = "/home/smorante/Repositories/connected-images/cross-validation/experiments/scripts/output/feed_2_24.Mar.2015_11:26:24.avi"
-    
     ## webcam
-    #SOURCE_1 = 0
-    #SOURCE_2 = 1
+    SOURCE_1 = 0
+    SOURCE_2 = 1
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
