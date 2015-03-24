@@ -14,6 +14,6 @@ These are the instructions to reproduce any experiment shown in video execution 
 
 4. As long as the weights file is still available in `./cross-validation/experiments/weights` folder, the program should work. The weights file will have the same DATE and TIME than the parameters file. That's all.
 
-5. **BONUS**: To reproduce plots and analyses, go to `./cross-validation/experiments/scripts` folder. In this folder there are several Rmd (R markdown) files, each one performing a different analysis. Each file is intended to be autoexplicative, and can be opened with any text editor.
+5. **BONUS**: To reproduce plots and analyses, go to `./cross-validation/experiments/scripts` folder. In this folder there are several Rmd (R markdown) and python files, each one performing a different analysis. Each file is intended to be autoexplicative, and can be opened with any text editor.
 
 
