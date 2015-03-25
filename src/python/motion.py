@@ -90,13 +90,10 @@ if REPRODUCE_EXPERIMENT == True:
     ############################################
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    # tatup video
-    #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
-    #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
-
-    ## synthetic video
-    SOURCE_1 = "../../synthetic/videos/squares2.ogg"
-    SOURCE_2 = "../../synthetic/videos/squares2.ogg"
+    
+    ##  video
+    SOURCE_1 = "../../synthetic/videos/gravity.mp4"
+    SOURCE_2 = "../../synthetic/videos/tatup.mp4"
     
     ## webcam
     #SOURCE_1 = 0
