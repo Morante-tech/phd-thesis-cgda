@@ -36,13 +36,13 @@ elif len(sys.argv) == 2:
 if SAVE_EXPERIMENT == True:
     TIME = time.strftime("%H:%M:%S")
     DATE = time.strftime("%d.%b.%Y")
-    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/custom_weights_" \
+    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/motion_weights_" \
     + DATE + "_" + TIME +  ".npy"
     
-    FILENAME_RESULTS = "../../cross-validation/experiments/results/custom_results_" \
+    FILENAME_RESULTS = "../../cross-validation/experiments/results/motion_results_" \
     + DATE + "_" + TIME + ".csv"
     
-    FILENAME_PARAMS = "../../cross-validation/experiments/params/custom_params_"   \
+    FILENAME_PARAMS = "../../cross-validation/experiments/params/motion_params_"   \
     + DATE + "_" + TIME  + ".csv"    
  
 #### EXPERIMENT PARAMS ####
