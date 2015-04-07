@@ -18,7 +18,7 @@ import os
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = False
+SAVE_EXPERIMENT   = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -33,9 +33,10 @@ elif len(sys.argv) == 2:
         REPRODUCE_EXPERIMENT = True    
 
 #### SAVE EXPERIMENT PARAMS ####
+TIME = time.strftime("%H:%M:%S")
+DATE = time.strftime("%d.%b.%Y")
+
 if SAVE_EXPERIMENT == True:
-    TIME = time.strftime("%H:%M:%S")
-    DATE = time.strftime("%d.%b.%Y")
     FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/motion_weights_" \
     + DATE + "_" + TIME +  ".npy"
     
@@ -92,8 +93,8 @@ else:
     ##### CONFIGURE NEW EXPERIMENT ###########  
     
     ##  video
-    SOURCE_1 = "../../synthetic/videos/gravity.mp4"
-    SOURCE_2 = "../../synthetic/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/tatup.mp4"
+    SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ## webcam
     #SOURCE_1 = 0
@@ -118,9 +119,9 @@ else:
     frame2Cols = frame2.shape[1]
 
     ##### PARAMETERS ###########
-    ROWS_1 = int(40)
+    ROWS_1 = int(80)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(40)
+    ROWS_2 = int(80)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = np.float32(0.05)
     BETA =  np.float32(0.5)
@@ -271,6 +272,29 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
     if k == ord('f'):
         fix_weights_matrix = True        
         print "[INFO] WeightsMatrix Fixed"
+
+    if k == ord('s'):
+        fix_weights_matrix = True        
+        print "[INFO] Saving Image 2 and Prediction"
+        if ACTUAL_IMAGES == True:
+            cv2.imwrite( "../../cross-validation/experiments/outputs/frame1_" \
+            + DATE + "_" + TIME +  ".png", image_1_t_0);
+            
+            cv2.imwrite( "../../cross-validation/experiments/outputs/frame2_" \
+            + DATE + "_" + TIME +  ".png", image_2_t_0);
+            
+            cv2.imwrite( "../../cross-validation/experiments/outputs/prediction2_" \
+            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+        else: 
+             cv2.imwrite( "../../cross-validation/experiments/outputs/var1_" \
+            + DATE + "_" + TIME +  ".png", var_img1);           
+            
+             cv2.imwrite( "../../cross-validation/experiments/outputs/var2_" \
+            + DATE + "_" + TIME +  ".png", var_img2);              
+            
+             cv2.imwrite( "../../cross-validation/experiments/outputs/prediction2_" \
+            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+
 
     if k == ord('q'):
         if(SAVE_EXPERIMENT == True):
