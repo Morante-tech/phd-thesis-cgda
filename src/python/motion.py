@@ -14,6 +14,9 @@ import time
 import csv
 import sys
 import os
+import bz2
+import fileinput
+
 ############################
 
 REPRODUCE_EXPERIMENT = False    
@@ -74,9 +77,23 @@ if REPRODUCE_EXPERIMENT == True:
 
     INTERPOLATION_TYPE = int(experiment_list [1][12])
     
-    weightMatrix = np.load(FILENAME_PRECOMPUTED_WEIGHTS).astype(np.float32)
+    # decompress file and save it to ascii .net
+    input_file = bz2.BZ2File(FILENAME_PRECOMPUTED_WEIGHTS, "rb")
+    try:
+        decompressed_filename = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
+        text_file = open(decompressed_filename, "w")
+        text_file.write(input_file.read())
+    
+    finally:
+        input_file.close()
+        text_file.close()            
+    
+    # assign values to weights matrix
+    weightMatrix = np.load(decompressed_filename).astype(np.float32)  
     np.ascontiguousarray(weightMatrix)    
+
     print "[INFO] Using loaded weight matrix"
+
     
     ##### CAMERA ###############################
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -119,9 +136,9 @@ else:
     frame2Cols = frame2.shape[1]
 
     ##### PARAMETERS ###########
-    ROWS_1 = int(80)
+    ROWS_1 = int(50)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(80)
+    ROWS_2 = int(50)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = np.float32(0.05)
     BETA =  np.float32(0.5)
@@ -131,7 +148,8 @@ else:
     weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
     np.ascontiguousarray(weightMatrix)    
     ############################
-
+    
+    
 #### INITIALIZATION #########
 ROWS_1_list = range(ROWS_1)
 COLS_1_list = range(COLS_1)
@@ -301,7 +319,17 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             print "[INFO] Saving experiment"
 
             # save weights matrix
-            np.save(FILENAME_WEIGHTS, weightMatrix)
+            np.save(FILENAME_WEIGHTS, weightMatrix)            
+            
+            # comprese and delete uncompressed file
+            output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+             
+            for line in fileinput.input(FILENAME_WEIGHTS):
+                    output.write(line)
+            output.close()
+        
+            os.remove(FILENAME_WEIGHTS)                     
+            
             
             # save results
             file_results = open(FILENAME_RESULTS, "w")

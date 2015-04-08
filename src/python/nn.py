@@ -38,9 +38,9 @@ elif len(sys.argv) == 2:
         REPRODUCE_EXPERIMENT = True  
         
         #### SAVE EXPERIMENT PARAMS ####
+TIME = time.strftime("%H:%M:%S")
+DATE = time.strftime("%d.%b.%Y")
 if SAVE_EXPERIMENT == True:
-    TIME = time.strftime("%H:%M:%S")
-    DATE = time.strftime("%d.%b.%Y")
     FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/nn_weights_" \
     + DATE + "_" + TIME +  ".net"
     
