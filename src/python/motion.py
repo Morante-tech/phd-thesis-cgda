@@ -293,24 +293,24 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
     if k == ord('s'):
         fix_weights_matrix = True        
-        print "[INFO] Saving Image 2 and Prediction"
+        print "[INFO] Saving Images"
         if ACTUAL_IMAGES == True:
-            cv2.imwrite( "../../cross-validation/experiments/outputs/frame1_" \
+            cv2.imwrite( "../../cross-validation/experiments/outputs/motion_frame1_" \
             + DATE + "_" + TIME +  ".png", image_1_t_0);
             
-            cv2.imwrite( "../../cross-validation/experiments/outputs/frame2_" \
+            cv2.imwrite( "../../cross-validation/experiments/outputs/motion_frame2_" \
             + DATE + "_" + TIME +  ".png", image_2_t_0);
             
-            cv2.imwrite( "../../cross-validation/experiments/outputs/prediction2_" \
+            cv2.imwrite( "../../cross-validation/experiments/outputs/motion_prediction2_" \
             + DATE + "_" + TIME +  ".png", adaptTypePredictor);
         else: 
-             cv2.imwrite( "../../cross-validation/experiments/outputs/var1_" \
+             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_var1_" \
             + DATE + "_" + TIME +  ".png", var_img1);           
             
-             cv2.imwrite( "../../cross-validation/experiments/outputs/var2_" \
+             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_var2_" \
             + DATE + "_" + TIME +  ".png", var_img2);              
             
-             cv2.imwrite( "../../cross-validation/experiments/outputs/prediction2_" \
+             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_prediction2_" \
             + DATE + "_" + TIME +  ".png", adaptTypePredictor);
 
 

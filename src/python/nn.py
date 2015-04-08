@@ -138,12 +138,12 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    #SOURCE_1 = "../../synthetic/videos/tatup.mp4"
-    #SOURCE_2 = "../../synthetic/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/tatup.mp4"
+    SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ## webcam
-    SOURCE_1 = 0
-    SOURCE_2 = 1
+#    SOURCE_1 = 0
+#    SOURCE_2 = 1
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -321,6 +321,30 @@ while(cap1.isOpened() and cap2.isOpened()):
         FIX_WEIGHTS_MATRIX = True        
         print '[INFO] WeightsMatrix Fixed'
 
+    if k == ord('s'):
+        fix_weights_matrix = True        
+        print "[INFO] Saving Images"
+        if ACTUAL_IMAGES == True:
+            cv2.imwrite( "../../cross-validation/experiments/outputs/nn_frame1_" \
+            + DATE + "_" + TIME +  ".png", image_1_t_0);
+            
+            cv2.imwrite( "../../cross-validation/experiments/outputs/nn_frame2_" \
+            + DATE + "_" + TIME +  ".png", image_2_t_0);
+            
+            cv2.imwrite( "../../cross-validation/experiments/outputs/nn_prediction2_" \
+            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+        else: 
+             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_var1_" \
+            + DATE + "_" + TIME +  ".png", var_img1.astype(np.uint8));           
+            
+             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_var2_" \
+            + DATE + "_" + TIME +  ".png", var_img2.astype(np.uint8));              
+            
+             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_prediction2_" \
+            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+
+
+
     if k == ord('q'):
         if(SAVE_EXPERIMENT == True):
             print "[INFO] Saving experiment"
@@ -337,16 +361,9 @@ while(cap1.isOpened() and cap2.isOpened()):
         
             os.remove(FILENAME_WEIGHTS)            
             
-            
-            
             # save results
             file_results = open(FILENAME_RESULTS, "w")
  
-#           file_results.write("Mean_Square_Error_FANN,Mean_Square_Error_OWN \n")
-#            
-#            for i in range(len(mse_fann)):
-#                file_results.write(str(mse_fann[i]) + "," + str(mse_own[i]) + "\n")   
-
 
             file_results.write("Mean Square Error\n")
             
