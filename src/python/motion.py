@@ -21,7 +21,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -98,6 +98,7 @@ if REPRODUCE_EXPERIMENT == True:
     ##### CAMERA ###############################
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
+
     if not (cap1.isOpened() and cap2.isOpened()):
         raise NameError("[ERROR] Cannot extract images from video")    
         
@@ -105,6 +106,9 @@ if REPRODUCE_EXPERIMENT == True:
         FPS = int(15)
         cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
         cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        
+    print "FPS Cap 1: ", cap1.get(cv2.cv.CV_CAP_PROP_FPS)
+    print "FPS Cap 2: ", cap2.get(cv2.cv.CV_CAP_PROP_FPS)        
     ############################################
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
@@ -120,6 +124,7 @@ else:
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
+
     if not (cap1.isOpened() and cap2.isOpened()):
         raise NameError("[ERROR] Cannot extract images from video")    
         
@@ -127,6 +132,9 @@ else:
         FPS = int(15)
         cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
         cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+    
+    print "FPS Cap 1: ", cap1.get(cv2.cv.CV_CAP_PROP_FPS)
+    print "FPS Cap 2: ", cap2.get(cv2.cv.CV_CAP_PROP_FPS)
 
     ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
     ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
@@ -172,7 +180,8 @@ while(cap1.isOpened() and cap2.isOpened()):
     ret2, frame2 = cap2.retrieve()
  
     if(ret1==False or ret2==False):
-        raise NameError("[ERROR] No stream of images")    
+        print "[ERROR] No stream of images (or end of file)"
+        break
     
     # note the changed axis in opencv
     frame1_reduced  = cv2.resize(frame1,(COLS_1, ROWS_1), interpolation = INTERPOLATION_TYPE)
@@ -315,52 +324,55 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
 
     if k == ord('q'):
-        if(SAVE_EXPERIMENT == True):
-            print "[INFO] Saving experiment"
-
-            # save weights matrix
-            np.save(FILENAME_WEIGHTS, weightMatrix)            
-            
-            # comprese and delete uncompressed file
-            output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
-             
-            for line in fileinput.input(FILENAME_WEIGHTS):
-                    output.write(line)
-            output.close()
-        
-            os.remove(FILENAME_WEIGHTS)                     
-            
-            
-            # save results
-            file_results = open(FILENAME_RESULTS, "w")
-            file_results.write("Mean Square Error\n")
-            file_results.write("\n".join(map(lambda x: str(x), mse)))
-            file_results.write("\n")            
-            file_results.close()  
-            
-            # save params
-            file_params = open(FILENAME_PARAMS, "w")
-            list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
-                                  "FILENAME_RESULTS", "FILENAME_PARAMS","ROWS_1",
-                                  "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "BETA", 
-                                  "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
-            
-            list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
-                                 FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1, 
-                                 COLS_1, ROWS_2, COLS_2, ALPHA, BETA, 
-                                 ACTUAL_IMAGES, INTERPOLATION_TYPE]
-                                 
-            file_params.write(",".join(map(lambda x: str(x), list_params_names)))
-            file_params.write("\n")
-            file_params.write(",".join(map(lambda x: str(x), list_params_values)))
-            file_params.write("\n")
-            file_params.close()            
-            
-        print "[INFO] Quitting program!"
         break
 
 #########################################################
 #####################   END LOOP   #####################
+
+
+if(SAVE_EXPERIMENT == True):
+    print "[INFO] Saving experiment"
+
+    # save weights matrix
+    np.save(FILENAME_WEIGHTS, weightMatrix)            
+    
+    # comprese and delete uncompressed file
+    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+     
+    for line in fileinput.input(FILENAME_WEIGHTS):
+            output.write(line)
+    output.close()
+
+    os.remove(FILENAME_WEIGHTS)                     
+    
+    
+    # save results
+    file_results = open(FILENAME_RESULTS, "w")
+    file_results.write("Mean Square Error\n")
+    file_results.write("\n".join(map(lambda x: str(x), mse)))
+    file_results.write("\n")            
+    file_results.close()  
+    
+    # save params
+    file_params = open(FILENAME_PARAMS, "w")
+    list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
+                          "FILENAME_RESULTS", "FILENAME_PARAMS","ROWS_1",
+                          "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "BETA", 
+                          "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
+    
+    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
+                         FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1, 
+                         COLS_1, ROWS_2, COLS_2, ALPHA, BETA, 
+                         ACTUAL_IMAGES, INTERPOLATION_TYPE]
+                         
+    file_params.write(",".join(map(lambda x: str(x), list_params_names)))
+    file_params.write("\n")
+    file_params.write(",".join(map(lambda x: str(x), list_params_values)))
+    file_params.write("\n")
+    file_params.close()            
+    
+print "[INFO] Quitting program!"
+
 
 cap1.release()
 cap2.release()
