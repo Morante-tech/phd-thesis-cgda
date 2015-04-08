@@ -19,8 +19,8 @@ import fileinput
 
 ############################
 
-REPRODUCE_EXPERIMENT = False    
-EXPERIMENT_PARAMS_FILENAME = ""
+REPRODUCE_EXPERIMENT = True    
+EXPERIMENT_PARAMS_FILENAME = "/home/smorante/Repositories/connected-images/cross-validation/experiments/params/motion_params_07.Apr.2015_13:35:33.csv"
 SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
@@ -323,12 +323,15 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             + DATE + "_" + TIME +  ".png", adaptTypePredictor);
 
 
-    if k == ord('q'):
+    if k == ord('q'):                  
         break
 
 #########################################################
 #####################   END LOOP   #####################
 
+if REPRODUCE_EXPERIMENT == True:
+    print "[INFO] Removing decompressed file"
+    os.remove(decompressed_filename)  
 
 if(SAVE_EXPERIMENT == True):
     print "[INFO] Saving experiment"

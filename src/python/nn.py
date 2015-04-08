@@ -360,6 +360,10 @@ while(cap1.isOpened() and cap2.isOpened()):
         break
 #########################################################
 #####################   END LOOP   #####################
+if REPRODUCE_EXPERIMENT == True:
+    print "[INFO] Removing decompressed file"
+    os.remove(decompressed_filename)  
+
 if(SAVE_EXPERIMENT == True):
     print "[INFO] Saving experiment"
 
