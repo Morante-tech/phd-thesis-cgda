@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = False
+SAVE_EXPERIMENT = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -143,8 +143,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/gravity.mp4"
-    SOURCE_2 = "../../raws/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/sintel.avi"
+    SOURCE_2 = "../../raws/videos/sintel.avi"
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -174,7 +174,7 @@ else:
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     ROWS_2 = int(50)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-    ALPHA = float(0.005)
+    ALPHA = float(0.01)
     MOMENTUM =  float(0)
     HIDDEN = False
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL

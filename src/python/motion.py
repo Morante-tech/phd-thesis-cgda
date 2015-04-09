@@ -21,7 +21,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = False
+SAVE_EXPERIMENT   = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -113,8 +113,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     ##  video
-    SOURCE_1 = "../../raws/videos/random_1.avi"
-    SOURCE_2 = "../../raws/videos/random_2.avi"
+    SOURCE_1 = "../../raws/videos/sintel.avi"
+    SOURCE_2 = "../../raws/videos/bunny.avi"
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
