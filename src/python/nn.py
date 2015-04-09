@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = False
+SAVE_EXPERIMENT = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -143,8 +143,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/random_1.avi"
-    SOURCE_2 = "../../raws/videos/random_2.avi"
+    SOURCE_1 = "../../raws/videos/tatup.mp4"
+    SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ## webcam
 #    SOURCE_1 = 0
@@ -174,9 +174,9 @@ else:
     frame2Cols = frame2.shape[1]
     
     ##### PARAMETERS ###########
-    ROWS_1 = int(50)
+    ROWS_1 = int(80)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(50)
+    ROWS_2 = int(80)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = float(0.0005)
     MOMENTUM =  float(0)
