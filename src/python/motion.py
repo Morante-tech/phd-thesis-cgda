@@ -19,9 +19,9 @@ import fileinput
 
 ############################
 
-REPRODUCE_EXPERIMENT = True    
-EXPERIMENT_PARAMS_FILENAME = "/home/smorante/Repositories/connected-images/cross-validation/experiments/params/motion_params_07.Apr.2015_13:35:33.csv"
-SAVE_EXPERIMENT   = False
+REPRODUCE_EXPERIMENT = False    
+EXPERIMENT_PARAMS_FILENAME = ""
+SAVE_EXPERIMENT   = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -114,7 +114,7 @@ else:
     ##### CONFIGURE NEW EXPERIMENT ###########  
     
     ##  video
-    SOURCE_1 = "../../raws/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/gravity.mp4"
     SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ## webcam
@@ -336,7 +336,7 @@ if REPRODUCE_EXPERIMENT == True:
 if(SAVE_EXPERIMENT == True):
     print "[INFO] Saving experiment"         
     
-    print "[INFO] Savinf results"
+    print "[INFO] Saving results"
     
     # save results
     file_results = open(FILENAME_RESULTS, "w")

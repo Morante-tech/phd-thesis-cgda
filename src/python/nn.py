@@ -143,7 +143,7 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/squares.mp4"
     SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ## webcam
@@ -174,9 +174,9 @@ else:
     frame2Cols = frame2.shape[1]
     
     ##### PARAMETERS ###########
-    ROWS_1 = int(80)
+    ROWS_1 = int(50)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(80)
+    ROWS_2 = int(50)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = float(0.002)
     MOMENTUM =  float(0)
