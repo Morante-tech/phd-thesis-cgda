@@ -174,20 +174,20 @@ else:
     frame2Cols = frame2.shape[1]
     
     ##### PARAMETERS ###########
-    ROWS_1 = int(40)
+    ROWS_1 = int(80)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(40)
+    ROWS_2 = int(80)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-    ALPHA = float(0.3)
-    MOMENTUM =  float(0.0)
+    ALPHA = float(0.002)
+    MOMENTUM =  float(0)
     HIDDEN = False
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
     TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
     TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
     ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
     ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-    MVMNT_THRES = 10
-    ACTUAL_IMAGES = False
+    MVMNT_THRES = 1
+    ACTUAL_IMAGES = True
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
 
@@ -366,19 +366,8 @@ if REPRODUCE_EXPERIMENT == True:
 
 if(SAVE_EXPERIMENT == True):
     print "[INFO] Saving experiment"
+    print "[INFO] Saving results"
 
-    # save network
-    ann.save(FILENAME_WEIGHTS)
-    
-    # comprese and delete uncompressed file
-    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
-     
-    for line in fileinput.input(FILENAME_WEIGHTS):
-            output.write(line)
-    output.close()
-
-    os.remove(FILENAME_WEIGHTS)            
-    
     # save results
     file_results = open(FILENAME_RESULTS, "w")
  
@@ -390,6 +379,8 @@ if(SAVE_EXPERIMENT == True):
     
     file_results.write("\n")            
     file_results.close()  
+                 
+    print "[INFO] Saving params"
                  
     # save params
     file_params = open(FILENAME_PARAMS, "w")
@@ -413,7 +404,21 @@ if(SAVE_EXPERIMENT == True):
     file_params.write("\n")
     file_params.write(",".join(map(lambda x: str(x), list_params_values)))
     file_params.write("\n")
-    file_params.close()            
+    file_params.close()          
+    
+    print "[INFO] Saving weights"
+    
+    # save network
+    ann.save(FILENAME_WEIGHTS)
+    
+    # comprese and delete uncompressed file
+    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+     
+    for line in fileinput.input(FILENAME_WEIGHTS):
+            output.write(line)
+    output.close()
+
+    os.remove(FILENAME_WEIGHTS)            
     
 print "[INFO] Quitting program!"
 

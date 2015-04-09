@@ -334,20 +334,9 @@ if REPRODUCE_EXPERIMENT == True:
     os.remove(decompressed_filename)  
 
 if(SAVE_EXPERIMENT == True):
-    print "[INFO] Saving experiment"
-
-    # save weights matrix
-    np.save(FILENAME_WEIGHTS, weightMatrix)            
+    print "[INFO] Saving experiment"         
     
-    # comprese and delete uncompressed file
-    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
-     
-    for line in fileinput.input(FILENAME_WEIGHTS):
-            output.write(line)
-    output.close()
-
-    os.remove(FILENAME_WEIGHTS)                     
-    
+    print "[INFO] Savinf results"
     
     # save results
     file_results = open(FILENAME_RESULTS, "w")
@@ -355,6 +344,8 @@ if(SAVE_EXPERIMENT == True):
     file_results.write("\n".join(map(lambda x: str(x), mse)))
     file_results.write("\n")            
     file_results.close()  
+
+    print "[INFO] Saving params"
     
     # save params
     file_params = open(FILENAME_PARAMS, "w")
@@ -372,7 +363,21 @@ if(SAVE_EXPERIMENT == True):
     file_params.write("\n")
     file_params.write(",".join(map(lambda x: str(x), list_params_values)))
     file_params.write("\n")
-    file_params.close()            
+    file_params.close()           
+    
+    print "[INFO] Saving weights"
+    
+    # save weights matrix
+    np.save(FILENAME_WEIGHTS, weightMatrix)            
+    
+    # comprese and delete uncompressed file
+    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+     
+    for line in fileinput.input(FILENAME_WEIGHTS):
+            output.write(line)
+    output.close()
+
+    os.remove(FILENAME_WEIGHTS)          
     
 print "[INFO] Quitting program!"
 
