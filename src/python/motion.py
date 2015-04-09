@@ -21,7 +21,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -112,7 +112,6 @@ if REPRODUCE_EXPERIMENT == True:
     ############################################
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    
     ##  video
     SOURCE_1 = "../../raws/videos/random_1.avi"
     SOURCE_2 = "../../raws/videos/random_2.avi"

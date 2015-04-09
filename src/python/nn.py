@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = True
+SAVE_EXPERIMENT = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -143,8 +143,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/random_1.avi"
-    SOURCE_2 = "../../raws/videos/random_2.avi"
+    SOURCE_1 = "../../raws/videos/gravity.mp4"
+    SOURCE_2 = "../../raws/videos/tatup.mp4"
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -221,7 +221,6 @@ image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
 FIX_WEIGHTS_MATRIX = False
 MS_TO_WAIT = int(1)
-mse_fann = [] 
 mse_own = [] 
 
 ##############################################################
@@ -266,17 +265,12 @@ while(cap1.isOpened() and cap2.isOpened()):
         total_change_img1 = int(sum(img1))
         total_change_img2 = int(sum(img2))
     
-  #  print "[INFO] Sum movement 1: ", total_change_img1
-  #  print "[INFO] Sum movement 2: ", total_change_img2, "\n"
     
     # train only if enough movement has ocurred
     if REPRODUCE_EXPERIMENT == False and FIX_WEIGHTS_MATRIX == False \
     and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:    
         ann.train(img1, img2)  #train 1 sample (incremental)
    
-    mse_fann.append(np.float32(ann.get_MSE()))
-    #print "[INFO] MSE_FANN: ", ann.get_MSE()
-
     ## PREDICTING SAMPLE
     predictor_image_2_list = ann.run(img1)
     
