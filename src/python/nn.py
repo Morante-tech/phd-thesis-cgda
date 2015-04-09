@@ -23,7 +23,7 @@ import fileinput
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = False
+SAVE_EXPERIMENT = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -143,8 +143,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/gravity.mp4"
-    SOURCE_2 = "../../raws/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/random_1.avi"
+    SOURCE_2 = "../../raws/videos/random_2.avi"
     
     ## webcam
 #    SOURCE_1 = 0
@@ -320,7 +320,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     
     cv2.imshow('Error (Frame 2, Prediction)', error_image.astype(np.uint8))
     
-    mse_temp_1 = predictor_image_2_list - img2
+    mse_temp_1 = cv2.absdiff(adaptTypePredictor, image_2_t_0)
     mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
     mse_value = sum( np.array(mse_temp_2).flatten() )
     mse_own.append(np.float32(mse_value))

@@ -114,8 +114,8 @@ else:
     ##### CONFIGURE NEW EXPERIMENT ###########  
     
     ##  video
-    SOURCE_1 = "../../raws/videos/gravity.mp4"
-    SOURCE_2 = "../../raws/videos/tatup.mp4"
+    SOURCE_1 = "../../raws/videos/random_1.avi"
+    SOURCE_2 = "../../raws/videos/random_2.avi"
     
     ## webcam
     #SOURCE_1 = 0
