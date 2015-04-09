@@ -116,10 +116,6 @@ else:
     ##  video
     SOURCE_1 = "../../raws/videos/random_1.avi"
     SOURCE_2 = "../../raws/videos/random_2.avi"
-    
-    ## webcam
-    #SOURCE_1 = 0
-    #SOURCE_2 = 1
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)

@@ -143,12 +143,8 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
-    SOURCE_1 = "../../raws/videos/tatup.mp4"
-    SOURCE_2 = "../../raws/videos/tatup.mp4"
-    
-    ## webcam
-#    SOURCE_1 = 0
-#    SOURCE_2 = 1
+    SOURCE_1 = "../../raws/videos/random_1.avi"
+    SOURCE_2 = "../../raws/videos/random_2.avi"
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -174,11 +170,11 @@ else:
     frame2Cols = frame2.shape[1]
     
     ##### PARAMETERS ###########
-    ROWS_1 = int(80)
+    ROWS_1 = int(50)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
-    ROWS_2 = int(80)
+    ROWS_2 = int(50)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-    ALPHA = float(0.0005)
+    ALPHA = float(0.005)
     MOMENTUM =  float(0)
     HIDDEN = False
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
