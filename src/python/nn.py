@@ -144,7 +144,7 @@ else:
     ##### CONFIGURE NEW EXPERIMENT ###########  
     # tatup video
     SOURCE_1 = "../../raws/videos/sintel.avi"
-    SOURCE_2 = "../../raws/videos/sintel.avi"
+    SOURCE_2 = "../../raws/videos/bunny.avi"
     
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -171,19 +171,20 @@ else:
     
     ##### PARAMETERS ###########
     ROWS_1 = int(50)
-    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     ROWS_2 = int(50)
+    ALPHA = float(0.05)
+    MOMENTUM =  float(0.8)
+    HIDDEN = True
+    ACTUAL_IMAGES = True
+    MVMNT_THRES = 10
+    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
-    ALPHA = float(0.01)
-    MOMENTUM =  float(0)
-    HIDDEN = False
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
     TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
     TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
     ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
     ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-    MVMNT_THRES = 1
-    ACTUAL_IMAGES = True
+
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
 
