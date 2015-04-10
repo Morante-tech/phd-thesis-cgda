@@ -113,8 +113,14 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     ##  video
-    SOURCE_1 = "../../raws/videos/sintel.avi"
-    SOURCE_2 = "../../raws/videos/bunny.avi"
+#    SOURCE_1 = "../../raws/videos/sintel.avi"
+#    SOURCE_2 = "../../raws/videos/bunny.avi"
+
+    SOURCE_1 = "../../cross-validation/training/training_objects_30cm_30deg_0.avi"
+    SOURCE_2 = "../../cross-validation/training/training_objects_30cm_30deg_1.avi"
+    EXTERNAL_WEIGHTS = False
+    FILENAME_PRECOMPUTED_WEIGHTS = ""
+
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -140,16 +146,39 @@ else:
 
     ##### PARAMETERS ###########
     ROWS_1 = int(50)
-    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     ROWS_2 = int(50)
-    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = np.float32(0.05)
     LAMBDA =  np.float32(0.5)
-    ACTUAL_IMAGES = True
+    MVMNT_THRES = 10
+    ACTUAL_IMAGES = False
+    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
+    COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)    
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
-    weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
-    np.ascontiguousarray(weightMatrix)    
+    
+    if EXTERNAL_WEIGHTS== True:
+        # decompress file and save it to ascii .net
+        input_file = bz2.BZ2File(FILENAME_PRECOMPUTED_WEIGHTS, "rb")
+        try:
+            decompressed_filename = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
+            text_file = open(decompressed_filename, "w")
+            text_file.write(input_file.read())
+        
+        finally:
+            input_file.close()
+            text_file.close()           
+            
+        # assign values to weights matrix
+        weightMatrix = np.load(decompressed_filename).astype(np.float32)  
+        np.ascontiguousarray(weightMatrix)   
+        print "[INFO] Using loaded weight matrix"
+
+    else:
+        weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
+        np.ascontiguousarray(weightMatrix)  
+    
+    
+  
     ############################
     
     
@@ -189,6 +218,11 @@ while(cap1.isOpened() and cap2.isOpened()):
     var_img1 = (cv2.absdiff(image_1_t_0, image_1_t_1)/255.0).astype(np.float32)
     var_img2 = (cv2.absdiff(image_2_t_0, image_2_t_1)/255.0).astype(np.float32)
     
+   
+    #calculating total change in pixels
+    total_change_img1 = int(sum(np.array(var_img1).flatten()))
+    total_change_img2 = int(sum(np.array(var_img2).flatten()))    
+    
     #predictor image 2
     predictor_image_2 = 0
     
@@ -205,7 +239,8 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         #if no variation in any of the images, we cannot predict relation
         #Similar to losing confidence in relation
         
-        if(REPRODUCE_EXPERIMENT == False and fix_weights_matrix == False):
+        if REPRODUCE_EXPERIMENT == False and fix_weights_matrix == False \
+        and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
             #the elements that add value to the weights
             elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
