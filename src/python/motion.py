@@ -67,7 +67,7 @@ if REPRODUCE_EXPERIMENT == True:
     ROWS_2 = int(experiment_list [1][7])
     COLS_2 = int(experiment_list [1][8])
     ALPHA = float(experiment_list [1][9])
-    BETA = float(experiment_list [1][10])
+    LAMBDA = float(experiment_list [1][10])
     if experiment_list [1][11] == "True":
         ACTUAL_IMAGES = True
     elif(experiment_list [1][11] == "False"):
@@ -144,7 +144,7 @@ else:
     ROWS_2 = int(50)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     ALPHA = np.float32(0.05)
-    BETA =  np.float32(0.5)
+    LAMBDA =  np.float32(0.5)
     ACTUAL_IMAGES = True
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
@@ -212,7 +212,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             
             #the elements that subtract value to the weights
             elem3 = cv2.absdiff(var_img1.item(i,j), var_img2)
-            elem4 = elem3 * BETA
+            elem4 = elem3 * LAMBDA
             
             #Subtraction of both elems
             elem5 = np.subtract(elem2,elem4)
@@ -346,12 +346,12 @@ if(SAVE_EXPERIMENT == True):
     file_params = open(FILENAME_PARAMS, "w")
     list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
                           "FILENAME_RESULTS", "FILENAME_PARAMS","ROWS_1",
-                          "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "BETA", 
+                          "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "LAMBDA", 
                           "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
     
     list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
                          FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1, 
-                         COLS_1, ROWS_2, COLS_2, ALPHA, BETA, 
+                         COLS_1, ROWS_2, COLS_2, ALPHA, LAMBDA, 
                          ACTUAL_IMAGES, INTERPOLATION_TYPE]
                          
     file_params.write(",".join(map(lambda x: str(x), list_params_names)))
