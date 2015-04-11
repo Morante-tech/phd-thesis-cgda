@@ -23,7 +23,7 @@ import bz2
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = False
+SAVE_EXPERIMENT = True
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -151,7 +151,7 @@ else:
     ALPHA = float(0.05)
     MOMENTUM =  float(0.8)
     HIDDEN = True
-    ACTUAL_IMAGES = True
+    ACTUAL_IMAGES = False
     MVMNT_THRES = 10
     EXTERNAL_WEIGHTS = False
     FILENAME_PRECOMPUTED_WEIGHTS = ""
@@ -340,22 +340,22 @@ while(cap1.isOpened() and cap2.isOpened()):
         print "[INFO] Saving Images"
         if ACTUAL_IMAGES == True:
             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_frame1_" \
-            + DATE + "_" + TIME +  ".png", image_1_t_0);
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", image_1_t_0);
             
             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_frame2_" \
-            + DATE + "_" + TIME +  ".png", image_2_t_0);
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", image_2_t_0);
             
             cv2.imwrite( "../../cross-validation/experiments/outputs/nn_prediction2_" \
-            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", adaptTypePredictor);
         else: 
              cv2.imwrite( "../../cross-validation/experiments/outputs/nn_var1_" \
-            + DATE + "_" + TIME +  ".png", var_img1.astype(np.uint8));           
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", var_img1.astype(np.uint8));           
             
              cv2.imwrite( "../../cross-validation/experiments/outputs/nn_var2_" \
-            + DATE + "_" + TIME +  ".png", var_img2.astype(np.uint8));              
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", var_img2.astype(np.uint8));              
             
              cv2.imwrite( "../../cross-validation/experiments/outputs/nn_prediction2_" \
-            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+            + DATE + "_" + time.strftime("%H:%M:%S") +  ".png", adaptTypePredictor);
 
 
 
