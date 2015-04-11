@@ -19,9 +19,9 @@ import fileinput
 
 ############################
 
-REPRODUCE_EXPERIMENT = False    
-EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+REPRODUCE_EXPERIMENT = True    
+EXPERIMENT_PARAMS_FILENAME = "/home/santi/Repositories/connected-images/cross-validation/experiments/params/motion_params_11.Apr.2015_01:36:23.csv"
+SAVE_EXPERIMENT   = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -112,15 +112,16 @@ if REPRODUCE_EXPERIMENT == True:
     ############################################
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    ##  video
-#    SOURCE_1 = "../../raws/videos/sintel.avi"
-#    SOURCE_2 = "../../raws/videos/bunny.avi"
+    ##### PARAMETERS ###########
+    SOURCE_1 = "../../raws/videos/sintel.avi"
+    SOURCE_2 = "../../raws/videos/bunny.avi"
 
-    SOURCE_1 = "../../cross-validation/training/training_objects_30cm_30deg_0.avi"
-    SOURCE_2 = "../../cross-validation/training/training_objects_30cm_30deg_1.avi"
+    ROWS_1 = int(50)
+    ROWS_2 = int(50)
     EXTERNAL_WEIGHTS = False
     FILENAME_PRECOMPUTED_WEIGHTS = ""
-
+    MVMNT_THRES = 10
+    ACTUAL_IMAGES = False
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -144,13 +145,9 @@ else:
     frame2Rows = frame2.shape[0]
     frame2Cols = frame2.shape[1]
 
-    ##### PARAMETERS ###########
-    ROWS_1 = int(50)
-    ROWS_2 = int(50)
+    ##### NON TUNNEABLE PARAMETERS ###########
     ALPHA = np.float32(0.05)
     LAMBDA =  np.float32(0.5)
-    MVMNT_THRES = 10
-    ACTUAL_IMAGES = False
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)    
     INTERPOLATION_TYPE = cv2.INTER_AREA
@@ -321,7 +318,6 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
     mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
     mse_value = sum( np.array(mse_temp_2).flatten() )
     mse.append(np.float32(mse_value))
-    #print "[INFO] MSE: ", mse_value, "\n"
 
     ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT) #########
     k = cv2.waitKey(ms_to_wait) & 0xFF # dont use AND (logic), use & (bitwise)
@@ -335,22 +331,22 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         print "[INFO] Saving Images"
         if ACTUAL_IMAGES == True:
             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_frame1_" \
-            + DATE + "_" + TIME +  ".png", image_1_t_0);
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", image_1_t_0);
             
             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_frame2_" \
-            + DATE + "_" + TIME +  ".png", image_2_t_0);
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", image_2_t_0);
             
             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_prediction2_" \
-            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", adaptTypePredictor);
         else: 
              cv2.imwrite( "../../cross-validation/experiments/outputs/motion_var1_" \
-            + DATE + "_" + TIME +  ".png", var_img1);           
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (var_img1*255).astype(np.uint8));           
             
              cv2.imwrite( "../../cross-validation/experiments/outputs/motion_var2_" \
-            + DATE + "_" + TIME +  ".png", var_img2);              
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (var_img2*255).astype(np.uint8));              
             
              cv2.imwrite( "../../cross-validation/experiments/outputs/motion_prediction2_" \
-            + DATE + "_" + TIME +  ".png", adaptTypePredictor);
+            + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", adaptTypePredictor);
 
 
     if k == ord('q'):                  
@@ -384,7 +380,7 @@ if(SAVE_EXPERIMENT == True):
                           "COLS_1", "ROWS_2", "COLS_2", "ALPHA", "LAMBDA", 
                           "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
     
-    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
+    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS + ".bz2", 
                          FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1, 
                          COLS_1, ROWS_2, COLS_2, ALPHA, LAMBDA, 
                          ACTUAL_IMAGES, INTERPOLATION_TYPE]
