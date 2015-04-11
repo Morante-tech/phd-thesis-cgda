@@ -17,13 +17,13 @@ import csv
 import sys
 import os
 import bz2
-import fileinput
+#import fileinput
 
 ############################
 
 REPRODUCE_EXPERIMENT = False
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT = True
+SAVE_EXPERIMENT = False
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -146,6 +146,17 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/bunny.avi"
     
+    ROWS_1 = int(50)
+    ROWS_2 = int(50)
+    ALPHA = float(0.05)
+    MOMENTUM =  float(0.8)
+    HIDDEN = True
+    ACTUAL_IMAGES = True
+    MVMNT_THRES = 10
+    EXTERNAL_WEIGHTS = False
+    FILENAME_PRECOMPUTED_WEIGHTS = ""
+    
+    
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
@@ -169,14 +180,8 @@ else:
     frame2Rows = frame2.shape[0]
     frame2Cols = frame2.shape[1]
     
-    ##### PARAMETERS ###########
-    ROWS_1 = int(50)
-    ROWS_2 = int(50)
-    ALPHA = float(0.05)
-    MOMENTUM =  float(0.8)
-    HIDDEN = True
-    ACTUAL_IMAGES = True
-    MVMNT_THRES = 10
+    ##### NON TUNNEABLE PARAMETERS ###########
+
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
@@ -184,7 +189,6 @@ else:
     TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
     ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
     ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
 
@@ -192,18 +196,26 @@ else:
     #########  NN ############
     # setting
     ann = libfann.neural_net()
-    if HIDDEN == True:
-        ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
-        ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
-    else:
-        ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
     
-    ann.set_learning_rate(ALPHA)
-    ann.set_learning_momentum(MOMENTUM)
-    ann.set_training_algorithm(TRAINING_ALGORITHM)
-    ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
-    ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
-    ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
+    if EXTERNAL_WEIGHTS== True:
+        decompressed_filename = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
+    
+        # assign values to ann
+        ann.create_from_file(decompressed_filename)    
+    else:
+    
+        if HIDDEN == True:
+            ann.create_standard_array([ROWS_1*COLS_1,ROWS_1*COLS_1, ROWS_2*COLS_2])
+            ann.set_activation_function_hidden(ACTIVATION_FUNCTION_HIDDEN)
+        else:
+            ann.create_standard_array([ROWS_1*COLS_1, ROWS_2*COLS_2])
+        
+        ann.set_learning_rate(ALPHA)
+        ann.set_learning_momentum(MOMENTUM)
+        ann.set_training_algorithm(TRAINING_ALGORITHM)
+        ann.set_train_error_function(TRAIN_ERROR_FUNCTION)
+        ann.set_train_stop_function(TRAIN_STOP_FUNCTION)
+        ann.set_activation_function_output(ACTIVATION_FUNCTION_OUTPUT)
     
     # Getting info from NN
     print "[INFO] sizes ann: ", ann.get_num_input(), " and ",  ann.get_num_output()
@@ -383,7 +395,7 @@ if(SAVE_EXPERIMENT == True):
                           "ACTIVATION_FUNCTION_HIDDEN", "ACTIVATION_FUNCTION_OUTPUT",
                           "MVMNT_THRES", "ACTUAL_IMAGES", "INTERPOLATION_TYPE"]
     
-    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS + ".bz2",
+    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS,
                           FILENAME_RESULTS, FILENAME_PARAMS, ROWS_1,
                           COLS_1, ROWS_2, COLS_2, ALPHA, MOMENTUM, 
                           HIDDEN, TRAINING_ALGORITHM, 
@@ -402,14 +414,14 @@ if(SAVE_EXPERIMENT == True):
     # save network
     ann.save(FILENAME_WEIGHTS)
     
-    # comprese and delete uncompressed file
-    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
-     
-    for line in fileinput.input(FILENAME_WEIGHTS):
-            output.write(line)
-    output.close()
-
-    os.remove(FILENAME_WEIGHTS)            
+#    # comprese and delete uncompressed file
+#    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")
+#     
+#    for line in fileinput.input(FILENAME_WEIGHTS):
+#            output.write(line)
+#    output.close()
+#
+#    os.remove(FILENAME_WEIGHTS)            
     
 print "[INFO] Quitting program!"
 
