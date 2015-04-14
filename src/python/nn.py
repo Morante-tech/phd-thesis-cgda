@@ -412,7 +412,7 @@ if(SAVE_EXPERIMENT == True):
     print "[INFO] Saving weights"
     
     # save network
-    ann.save(FILENAME_WEIGHTS)
+#    ann.save(FILENAME_WEIGHTS)
     
 #    # comprese and delete uncompressed file
 #    output = bz2.BZ2File(FILENAME_WEIGHTS + ".bz2", "wb")

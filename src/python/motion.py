@@ -19,9 +19,13 @@ import fileinput
 
 ############################
 
-REPRODUCE_EXPERIMENT = True    
-EXPERIMENT_PARAMS_FILENAME = "/home/santi/Repositories/connected-images/cross-validation/experiments/params/motion_params_11.Apr.2015_01:36:23.csv"
+REPRODUCE_EXPERIMENT = False    
+EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
+EXTERNAL_WEIGHTS = False
+FILENAME_PRECOMPUTED_WEIGHTS = ""
+
+
 
 #### REPRODUCING EXPERIMENT ####
 if len(sys.argv) > 2:
@@ -113,15 +117,18 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     ##### PARAMETERS ###########
-    SOURCE_1 = "../../raws/videos/sintel.avi"
-    SOURCE_2 = "../../raws/videos/bunny.avi"
+    SOURCE_1 = "../../cross-validation/training/training_objects_minoru_0.avi"
+    SOURCE_2 = "../../cross-validation/training/training_objects_minoru_1.avi"
+
+  #  SOURCE_1 = "../../cross-validation/test/test_objects_30cm_30deg_0.avi"
+  #  SOURCE_2 = "../../cross-validation/test/test_objects_30cm_30deg_1.avi"
 
     ROWS_1 = int(50)
     ROWS_2 = int(50)
-    EXTERNAL_WEIGHTS = False
-    FILENAME_PRECOMPUTED_WEIGHTS = ""
-    MVMNT_THRES = 10
+    MVMNT_THRES = 20
     ACTUAL_IMAGES = False
+    ALPHA = np.float32(0.5)
+    LAMBDA =  np.float32(0.5)
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -146,8 +153,6 @@ else:
     frame2Cols = frame2.shape[1]
 
     ##### NON TUNNEABLE PARAMETERS ###########
-    ALPHA = np.float32(0.05)
-    LAMBDA =  np.float32(0.5)
     COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)    
     INTERPOLATION_TYPE = cv2.INTER_AREA
@@ -237,7 +242,8 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
         #Similar to losing confidence in relation
         
         if REPRODUCE_EXPERIMENT == False and fix_weights_matrix == False \
-        and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
+        and total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES \
+        and EXTERNAL_WEIGHTS== False:
             #the elements that add value to the weights
             elem1  = ALPHA * var_img1.item(i,j) * var_img2
             elem2 = cv2.add(currWeightSubMatrixR2C2, elem1)
