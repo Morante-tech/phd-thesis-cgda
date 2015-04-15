@@ -42,9 +42,10 @@ def extract_params_from_file(filename):
     else:
         raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
     
+    mvmnt_thres = int(experiment_list [1][12])
     return (input_matrix, output_matrix, filename_precomputed_weights,
     input_rows, input_cols, output_rows, output_cols, alpha_param, lambda_param,
-    actual_images)
+    actual_images, mvmnt_thres)
 
 
 def reduce_and_gray(image, desired_rows, desired_cols):
@@ -54,7 +55,7 @@ def reduce_and_gray(image, desired_rows, desired_cols):
     return image
 
 def normalize_matrix(raw_matrix, max_value):
-    return raw_matrix / max_value
+    return np.float32(raw_matrix) / max_value
 
 
 def save_results(filename, mse_list):
@@ -78,8 +79,8 @@ def save_params(list_params_names, list_params_values):
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
-EXTERNAL_WEIGHTS = False
-FILENAME_PRECOMPUTED_WEIGHTS = ""
+EXTERNAL_WEIGHTS = True
+FILENAME_PRECOMPUTED_WEIGHTS = "/home/santi/Repositories/connected-images/cross-validation/experiments/weights/motion_weights_15.Apr.2015_23:50:11.npy.bz2"
 TIME = time.strftime("%H:%M:%S")
 DATE = time.strftime("%d.%b.%Y")
 
@@ -101,24 +102,27 @@ monet = libmotion.MotionNetwork()
  
 if REPRODUCE_EXPERIMENT == True:
     #### REPRODUCE EXPERIMENT ####
-
     #extract params from file
     SOURCE_1, SOURCE_2, FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS, \
-    OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, ACTUAL_IMAGES = extract_params_from_file(EXPERIMENT_PARAMS_FILENAME)
+    OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, ACTUAL_IMAGES, \
+    MVMNT_THRES = extract_params_from_file(EXPERIMENT_PARAMS_FILENAME)
 
     print "[INFO] Params extracted from file"
+
+    ##### CAMERA #####
+    cap1 = cv2.VideoCapture(SOURCE_1)
+    cap2 = cv2.VideoCapture(SOURCE_2)
 
     # create network
     monet.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS+".bz2", INPUT_ROWS, INPUT_COLS,
                            OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, True)
     
     print "[INFO] Using loaded weight matrix"
-
     
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    SOURCE_1 = "../../cross-validation/test/test_objects_30cm_30deg_0.avi"
-    SOURCE_2 = "../../cross-validation/test/test_objects_30cm_30deg_1.avi"
+    SOURCE_1 = "../../raws/videos/sintel.avi"
+    SOURCE_2 = "../../raws/videos/sintel.avi"
 
     INPUT_ROWS = 50
     OUTPUT_ROWS = 50
@@ -161,11 +165,11 @@ fix_weights_matrix = False
 mse = [] 
 
 ############ LOOP ############
-while(cap1.isOpened() and cap2.isOpened()):
+while(True):
     # read from cam
     cap1.grab()
     cap2.grab()
-    
+
     ret1, frame1 = cap1.retrieve()
     ret2, frame2 = cap2.retrieve()
  
@@ -182,14 +186,14 @@ while(cap1.isOpened() and cap2.isOpened()):
     variation_cap2 = (cv2.absdiff(image_2_t_0, image_2_t_1)).astype(np.float32)
     
     # normalize
-    normalize_variation_cap1 = normalize_matrix(variation_cap1, 255)   
-    normalize_variation_cap2 = normalize_matrix(variation_cap2, 255)
-    normalize_image_1_t_0 = normalize_matrix(image_1_t_0, 255)
-    normalize_image_2_t_0 = normalize_matrix(image_2_t_0, 255) 
+    normalized_variation_cap1 = normalize_matrix(variation_cap1, 255)   
+    normalized_variation_cap2 = normalize_matrix(variation_cap2, 255)
+    normalized_image_1_t_0 = normalize_matrix(image_1_t_0, 255)
+    normalized_image_2_t_0 = normalize_matrix(image_2_t_0, 255) 
 
     # calculating total change in pixels
-    total_change_img1 = np.sum(normalize_variation_cap1)
-    total_change_img2 = np.sum(normalize_variation_cap2)   
+    total_change_img1 = np.sum(normalized_variation_cap1)
+    total_change_img2 = np.sum(normalized_variation_cap2)   
     
     # update weights
     if REPRODUCE_EXPERIMENT == False and \
@@ -200,22 +204,22 @@ while(cap1.isOpened() and cap2.isOpened()):
            
          # update weights
          if ACTUAL_IMAGES == True:
-             monet.train(normalize_image_1_t_0, normalize_image_2_t_0)
+             monet.train(normalized_image_1_t_0, normalized_image_2_t_0)
          else:
-             monet.train(normalize_variation_cap1, normalize_variation_cap2)
+             monet.train(normalized_variation_cap1, normalized_variation_cap2)
 
     # calculate prediction image
     if ACTUAL_IMAGES == True:
-         predicted_output = monet.predict(normalize_image_1_t_0)
+         predicted_output = monet.predict(normalized_image_1_t_0)
     else:
-         predicted_output = monet.predict(normalize_variation_cap1)
+         predicted_output = monet.predict(normalized_variation_cap1)
 
     # calculate mean square error
     if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
         if ACTUAL_IMAGES == True:
-            mse_value = monet.compute_mse(normalize_image_2_t_0, predicted_output)
+            mse_value = monet.compute_mse(normalized_image_2_t_0, predicted_output)
         else:
-            mse_value = monet.compute_mse(normalize_variation_cap2, predicted_output)
+            mse_value = monet.compute_mse(normalized_variation_cap2, predicted_output)
             
         mse.append(mse_value)
 
@@ -232,14 +236,14 @@ while(cap1.isOpened() and cap2.isOpened()):
     if ACTUAL_IMAGES == True:
         cv2.imshow('Input Image', image_1_t_0)
         cv2.imshow('Output Image', image_2_t_0)
-        error_image = cv2.absdiff(predicted_output, image_2_t_0)
+        error_image = cv2.absdiff(predicted_output, normalized_image_2_t_0)
 
     else:
-        cv2.imshow('Input Image', variation_cap1)
-        cv2.imshow('Output Image', variation_cap2)
-        error_image = cv2.absdiff(predicted_output, variation_cap2)
+        cv2.imshow('Input Image', variation_cap1.astype(np.uint8))
+        cv2.imshow('Output Image', variation_cap2.astype(np.uint8))
+        error_image = cv2.absdiff(predicted_output, normalized_variation_cap2)
            
-    cv2.imshow('Error', (error_image*255).astype(np.uint8) )
+    cv2.imshow('Error', (error_image*255).astype(np.uint8))
     cv2.imshow('Predicted output', (predicted_output*255).astype(np.uint8))
 
     ##### GRAB KEY AND EXIT #########
@@ -300,18 +304,19 @@ if SAVE_EXPERIMENT == True:
     list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
                           "FILENAME_RESULTS", "FILENAME_PARAMS","INPUT_ROWS",
                           "INPUT_COLS", "OUTPUT_ROWS", "OUTPUT_COLS", "ALPHA", "LAMBDA", 
-                          "ACTUAL_IMAGES"]
+                          "ACTUAL_IMAGES", "MOVEMNET_THRESHOLD"]
     
     list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
                          FILENAME_RESULTS, FILENAME_PARAMS, INPUT_ROWS, 
                          INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, 
-                         ACTUAL_IMAGES]
+                         ACTUAL_IMAGES, MVMNT_THRES]
     
     save_params(list_params_names, list_params_values)
  
 # cleaning
-if REPRODUCE_EXPERIMENT == True:
+if REPRODUCE_EXPERIMENT == True or EXTERNAL_WEIGHTS == True:
     print "[INFO] Removing decompressed file"
+    temp = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
     os.remove(FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", ""))  
     
 print "[INFO] Bye, bye!"

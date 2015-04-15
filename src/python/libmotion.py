@@ -75,7 +75,6 @@ class MotionNetwork:
 
 
     def train(self, input_matrix, output_matrix):
-        self.block_sum_weights=0
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
        
             # find submatrix in DB and change currentweight value
@@ -103,23 +102,30 @@ class MotionNetwork:
             self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
                               (self.output_cols * j):(self.output_cols * (j+1))] = new_block_matrix
             
-            self.block_sum_weights= cv2.add(self.block_sum_weights, new_block_matrix)
 
 
     def predict(self, input_matrix, max_value=None):
+        self.block_sum_weights=0
+
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
             # find submatrix in DB
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
                                               (self.output_cols * j):(self.output_cols * (j+1))]
         
-
+            # update block_sum_weights    
+            self.block_sum_weights= cv2.add(self.block_sum_weights, block_matrix)
+            
+            # multiply            
             weighted_input_matrix = np.multiply(input_matrix.item(i,j), block_matrix)
-            weighted_input_matrix = np.divide(weighted_input_matrix, self.block_sum_weights)
-        
-        
+            self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix)
+            
+        ######
         # avoid nan when dividing by zero
-        weighted_input_matrix = np.nan_to_num(weighted_input_matrix)
-        self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix)
+        self.predicted_output_matrix  = np.nan_to_num(self.predicted_output_matrix )
+
+        # normalize    
+        self.predicted_output_matrix  = np.divide(self.predicted_output_matrix , self.block_sum_weights)
+        
         if max_value != None:
             self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)          
         
