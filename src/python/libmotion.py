@@ -141,7 +141,7 @@ class MotionNetwork:
             os.remove(filename)          
         
     def compute_mse(self, output_matrix, predicted_output_matrix):
-        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix, dtype=np.float32)
+        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix)
         mse_temp_2 = np.square(mse_temp_1) / (self.output_rows * self.output_cols)
         return np.float32( sum( np.array(mse_temp_2).flatten() ) )
         
