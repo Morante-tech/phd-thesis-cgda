@@ -117,18 +117,18 @@ if REPRODUCE_EXPERIMENT == True:
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
     ##### PARAMETERS ###########
-    SOURCE_1 = "../../cross-validation/training/training_objects_minoru_0.avi"
-    SOURCE_2 = "../../cross-validation/training/training_objects_minoru_1.avi"
+  #  SOURCE_1 = "../../cross-validation/training/training_objects_minoru_0.avi"
+  #  SOURCE_2 = "../../cross-validation/training/training_objects_minoru_1.avi"
 
-  #  SOURCE_1 = "../../cross-validation/test/test_objects_30cm_30deg_0.avi"
-  #  SOURCE_2 = "../../cross-validation/test/test_objects_30cm_30deg_1.avi"
+    SOURCE_1 = "../../cross-validation/test/test_objects_30cm_30deg_0.avi"
+    SOURCE_2 = "../../cross-validation/test/test_objects_30cm_30deg_1.avi"
 
     ROWS_1 = int(50)
     ROWS_2 = int(50)
     MVMNT_THRES = 20
     ACTUAL_IMAGES = False
-    ALPHA = np.float32(0.5)
-    LAMBDA =  np.float32(0.5)
+    ALPHA = np.float32(1)
+    LAMBDA =  np.float32(1)
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -268,6 +268,7 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
             totalWeights= cv2.add(totalWeights, currWeightSubMatrixR2C2)
 
      ###### calculate prediction image
+
     for (i,j) in product(ROWS_1_list, COLS_1_list):   
         currWeightSubMatrixR2C2 = weightMatrix[i*ROWS_2:(i*ROWS_2+ROWS_2) , 
                                                j*COLS_2:(j*COLS_2+COLS_2)]
@@ -313,17 +314,23 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 
     if ACTUAL_IMAGES == True:
         error_image = cv2.absdiff(adaptTypePredictor, image_2_t_0)
-        mse_temp_1 = cv2.absdiff(predictor_image_2, np.array(image_2_t_0).astype(np.float32))
 
     else:
         error_image = cv2.absdiff(adaptTypePredictor, (var_img2*255).astype(np.uint8))
-        mse_temp_1 = cv2.absdiff(predictor_image_2, var_img2*255)
 
     cv2.imshow('Error (Frame 2, Prediction)', error_image)
 
-    mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
-    mse_value = sum( np.array(mse_temp_2).flatten() )
-    mse.append(np.float32(mse_value))
+
+    if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
+        if ACTUAL_IMAGES == True:
+            mse_temp_1 = cv2.absdiff(predictor_image_2, np.array(image_2_t_0).astype(np.float32))
+
+        else:
+            mse_temp_1 = cv2.absdiff(predictor_image_2, var_img2*255)
+
+        mse_temp_2 = np.square(mse_temp_1) / (ROWS_2*COLS_2)
+        mse_value = sum( np.array(mse_temp_2).flatten() )
+        mse.append(np.float32(mse_value))
 
     ######### GRAB KEY AND EXIT (OPTIONALLY SAVING THE EXPERIMENT) #########
     k = cv2.waitKey(ms_to_wait) & 0xFF # dont use AND (logic), use & (bitwise)
