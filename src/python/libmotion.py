@@ -73,6 +73,7 @@ class MotionNetwork:
         self.weight_matrix = np.load(filename).astype(np.float32)  
         np.ascontiguousarray(self.weight_matrix)   
 
+
     def train(self, input_matrix, output_matrix):
         self.block_sum_weights=0
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
@@ -105,7 +106,7 @@ class MotionNetwork:
             self.block_sum_weights= cv2.add(self.block_sum_weights, new_block_matrix)
 
 
-    def predict(self, input_matrix, saturation_value=None):
+    def predict(self, input_matrix, max_value=None):
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
             # find submatrix in DB
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
@@ -119,16 +120,16 @@ class MotionNetwork:
         # avoid nan when dividing by zero
         weighted_input_matrix = np.nan_to_num(weighted_input_matrix)
         self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix)
-        if saturation_value != None:
-            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, saturation_value)          
+        if max_value != None:
+            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)          
         
         return self.predicted_output_matrix
         
-    def save_weights_to_file(self, filename, compressed=True):
+    def save_weights_to_file(self, filename, compress=True):
         # save weights matrix
         np.save(filename, self.weight_matrix)            
     
-        if compressed == True:
+        if compress == True:
             # comprese and delete uncompressed file
             output = bz2.BZ2File(filename + ".bz2", "wb")
              
