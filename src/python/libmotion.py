@@ -12,7 +12,7 @@ import fileinput
 import bz2
 import os
 
-class MotioNetwork:
+class MotionNetwork:
 
     def __init__(self):
         self.alpha_param = None
@@ -25,9 +25,10 @@ class MotioNetwork:
         self.output_cols= None
         self.weight_matrix = None
         self.block_sum_weights = None
-        self.predicted_output = None
+        self.predicted_output_matrix = None
 
-    def create(self, input_rows, input_cols, output_rows, output_cols, alpha_param=1, lambda_param=1):
+
+    def create(self, input_rows, input_cols, output_rows, output_cols, alpha_param, lambda_param):
         self.alpha_param = alpha_param
         self.lambda_param = lambda_param
         self.input_rows = input_rows
@@ -37,12 +38,15 @@ class MotioNetwork:
         
         self.rows = self.input_rows * self.output_rows
         self.cols = self.input_cols * self.output_cols 
+        self.block_sum_weights = np.zeros((self.output_rows, self.output_cols), np.float32)
+        self.predicted_output_matrix = np.zeros((self.output_rows, self.output_cols), np.float32) 
+        
         self.weight_matrix = np.zeros((self.rows, self.cols), np.float32)
         np.ascontiguousarray(self.weight_matrix)
-        self.block_sum_weights = np.zeros((self.output_rows, self.output_cols), np.float32)
-        self.predicted_output = np.zeros((self.output_rows, self.output_cols), np.float32) 
+
            
-    def create_from_file(self, filename, input_rows, input_cols, output_rows, output_cols, alpha_param=1, lambda_param=1):
+    def create_from_file(self, filename, input_rows, input_cols, output_rows, 
+                         output_cols, alpha_param, lambda_param, compressed = True):
         self.alpha_param = alpha_param
         self.lambda_param = lambda_param
         self.input_rows = input_rows
@@ -52,13 +56,25 @@ class MotioNetwork:
         
         self.rows = self.input_rows * self.output_rows
         self.cols = self.input_cols * self.output_cols             
+        self.block_sum_weights = np.zeros((self.output_rows, self.output_cols), np.float32)
+        self.predicted_output_matrix = np.zeros((self.output_rows, self.output_cols), np.float32) 
+
+        if compressed == True:
+            input_file = bz2.BZ2File(filename, "rb")
+            try:
+                filename = filename.replace(".bz2", "")
+                text_file = open(filename, "w")
+                text_file.write(input_file.read())
+            
+            finally:
+                input_file.close()
+                text_file.close()                
+        
         self.weight_matrix = np.load(filename).astype(np.float32)  
         np.ascontiguousarray(self.weight_matrix)   
-        self.block_sum_weights = np.zeros((self.output_rows, self.output_cols), np.float32)
-        self.predicted_output = np.zeros((self.output_rows, self.output_cols), np.float32) 
-
 
     def train(self, input_matrix, output_matrix):
+        self.block_sum_weights=0
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
        
             # find submatrix in DB and change currentweight value
@@ -102,11 +118,11 @@ class MotioNetwork:
         
         # avoid nan when dividing by zero
         weighted_input_matrix = np.nan_to_num(weighted_input_matrix)
-        self.predicted_output = cv2.add(self.predicted_output , weighted_input_matrix)
+        self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix)
         if saturation_value != None:
-            self.predicted_output = np.clip(self.predicted_output, 0, saturation_value)          
+            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, saturation_value)          
         
-        return self.predicted_output
+        return self.predicted_output_matrix
         
     def save_weights_to_file(self, filename, compressed=True):
         # save weights matrix
@@ -120,8 +136,11 @@ class MotioNetwork:
                     output.write(line)
             output.close()
         
-            # remove decompreesed file
+            # remove decompressed file
             os.remove(filename)          
         
-        
+    def compute_mse(self, output_matrix, predicted_output_matrix):
+        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix, dtype=np.float32)
+        mse_temp_2 = np.square(mse_temp_1) / (self.output_rows * self.output_cols)
+        return np.float32( sum( np.array(mse_temp_2).flatten() ) )
         
