@@ -59,9 +59,9 @@ def extract_params_from_file(filename):
 
 def reduce_and_gray(image, desired_rows, desired_cols):
     # note the changed axis in opencv
-    image  = cv2.resize(image,(desired_cols, desired_rows), interpolation = cv2.INTER_AREA)    
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    return image
+    img  = cv2.resize(image,(desired_cols, desired_rows), interpolation = cv2.INTER_AREA)    
+    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
 
 def normalize_matrix(raw_matrix, max_value):
     return np.float32(raw_matrix) / max_value
@@ -107,7 +107,7 @@ elif len(sys.argv) == 2:
 
 
  # create instance of motion network
-ann = libnn.NeuralNetwork()
+nn = libnn.NeuralNetwork()
  
 if REPRODUCE_EXPERIMENT == True:
     #### REPRODUCE EXPERIMENT ####
@@ -126,7 +126,7 @@ if REPRODUCE_EXPERIMENT == True:
     cap2 = cv2.VideoCapture(SOURCE_2)
 
     # create network
-    ann.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
+    nn.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
                          OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
                          TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                          ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
@@ -141,9 +141,9 @@ else:
     INPUT_ROWS = 50
     OUTPUT_ROWS = 50
     MVMNT_THRES = 20
-    ACTUAL_IMAGES = False
-    ALPHA = 0.1
-    MOMENTUM =  0.1
+    ACTUAL_IMAGES = True
+    ALPHA = 0.05
+    MOMENTUM =  0.5
     
     
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
@@ -171,19 +171,24 @@ else:
     OUTPUT_COLS = int(OUTPUT_ROWS * frame2_cols / frame2_rows) 
     
     if EXTERNAL_WEIGHTS== True:
-        ann.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
+        nn.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
                              OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
                              TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                              ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
         print "[INFO] Using loaded weight matrix"
 
-
     else:
-        ann.create(INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, 
+        nn.create(INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, 
                    TRAINING_ALGORITHM, TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                    ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT)
-                   
+
         print "[INFO] Created new weight matrix"
+
+    # Getting info from NN
+    print "[INFO] sizes ann: ", nn.ann.get_num_input(), " and ",  nn.ann.get_num_output()
+    print "[INFO] total number of neurons: " , nn.ann.get_total_neurons()
+    print "[INFO] total number of connections: " , nn.ann.get_total_connections()
+    print "[INFO] ann params: ", nn.ann.print_parameters()  
     
 #### INITIALIZATION #########
 image_1_t_1  =  np.zeros((INPUT_ROWS, INPUT_COLS), np.uint8) # image 1 previous time
@@ -213,10 +218,10 @@ while(True):
     variation_cap2 = (cv2.absdiff(image_2_t_0, image_2_t_1)).astype(np.float32)
     
     # normalize
-    normalized_variation_cap1 = normalize_matrix(variation_cap1, 255)   
-    normalized_variation_cap2 = normalize_matrix(variation_cap2, 255)
-    normalized_image_1_t_0 = normalize_matrix(image_1_t_0, 255)
-    normalized_image_2_t_0 = normalize_matrix(image_2_t_0, 255) 
+    normalized_variation_cap1 = normalize_matrix(variation_cap1, 255.0)   
+    normalized_variation_cap2 = normalize_matrix(variation_cap2, 255.0)
+    normalized_image_1_t_0 = normalize_matrix(image_1_t_0, 255.0)
+    normalized_image_2_t_0 = normalize_matrix(image_2_t_0, 255.0) 
 
     # calculating total change in pixels
     total_change_img1 = np.sum(normalized_variation_cap1)
@@ -231,27 +236,24 @@ while(True):
          
          # update weights
          if ACTUAL_IMAGES == True:
-             ann.train(normalized_image_1_t_0.flatten(), normalized_image_2_t_0.flatten())
+             nn.train(normalized_image_1_t_0, normalized_image_2_t_0)
          else:
-             ann.train(normalized_variation_cap1.flatten(), normalized_variation_cap2.flatten())
+             nn.train(normalized_variation_cap1, normalized_variation_cap2)
 
     # calculate prediction image
     if ACTUAL_IMAGES == True:
-        predicted_output = ann.predict(normalized_image_1_t_0.flatten())
+        predicted_output = nn.predict(normalized_image_1_t_0)
     else:
-        predicted_output = ann.predict(normalized_variation_cap1.flatten())
+        predicted_output = nn.predict(normalized_variation_cap1)
 
     # calculate mean square error
     if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
         if ACTUAL_IMAGES == True:
-            mse_value = ann.compute_mse(normalized_image_2_t_0, predicted_output)
+            mse_value = nn.compute_mse(normalized_image_2_t_0, predicted_output)
         else:
-            mse_value = ann.compute_mse(normalized_variation_cap2, predicted_output)
+            mse_value = nn.compute_mse(normalized_variation_cap2, predicted_output)
             
         mse.append(mse_value)
-
-    # reshape matrix
-    predicted_output_matrix = (np.array(predicted_output).reshape((OUTPUT_ROWS, OUTPUT_COLS))).astype(np.float32)
 
     # update previous image
     image_1_t_1 = image_1_t_0
@@ -266,15 +268,15 @@ while(True):
     if ACTUAL_IMAGES == True:
         cv2.imshow('Input Image', image_1_t_0)
         cv2.imshow('Output Image', image_2_t_0)
-        error_image = cv2.absdiff(predicted_output_matrix, normalized_image_2_t_0)
+        error_image = cv2.absdiff(predicted_output, normalized_image_2_t_0)
 
     else:
         cv2.imshow('Input Image', variation_cap1.astype(np.uint8))
         cv2.imshow('Output Image', variation_cap2.astype(np.uint8))
-        error_image = cv2.absdiff(predicted_output_matrix, normalized_variation_cap2)
+        error_image = cv2.absdiff(predicted_output, normalized_variation_cap2)
            
-    cv2.imshow('Error', (error_image*255).astype(np.uint8))
-    cv2.imshow('Predicted output', (predicted_output_matrix*255).astype(np.uint8))
+    cv2.imshow('Error', (255*error_image).astype(np.uint8))
+    cv2.imshow('Predicted output', (255*predicted_output).astype(np.uint8))
 
     ##### GRAB KEY AND EXIT #########
     k = cv2.waitKey(1) & 0xFF # dont use AND (logic), use & (bitwise)
@@ -303,7 +305,7 @@ while(True):
             + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", variation_cap2);              
             
         cv2.imwrite( "../../cross-validation/experiments/outputs/motion_predicted_output_" \
-        + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (predicted_output_matrix*255).astype(np.uint8));
+        + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (predicted_output*255).astype(np.uint8));
 
 ################  END LOOP  #####################
 cap1.release()
@@ -324,7 +326,7 @@ if SAVE_EXPERIMENT == True:
     print "[INFO] Saving weights"
     FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/nn_weights_" \
     + DATE + "_" + TIME +  ".npy"
-    ann.save(FILENAME_WEIGHTS)      
+    nn.save(FILENAME_WEIGHTS)      
 
     # save params
     print "[INFO] Saving params"
