@@ -8,12 +8,13 @@ to relate both images. After training (in fact, it is online, so I should say
 """
 
 import numpy as np
-import libmotion
+import libnn
 import cv2
 import time
 import csv
 import sys
 import os
+from fann2 import _libfann
 
 
 ############################
@@ -34,18 +35,26 @@ def extract_params_from_file(filename):
     output_rows = int(experiment_list [1][7])
     output_cols = int(experiment_list [1][8])
     alpha_param = float(experiment_list [1][9])
-    lambda_param = float(experiment_list [1][10])
-    if experiment_list [1][11] == "True":
+    momentum_param = float(experiment_list [1][10])
+    training_algorithm = int(experiment_list [1][11])
+    train_error_function = int(experiment_list [1][12])
+    train_stop_function = int(experiment_list [1][13])
+    activation_function_hidden = int(experiment_list [1][14])
+    activation_function_output = int(experiment_list [1][15])
+    mvmnt_thres = int(experiment_list [1][16])
+    
+    if experiment_list [1][17] == "True":
         actual_images = True
-    elif(experiment_list [1][11] == "False"):
+    elif(experiment_list [1][17] == "False"):
         actual_images = False
     else:
         raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
     
-    mvmnt_thres = int(experiment_list [1][12])
+    
     return (input_matrix, output_matrix, filename_precomputed_weights,
-    input_rows, input_cols, output_rows, output_cols, alpha_param, lambda_param,
-    actual_images, mvmnt_thres)
+    input_rows, input_cols, output_rows, output_cols, alpha_param, momentum_param,
+    training_algorithm, train_error_function, train_stop_function, 
+    activation_function_hidden, activation_function_output, actual_images, mvmnt_thres)
 
 
 def reduce_and_gray(image, desired_rows, desired_cols):
@@ -79,8 +88,8 @@ def save_params(list_params_names, list_params_values):
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
-EXTERNAL_WEIGHTS = True
-FILENAME_PRECOMPUTED_WEIGHTS = "/home/santi/Repositories/connected-images/cross-validation/experiments/weights/motion_weights_15.Apr.2015_23:50:11.npy.bz2"
+EXTERNAL_WEIGHTS = False
+FILENAME_PRECOMPUTED_WEIGHTS = ""
 TIME = time.strftime("%H:%M:%S")
 DATE = time.strftime("%d.%b.%Y")
 
@@ -98,13 +107,16 @@ elif len(sys.argv) == 2:
 
 
  # create instance of motion network
-monet = libmotion.MotionNetwork()
+ann = libnn.NeuralNetwork()
  
 if REPRODUCE_EXPERIMENT == True:
     #### REPRODUCE EXPERIMENT ####
     #extract params from file
+
     SOURCE_1, SOURCE_2, FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS, \
-    OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, ACTUAL_IMAGES, \
+    OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, \
+    TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, ACTIVATION_FUNCTION_HIDDEN, \
+    ACTIVATION_FUNCTION_OUTPUT, ACTUAL_IMAGES, \
     MVMNT_THRES = extract_params_from_file(EXPERIMENT_PARAMS_FILENAME)
 
     print "[INFO] Params extracted from file"
@@ -114,9 +126,11 @@ if REPRODUCE_EXPERIMENT == True:
     cap2 = cv2.VideoCapture(SOURCE_2)
 
     # create network
-    monet.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS+".bz2", INPUT_ROWS, INPUT_COLS,
-                           OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, True)
-    
+    ann.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
+                         OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
+                         TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
+                         ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
+
     print "[INFO] Using loaded weight matrix"
     
 else:         
@@ -128,8 +142,15 @@ else:
     OUTPUT_ROWS = 50
     MVMNT_THRES = 20
     ACTUAL_IMAGES = False
-    ALPHA = 1
-    LAMBDA =  1
+    ALPHA = 0.1
+    MOMENTUM =  0.1
+    
+    
+    TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
+    TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
+    TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
+    ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
+    ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -150,12 +171,18 @@ else:
     OUTPUT_COLS = int(OUTPUT_ROWS * frame2_cols / frame2_rows) 
     
     if EXTERNAL_WEIGHTS== True:
-        monet.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
-                           OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, True)
+        ann.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
+                             OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
+                             TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
+                             ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
         print "[INFO] Using loaded weight matrix"
 
+
     else:
-        monet.create(INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA)
+        ann.create(INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, 
+                   TRAINING_ALGORITHM, TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
+                   ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT)
+                   
         print "[INFO] Created new weight matrix"
     
 #### INITIALIZATION #########
@@ -201,27 +228,30 @@ while(True):
        total_change_img1 > MVMNT_THRES and \
        total_change_img2 > MVMNT_THRES and \
        EXTERNAL_WEIGHTS == False:
-           
+         
          # update weights
          if ACTUAL_IMAGES == True:
-             monet.train(normalized_image_1_t_0, normalized_image_2_t_0)
+             ann.train(normalized_image_1_t_0.flatten(), normalized_image_2_t_0.flatten())
          else:
-             monet.train(normalized_variation_cap1, normalized_variation_cap2)
+             ann.train(normalized_variation_cap1.flatten(), normalized_variation_cap2.flatten())
 
     # calculate prediction image
     if ACTUAL_IMAGES == True:
-         predicted_output = monet.predict(normalized_image_1_t_0)
+        predicted_output = ann.predict(normalized_image_1_t_0.flatten())
     else:
-         predicted_output = monet.predict(normalized_variation_cap1)
+        predicted_output = ann.predict(normalized_variation_cap1.flatten())
 
     # calculate mean square error
     if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
         if ACTUAL_IMAGES == True:
-            mse_value = monet.compute_mse(normalized_image_2_t_0, predicted_output)
+            mse_value = ann.compute_mse(normalized_image_2_t_0, predicted_output)
         else:
-            mse_value = monet.compute_mse(normalized_variation_cap2, predicted_output)
+            mse_value = ann.compute_mse(normalized_variation_cap2, predicted_output)
             
         mse.append(mse_value)
+
+    # reshape matrix
+    predicted_output_matrix = (np.array(predicted_output).reshape((OUTPUT_ROWS, OUTPUT_COLS))).astype(np.float32)
 
     # update previous image
     image_1_t_1 = image_1_t_0
@@ -236,15 +266,15 @@ while(True):
     if ACTUAL_IMAGES == True:
         cv2.imshow('Input Image', image_1_t_0)
         cv2.imshow('Output Image', image_2_t_0)
-        error_image = cv2.absdiff(predicted_output, normalized_image_2_t_0)
+        error_image = cv2.absdiff(predicted_output_matrix, normalized_image_2_t_0)
 
     else:
         cv2.imshow('Input Image', variation_cap1.astype(np.uint8))
         cv2.imshow('Output Image', variation_cap2.astype(np.uint8))
-        error_image = cv2.absdiff(predicted_output, normalized_variation_cap2)
+        error_image = cv2.absdiff(predicted_output_matrix, normalized_variation_cap2)
            
     cv2.imshow('Error', (error_image*255).astype(np.uint8))
-    cv2.imshow('Predicted output', (predicted_output*255).astype(np.uint8))
+    cv2.imshow('Predicted output', (predicted_output_matrix*255).astype(np.uint8))
 
     ##### GRAB KEY AND EXIT #########
     k = cv2.waitKey(1) & 0xFF # dont use AND (logic), use & (bitwise)
@@ -273,7 +303,7 @@ while(True):
             + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", variation_cap2);              
             
         cv2.imwrite( "../../cross-validation/experiments/outputs/motion_predicted_output_" \
-        + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (predicted_output*255).astype(np.uint8));
+        + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", (predicted_output_matrix*255).astype(np.uint8));
 
 ################  END LOOP  #####################
 cap1.release()
@@ -285,38 +315,42 @@ if SAVE_EXPERIMENT == True:
 
     # save results
     print "[INFO] Saving results"    
-    FILENAME_RESULTS = "../../cross-validation/experiments/results/motion_results_" \
+    FILENAME_RESULTS = "../../cross-validation/experiments/results/nn_results_" \
     + DATE + "_" + TIME + ".csv"
     
     save_results(FILENAME_RESULTS, mse)
     
     # save weights matrix
     print "[INFO] Saving weights"
-    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/motion_weights_" \
+    FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/nn_weights_" \
     + DATE + "_" + TIME +  ".npy"
-    monet.save_weights_to_file(FILENAME_WEIGHTS, True)      
+    ann.save(FILENAME_WEIGHTS)      
 
     # save params
     print "[INFO] Saving params"
-    FILENAME_PARAMS = "../../cross-validation/experiments/params/motion_params_"   \
+    FILENAME_PARAMS = "../../cross-validation/experiments/params/nn_params_"   \
     + DATE + "_" + TIME  + ".csv"       
     
-    list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS",
-                          "FILENAME_RESULTS", "FILENAME_PARAMS","INPUT_ROWS",
-                          "INPUT_COLS", "OUTPUT_ROWS", "OUTPUT_COLS", "ALPHA", "LAMBDA", 
-                          "ACTUAL_IMAGES", "MOVEMNET_THRESHOLD"]
+    list_params_names = ["SOURCE_1", "SOURCE_2", "FILENAME_WEIGHTS", "FILENAME_RESULTS", 
+                         "FILENAME_PARAMS","INPUT_ROWS", "INPUT_COLS", "OUTPUT_ROWS", 
+                         "OUTPUT_COLS", "ALPHA", "MOMENTUM", "TRAINING_ALGORITHM", 
+                         "TRAIN_ERROR_FUNCTION", "TRAIN_STOP_FUNCTION", 
+                         "ACTIVATION_FUNCTION_HIDDEN", "ACTIVATION_FUNCTION_OUTPUT", 
+                         "ACTUAL_IMAGES", "MOVEMENT_THRESHOLD"]
     
-    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, 
-                         FILENAME_RESULTS, FILENAME_PARAMS, INPUT_ROWS, 
-                         INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, LAMBDA, 
+    list_params_values = [SOURCE_1, SOURCE_2, FILENAME_WEIGHTS, FILENAME_RESULTS, 
+                         FILENAME_PARAMS, INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, 
+                         ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
+                         TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
+                         ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, 
                          ACTUAL_IMAGES, MVMNT_THRES]
     
     save_params(list_params_names, list_params_values)
  
 # cleaning
-if REPRODUCE_EXPERIMENT == True or EXTERNAL_WEIGHTS == True:
-    print "[INFO] Removing decompressed file"
-    temp = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
-    os.remove(FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", ""))  
+#if REPRODUCE_EXPERIMENT == True or EXTERNAL_WEIGHTS == True:
+#    print "[INFO] Removing decompressed file"
+#    temp = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
+#    os.remove(FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", ""))  
     
 print "[INFO] Bye, bye!"

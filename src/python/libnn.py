@@ -6,7 +6,6 @@ Created on Wed Apr 15 12:13:32 2015
 """
 
 import numpy as np
-from itertools import product
 import cv2
 import fileinput
 import bz2
@@ -57,6 +56,18 @@ class NeuralNetwork:
         self.cols = self.input_cols * self.output_cols 
         self.predicted_output_matrix = np.zeros((self.output_rows, self.output_cols), np.float32) 
 
+#####################
+        self.ann.create_standard_array([self.input_rows * self.input_cols ,
+                                        self.input_rows * self.input_cols, 
+                                        self.output_rows * self.output_cols])
+        self.ann.set_activation_function_hidden(activation_function_hidden)
+        self.ann.set_learning_rate(alpha_param)
+        self.ann.set_learning_momentum(momentum_param)
+        self.ann.set_training_algorithm(training_algorithm)
+        self.ann.set_train_error_function(train_error_function)
+        self.ann.set_train_stop_function(train_stop_function)
+        self.ann.set_activation_function_output(activation_function_output)
+
            
     def create_from_file(self, filename, input_rows, input_cols, output_rows, 
                          output_cols, alpha_param, momentum_param, 
@@ -93,16 +104,6 @@ class NeuralNetwork:
                 text_file.close()                
         
         self.ann.create_from_file(filename)
-        self.ann.create_standard_array([self.input_rows *self.input_cols ,
-                                        self.rows*self.cols, 
-                                        self.output_rows*self.output_cols])
-        self.ann.set_activation_function_hidden(activation_function_hidden)
-        self.ann.set_learning_rate(alpha_param)
-        self.ann.set_learning_momentum(momentum_param)
-        self.ann.set_training_algorithm(training_algorithm)
-        self.ann.set_train_error_function(train_error_function)
-        self.ann.set_train_stop_function(train_stop_function)
-        self.ann.set_activation_function_output(activation_function_output)
 
 
     def train(self, input_matrix, output_matrix):
@@ -130,6 +131,7 @@ class NeuralNetwork:
             os.remove(filename)          
         
     def compute_mse(self, output_matrix, predicted_output_matrix):
-        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix)
+        mse_temp_1 = cv2.absdiff(output_matrix.flatten(), 
+                                 np.array(predicted_output_matrix).astype(np.float32))
         mse_temp_2 = np.square(mse_temp_1) / (self.output_rows * self.output_cols)
         return np.float32( sum( np.array(mse_temp_2).flatten() ) )
