@@ -30,6 +30,7 @@ def extract_params_from_file(filename):
     input_matrix = experiment_list [1][0]
     output_matrix = experiment_list [1][1]
     filename_precomputed_weights = experiment_list [1][2]
+   
     input_rows = int(experiment_list [1][5])
     input_cols = int(experiment_list [1][6])
     output_rows = int(experiment_list [1][7])
@@ -41,15 +42,15 @@ def extract_params_from_file(filename):
     train_stop_function = int(experiment_list [1][13])
     activation_function_hidden = int(experiment_list [1][14])
     activation_function_output = int(experiment_list [1][15])
-    mvmnt_thres = int(experiment_list [1][16])
     
-    if experiment_list [1][17] == "True":
+    if experiment_list [1][16] == "True":
         actual_images = True
-    elif(experiment_list [1][17] == "False"):
+    elif(experiment_list [1][16] == "False"):
         actual_images = False
     else:
         raise NameError("[ERROR] Undefined ACTUAL_IMAGES from file")    
     
+    mvmnt_thres = int(experiment_list [1][17])
     
     return (input_matrix, output_matrix, filename_precomputed_weights,
     input_rows, input_cols, output_rows, output_cols, alpha_param, momentum_param,
@@ -85,7 +86,7 @@ def save_params(list_params_names, list_params_values):
 
 ############################
 
-REPRODUCE_EXPERIMENT = False    
+REPRODUCE_EXPERIMENT = False 
 EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
 EXTERNAL_WEIGHTS = False
@@ -138,10 +139,10 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    INPUT_ROWS = 50
-    OUTPUT_ROWS = 50
-    MVMNT_THRES = 20
-    ACTUAL_IMAGES = True
+    INPUT_ROWS = 20
+    OUTPUT_ROWS = 20
+    MVMNT_THRES = 10
+    ACTUAL_IMAGES = False
     ALPHA = 0.05
     MOMENTUM =  0.5
     
@@ -323,10 +324,10 @@ if SAVE_EXPERIMENT == True:
     save_results(FILENAME_RESULTS, mse)
     
     # save weights matrix
-    print "[INFO] Saving weights"
+ #   print "[INFO] Saving weights"
     FILENAME_WEIGHTS = "../../cross-validation/experiments/weights/nn_weights_" \
     + DATE + "_" + TIME +  ".npy"
-    nn.save(FILENAME_WEIGHTS)      
+   # nn.save_weights_to_file(FILENAME_WEIGHTS, False)      
 
     # save params
     print "[INFO] Saving params"
