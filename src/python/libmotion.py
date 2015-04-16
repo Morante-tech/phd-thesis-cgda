@@ -90,7 +90,7 @@ class MotionNetwork:
             
             #the elements that subtract value to the weights
             elem3 = cv2.absdiff(input_matrix.item(i,j), output_matrix)
-            elem4 = elem3 * self.lambda_param
+            elem4 =  np.square(elem3) * self.lambda_param
             
             #Subtraction of both elems
             elem5 = np.subtract(elem2,elem4)

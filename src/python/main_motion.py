@@ -79,8 +79,8 @@ def save_params(list_params_names, list_params_values):
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
-EXTERNAL_WEIGHTS = True
-FILENAME_PRECOMPUTED_WEIGHTS = "/home/santi/Repositories/connected-images/cross-validation/experiments/weights/motion_weights_15.Apr.2015_23:50:11.npy.bz2"
+EXTERNAL_WEIGHTS = False
+FILENAME_PRECOMPUTED_WEIGHTS = ""
 TIME = time.strftime("%H:%M:%S")
 DATE = time.strftime("%d.%b.%Y")
 
@@ -124,13 +124,14 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    INPUT_ROWS = 50
-    OUTPUT_ROWS = 50
-    MVMNT_THRES = 20
+    INPUT_ROWS = 30
+    OUTPUT_ROWS = 30
+    MVMNT_THRES = 10
     ACTUAL_IMAGES = False
-    ALPHA = 1
+    ALPHA = 0.5
     LAMBDA =  1
-
+    # good params variation (0.5, 0.8) (0.5, 0.9) (0.5, 1)
+    # not bad params actual images (0.09, 0.8)
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
