@@ -12,7 +12,7 @@ import fileinput
 import bz2
 import os
 
-class MotionNetwork:
+class Network:
 
     def __init__(self):
         self.alpha_param = None

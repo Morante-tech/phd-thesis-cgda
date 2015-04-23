@@ -8,7 +8,7 @@ to relate both images. After training (in fact, it is online, so I should say
 """
 
 import numpy as np
-import libmotion
+import libhaystack
 import cv2
 import time
 import csv
@@ -78,7 +78,7 @@ def save_params(list_params_names, list_params_values):
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = False
+SAVE_EXPERIMENT   = True
 EXTERNAL_WEIGHTS = False
 FILENAME_PRECOMPUTED_WEIGHTS = ""
 TIME = time.strftime("%H:%M:%S")
@@ -98,7 +98,7 @@ elif len(sys.argv) == 2:
 
 
  # create instance of motion network
-monet = libmotion.MotionNetwork()
+monet = libhaystack.Network()
  
 if REPRODUCE_EXPERIMENT == True:
     #### REPRODUCE EXPERIMENT ####
@@ -124,14 +124,14 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    INPUT_ROWS = 30
-    OUTPUT_ROWS = 30
-    MVMNT_THRES = 10
-    ACTUAL_IMAGES = False
-    ALPHA = 0.5
-    LAMBDA =  1
+    INPUT_ROWS = 50
+    OUTPUT_ROWS = 50
+    MVMNT_THRES = 60
+    ACTUAL_IMAGES = True
+    ALPHA = 0.06
+    LAMBDA =  0.4
     # good params variation (0.5, 0.8) (0.5, 0.9) (0.5, 1)
-    # not bad params actual images (0.09, 0.8)
+    # not bad params actual images (0.06, 0.4)
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
