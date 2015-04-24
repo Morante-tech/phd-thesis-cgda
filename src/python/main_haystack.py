@@ -126,10 +126,10 @@ else:
 
     INPUT_ROWS = 50
     OUTPUT_ROWS = 50
-    MVMNT_THRES = 60
+    MVMNT_THRES = 20
     ACTUAL_IMAGES = True
-    ALPHA = 0.06
-    LAMBDA =  0.4
+    ALPHA = 0.05
+    LAMBDA =  0.5
     # good params variation (0.5, 0.8) (0.5, 0.9) (0.5, 1)
     # not bad params actual images (0.06, 0.4)
     ##### CAMERA #####
