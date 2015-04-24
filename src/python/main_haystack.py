@@ -164,9 +164,16 @@ image_1_t_1  =  np.zeros((INPUT_ROWS, INPUT_COLS), np.uint8) # image 1 previous 
 image_2_t_1  =  np.zeros((OUTPUT_ROWS, OUTPUT_COLS), np.uint8) # image 2 previous time
 fix_weights_matrix = False
 mse = [] 
-
+index = 0
 ############ LOOP ############
 while(True):
+    index+=1
+    
+    if index == 200 :
+        fix_weights_matrix = True
+    elif index == 400:
+        break
+    
     # read from cam
     cap1.grab()
     cap2.grab()
