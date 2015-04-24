@@ -104,7 +104,7 @@ class Network:
             
 
 
-    def predict(self, input_matrix, max_value=None):
+    def predict(self, input_matrix, max_value=1):
         self.block_sum_weights=0
 
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
@@ -127,7 +127,7 @@ class Network:
         self.predicted_output_matrix  = np.divide(self.predicted_output_matrix , self.block_sum_weights)
         
         if max_value != None:
-            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)          
+            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)               
         
         return self.predicted_output_matrix
         
@@ -147,7 +147,8 @@ class Network:
             os.remove(filename)          
         
     def compute_mse(self, output_matrix, predicted_output_matrix):
-        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix)
+        mse_temp_1 = cv2.absdiff(predicted_output_matrix, output_matrix)       
         mse_temp_2 = np.square(mse_temp_1) / (self.output_rows * self.output_cols)
+        
         return np.float32( sum( np.array(mse_temp_2).flatten() ) )
         
