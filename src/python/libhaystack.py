@@ -90,7 +90,7 @@ class Network:
             
             #the elements that subtract value to the weights
             elem3 = cv2.absdiff(input_matrix.item(i,j), output_matrix)
-            elem4 =  np.square(elem3) * self.lambda_param
+            elem4 =  elem3 * self.lambda_param
             
             #Subtraction of both elems
             elem5 = np.subtract(elem2,elem4)
@@ -106,30 +106,38 @@ class Network:
 
     def predict(self, input_matrix, max_value=1):
         self.block_sum_weights=0
-
+        self.predicted_output_matrix=0
+        
         for (i,j) in product(range(self.input_rows), range(self.input_cols)):
             # find submatrix in DB
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
                                               (self.output_cols * j):(self.output_cols * (j+1))]
-        
-            # update block_sum_weights    
+
+           # update block_sum_weights    
             self.block_sum_weights= cv2.add(self.block_sum_weights, block_matrix)
             
+            
+        for (i,j) in product(range(self.input_rows), range(self.input_cols)):
+            # find submatrix in DB
+            block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
+                                              (self.output_cols * j):(self.output_cols * (j+1))]
+                   
             # multiply            
             weighted_input_matrix = np.multiply(input_matrix.item(i,j), block_matrix)
-            self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix)
+            # normalize    
+            weighted_input_matrix_norm  = np.divide(weighted_input_matrix , self.block_sum_weights)       
             
-        ######
-        # avoid nan when dividing by zero
-        self.predicted_output_matrix  = np.nan_to_num(self.predicted_output_matrix )
-
-        # normalize    
-        self.predicted_output_matrix  = np.divide(self.predicted_output_matrix , self.block_sum_weights)
-        
-        if max_value != None:
-            self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)               
+            # avoid nan when dividing by zero
+            weighted_input_matrix_norm  = np.nan_to_num(weighted_input_matrix_norm)
+           
+            self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix_norm)
+            
+            # clipping
+            if max_value != None:
+                self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)               
         
         return self.predicted_output_matrix
+        
         
     def save_weights_to_file(self, filename, compress=True):
         # save weights matrix

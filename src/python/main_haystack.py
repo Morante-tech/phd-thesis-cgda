@@ -78,7 +78,7 @@ def save_params(list_params_names, list_params_values):
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+SAVE_EXPERIMENT   = False
 EXTERNAL_WEIGHTS = False
 FILENAME_PRECOMPUTED_WEIGHTS = ""
 TIME = time.strftime("%H:%M:%S")
@@ -124,8 +124,8 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    INPUT_ROWS = 50
-    OUTPUT_ROWS = 50
+    INPUT_ROWS = 40
+    OUTPUT_ROWS = 40
     MVMNT_THRES = 20
     ACTUAL_IMAGES = True
     ALPHA = 0.05
@@ -211,16 +211,13 @@ while(True):
        EXTERNAL_WEIGHTS == False:
            
          # update weights
-         if ACTUAL_IMAGES == True:
-             monet.train(normalized_image_1_t_0, normalized_image_2_t_0)
-         else:
-             monet.train(normalized_variation_cap1, normalized_variation_cap2)
-
+         monet.train(normalized_variation_cap1, normalized_variation_cap2)
+         
     # calculate prediction image
     if ACTUAL_IMAGES == True:
-         predicted_output = monet.predict(normalized_image_1_t_0)
+         predicted_output = monet.predict(normalized_image_1_t_0, 1)
     else:
-         predicted_output = monet.predict(normalized_variation_cap1)
+         predicted_output = monet.predict(normalized_variation_cap1, 1)
 
     # calculate mean square error
     if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:

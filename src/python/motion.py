@@ -120,8 +120,8 @@ else:
     SOURCE_1 = "../../raws/videos/sintel.avi"
     SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    ROWS_1 = int(50)
-    ROWS_2 = int(50)
+    ROWS_1 = int(40)
+    ROWS_2 = int(40)
     MVMNT_THRES = 20
     ACTUAL_IMAGES = True
     ALPHA = np.float32(0.05)
@@ -150,8 +150,8 @@ else:
     frame2Cols = frame2.shape[1]
 
     ##### NON TUNNEABLE PARAMETERS ###########
-    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     COLS_1 = int(ROWS_1 * frame1Cols / frame1Rows)    
+    COLS_2 = int(ROWS_2 * frame2Cols / frame2Rows)
     INTERPOLATION_TYPE = cv2.INTER_AREA
     ############################
     
