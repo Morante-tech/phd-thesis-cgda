@@ -104,7 +104,7 @@ class Network:
             
 
 
-    def predict(self, input_matrix, max_value=1):
+    def predict(self, input_matrix, min_value=0, max_value=1):
         self.block_sum_weights=0
         self.predicted_output_matrix=0
         
@@ -133,8 +133,8 @@ class Network:
             self.predicted_output_matrix = cv2.add(self.predicted_output_matrix , weighted_input_matrix_norm)
             
             # clipping
-            if max_value != None:
-                self.predicted_output_matrix = np.clip(self.predicted_output_matrix, 0, max_value)               
+            if max_value != None and min_value != None:
+                self.predicted_output_matrix = np.clip(self.predicted_output_matrix, min_value, max_value)               
         
         return self.predicted_output_matrix
         

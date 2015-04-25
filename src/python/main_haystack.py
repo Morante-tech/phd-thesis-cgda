@@ -215,9 +215,9 @@ while(True):
          
     # calculate prediction image
     if ACTUAL_IMAGES == True:
-         predicted_output = monet.predict(normalized_image_1_t_0, 1)
+         predicted_output = monet.predict(normalized_image_1_t_0)
     else:
-         predicted_output = monet.predict(normalized_variation_cap1, 1)
+         predicted_output = monet.predict(normalized_variation_cap1)
 
     # calculate mean square error
     if total_change_img1 > MVMNT_THRES and total_change_img2 > MVMNT_THRES:
