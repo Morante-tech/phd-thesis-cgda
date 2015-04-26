@@ -78,7 +78,7 @@ def save_params(list_params_names, list_params_values):
 
 REPRODUCE_EXPERIMENT = False    
 EXPERIMENT_PARAMS_FILENAME = ""
-SAVE_EXPERIMENT   = True
+SAVE_EXPERIMENT   = False
 EXTERNAL_WEIGHTS = False
 FILENAME_PRECOMPUTED_WEIGHTS = ""
 TIME = time.strftime("%H:%M:%S")
@@ -121,16 +121,19 @@ if REPRODUCE_EXPERIMENT == True:
     
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    SOURCE_1 = "../../raws/videos/sintel.avi"
-    SOURCE_2 = "../../raws/videos/sintel.avi"
+#    SOURCE_1 = "../../raws/videos/sintel.avi"
+#    SOURCE_2 = "../../raws/videos/sintel.avi"
 
-    INPUT_ROWS = 50
-    OUTPUT_ROWS = 50
-    MVMNT_THRES = 20
+    SOURCE_1 = "../../cross-validation/training/training_objects_100cm_180deg_0.avi"
+    SOURCE_2 = "../../cross-validation/training/training_objects_100cm_180deg_1.avi"
+
+    INPUT_ROWS = 40
+    OUTPUT_ROWS = 40
+    MVMNT_THRES = 10
     ACTUAL_IMAGES = True
-    ALPHA = 0.05
-    LAMBDA =  0.5
-    # perfect params actual images (0.05, 0.5)
+    ALPHA = 1
+    LAMBDA = 0.25
+    # perfect params validity (0.05, 0.5)
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
     cap2 = cv2.VideoCapture(SOURCE_2)
@@ -166,12 +169,13 @@ mse = []
 index = 0
 ############ LOOP ############
 while(True):
-    index+=1
-    
-    if index == 200 :
-        fix_weights_matrix = True
-    elif index == 400:
-        break
+    # only for validity test
+#    index+=1
+#    
+#    if index == 200 :
+#        fix_weights_matrix = True
+#    elif index == 400:
+#        break
     
     # read from cam
     cap1.grab()
