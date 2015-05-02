@@ -1,0 +1,159 @@
+#!/usr/bin/env python
+
+from __future__ import division
+
+from sklearn import mixture, metrics
+import pylab as pl
+import numpy as np
+import mlpy.dtwcore as md
+from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+import yarp
+
+
+# reading file
+def generalization(kinectTrajectory):
+    x=list(kinectTrajectory)
+    #print x
+    numberOfGaussians=0
+    realDataMatrix=[]
+    partialResults=[]
+    temp0=np.array(x).astype('float')
+
+    #gaussians by time
+    newTimeValue= np.ceil(temp0[-1][0] - temp0[0][0])
+    numberOfGaussians = int(newTimeValue)
+    #print 'numberOfGaussians: ',numberOfGaussians
+     ## Get the time range and rescale
+    r = float(temp0[-1][0] - temp0[0][0])
+    temp0[:,0] = map(lambda x: (x - temp0[0][0]) / r, temp0[:,0])
+
+    # append
+    realDataMatrix.append(temp0.tolist())
+
+    #test all dimensions and sort (if only 1 traj, not needed)
+    Xnoisy = np.vstack(realDataMatrix) # noisy dataset
+    #Xnoisy = sorted(Xnoisy, key=lambda column: column[1])
+
+    #assigning new clean dataset to variable X in numpy array
+    X = np.array(Xnoisy)
+
+    ## OVERLOAD
+    for h in range(numberOfGaussians):
+        #print 'h: ', h
+        #print 'X.shape[0]: ', X.shape[0]
+        initial=(X.shape[0]/numberOfGaussians)*h
+        final=(X.shape[0]/numberOfGaussians)*(h+1)
+        #print 'X[initial:final].shape: ', X[initial:final].shape
+        #print 'X[initial:final]: ', X[initial:final]
+        if X[initial:final].shape[0] == 0:
+            print 'NO POINTS IN THIS SET. PROBABLY NUMBEROFPOINTS < NUMBEROFSLICES'
+        if X[initial:final].shape[0] == 1:
+            partialResults.append(X[initial:final].ravel().tolist())
+        else:
+            best_gmm = mixture.GMM(n_components=1, covariance_type='full')
+            best_gmm.fit(X[initial:final])
+            #print "Best : ", best_gmm
+            #print "Best mean: ", best_gmm.means_.ravel().tolist()
+            partialResults.append(best_gmm.means_.ravel().tolist())
+
+    #print 'slices: ', len(partialResults)
+    # saving centers
+    sortedPoints = sorted(partialResults, key=lambda point: point[0])
+    return sortedPoints
+
+def recognition(idealAction, realAction):
+
+    vectorOne=np.array(idealAction)
+    vectorTwo=np.array(realAction)
+    #print 'one', vectorOne
+    #print 'two', vectorTwo
+    if vectorOne.shape[1] != vectorTwo.shape[1]:
+        print 'VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!'
+
+    ########## DTW all dimensions #############
+
+    #print 'Number of Dimensions (included time): ', vectorOne.shape[1]
+    distList =[]
+    for i in range(1, vectorOne.shape[1]):
+
+        #interpolation 1
+        minimTime=min(vectorOne[:,0])
+        maximTime=max(vectorOne[:,0])
+        xi = np.linspace(minimTime, maximTime, 10*len(vectorOne[:,i]))
+        testrbfQ = Rbf(vectorOne[:,0], vectorOne[:,i], function='linear')
+        #testrbfQ = Rbf(vectorOne[:,0], vectorOne[:,i], function='inverse')
+        #testrbfQ = Rbf(vectorOne[:,0], vectorOne[:,i], function='gaussian')
+        yi = testrbfQ(xi)
+
+        #interpolation 2
+        minimTimeQ=min(vectorTwo[:,0])
+        maximTimeQ=max(vectorTwo[:,0])
+        xiQ = np.linspace(minimTimeQ, maximTimeQ, 10*len(vectorTwo[:,i]))
+        testrbfQ = Rbf(vectorTwo[:,0], vectorTwo[:,i], function='linear')
+        #testrbfQ = Rbf(vectorTwo[:,0], vectorTwo[:,i], function='inverse')
+        #testrbfQ = Rbf(vectorTwo[:,0], vectorTwo[:,i], function='gaussian')
+        yiQ = testrbfQ(xiQ)
+
+        #dtw distance
+        dist, px, py, cost = md.dtw(yi, yiQ)
+        distList.extend([dist])
+        #print 'Distance (lower, better) for Dim. ', str(i), ' : ', dist
+    return np.sum(distList)
+
+
+def main():
+
+    yarp.Network.init()
+    if yarp.Network.checkNetwork() != True:
+        print '[fail] found no yarp network (try running "yarpserver &"), bye!'
+        quit()
+    real_port = yarp.Port()
+
+    real_port.open("/effects:i")
+    idealVector = [[5.69540986509194e-02,6.38762472700000e+02,2.72626977500000e+00,-3.97845084999999e+00,3.31089250000000e+03,4.22769103450000e+01,2.19041249190000e+02,1.73645334665000e+02,8.86591914100000e+01],[1.67269023880151e-01,6.42391811965000e+02,1.68573559950000e+01,-3.02628304000000e+00,3.27398750000000e+03,4.23216237750000e+01,2.20018601835000e+02,1.71033148630000e+02,8.86536932700000e+01],[2.78900728094060e-01,6.80641917184079e+02,8.88397871243782e+01,1.23043924875622e+00,2.93519402985075e+03,4.21827977313433e+01,2.20454388283582e+02,1.67011435388060e+02,8.57913902786070e+01],[3.89203739697794e-01,7.83047694335000e+02,1.20799710345000e+02,6.47513742499999e+00,2.24080000000000e+03,4.22901238550000e+01,2.21989666155000e+02,1.66089656205000e+02,8.68754237750000e+01],[5.00745430502879e-01,8.64809906691542e+02,5.41469797114429e+01,7.08611930348259e+00,1.84642537313433e+03,4.19493107562189e+01,2.17431154064677e+02,1.79587172796020e+02,9.02005901840795e+01],[6.10441552649295e-01,8.16733444044999e+02,-5.19248806450000e+01,-9.54816400000000e-01,2.11915500000000e+03,4.16326829800000e+01,2.16561814685000e+02,1.86393587390000e+02,9.12841076650000e+01],[7.19785184297655e-01,6.91319608447761e+02,-6.46731068507463e+01,-6.88174848258707e+00,2.94401492537313e+03,4.23769030845771e+01,2.19493769223881e+02,1.73286431039801e+02,8.86988423930349e+01],[8.29464571628618e-01,6.38455344905001e+02,-1.57018014900000e+01,-4.27471647499999e+00,3.31559500000000e+03,4.25845780050000e+01,2.20569420690000e+02,1.66983894125000e+02,8.80822135049999e+01],[9.42920157590202e-01,6.36920685935323e+02,3.73245194029851e-01,-3.83094820398010e+00,3.31466417910448e+03,4.24664265771144e+01,2.20126954114428e+02,1.66888236716418e+02,8.87113222338308e+01]]
+
+    idealVector = np.array(idealVector).astype('float')
+
+    ########################################
+    while True:
+        kinectBottle = yarp.Bottle()
+        real_port.read(kinectBottle) # blocking
+
+        #print 'got: ', kinectBottle.toString()
+        kinectVector = []
+        for external in range(1,kinectBottle.size()):
+            internalVector = []
+            internalBottle = yarp.Bottle()
+            internalBottle.clear()
+            internalBottle = kinectBottle.get(external).asList()
+            for internal in range(0,internalBottle.size()):
+                internalVector.append(internalBottle.get(internal).asDouble())
+            kinectVector.append(internalVector)
+
+        realButGeneralized = generalization(kinectVector)
+
+        #response = yarp.Bottle()
+        #response.addString("ok")
+        #real_port.write(response)
+
+    #    idealBottle = yarp.Bottle()
+    #    real_port.read(idealBottle)
+    #    print 'got ', idealBottle.toString()
+    #    idealVector = []
+    #    for elem in range(1,idealBottle.size()):
+    #        idealVector.append(idealBottle.get(elem).asDouble())
+
+        fitness = recognition(idealVector, realButGeneralized)
+        print 'fitness: ', fitness
+
+        response = yarp.Bottle()
+        response.addDouble(fitness)
+        real_port.write(response)
+    ########################################################
+    real_port.close()
+
+if __name__ == '__main__':
+	main()

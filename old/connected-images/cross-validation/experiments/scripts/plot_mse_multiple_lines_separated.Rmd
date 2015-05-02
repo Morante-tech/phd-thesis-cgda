@@ -1,0 +1,144 @@
+---
+title: "Plot MSE Multiple Lines"
+author: "Santiago Morante"
+date: "03/19/2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+This file is intended to plot the Mean Square Error generated during a experiment (frame by frame). It is expected that you have 3 files for different alpha and beta parameters.
+
+To correctly see the plot, first set the working directory (change the next path to the one you want).
+
+```{r}
+setwd("../results")
+```
+
+Next, introduce the name of the files containing the MSE of your training experiment.
+
+```{r}
+filename_training_1 = "motion_results_07.Apr.2015_13:35:33.csv"
+filename_training_2 = "motion_results_07.Apr.2015_13:35:33.csv"
+filename_training_3 = "motion_results_07.Apr.2015_13:35:33.csv"
+```
+
+Next, introduce the name of the files containing the MSE of your test experiment. They must be in the same order than the training files.
+
+```{r}
+filename_test_1 = "motion_results_07.Apr.2015_14:28:42.csv"
+filename_test_2 = "motion_results_07.Apr.2015_14:28:42.csv"
+filename_test_3 = "motion_results_07.Apr.2015_14:28:42.csv"
+
+```
+
+Now we define the types of lines and their colors. Also we define other parameters of the plot.
+
+```{r}
+
+# line type: http://www.cookbook-r.com/Graphs/Shapes_and_line_types/
+type_line_1=1
+type_line_2=3
+type_line_3=5
+
+# line colors: http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+color_line_1= 'dodgerblue4'
+color_line_2= 'black'
+color_line_3= 'darkgoldenrod1'
+
+# line width
+width = 3
+
+# rectangle transparency
+alpha_channel=0.08
+
+```
+
+
+That's all you need to you. If everything went ok, next chunk should show you the plot.
+
+```{r}
+data_training_1 = read.csv(filename_training_1, header = TRUE)
+data_training_2 = read.csv(filename_training_2, header = TRUE)
+data_training_3 = read.csv(filename_training_3, header = TRUE)
+
+data_test_1 = read.csv(filename_test_1, header = TRUE)
+data_test_2 = read.csv(filename_test_2, header = TRUE)
+data_test_3 = read.csv(filename_test_3, header = TRUE)
+
+# same for the 3 experiments (theoretically)
+x_total = 1:(nrow(data_training)+nrow(data_test))
+
+# different for each of the experiments
+y_training_1 = as.numeric(data_training_1$Mean.Square.Error)
+y_test_1 = as.numeric(data_test_1$Mean.Square.Error)
+y_total_1 = c(y_training_1, y_test_1)
+y_total_1 = y_total_1 / 255^2 # maximum square error for a single pixel 
+
+y_training_2 = as.numeric(data_training_2$Mean.Square.Error)
+y_test_2 = as.numeric(data_test_2$Mean.Square.Error)
+y_total_2 = c(y_training_2, y_test_2)
+y_total_2 = y_total_2 / 255^2 # maximum square error for a single pixel 
+
+y_training_3 = as.numeric(data_training_3$Mean.Square.Error)
+y_test_3 = as.numeric(data_test_3$Mean.Square.Error)
+y_total_3 = c(y_training_3, y_test_3)
+y_total_3 = y_total_3 / 255^2 # maximum square error for a single pixel 
+
+############# PLOT #########
+# declare device
+plot(0,0,
+     xlim = c(0,nrow(data_training)+nrow(data_test)),
+     ylim = c(0,1),
+     type = "n",
+     xlab = "Frame", ylab = "Normalized Error", main = "Normalized Mean Square Error")
+
+############# plot lines
+lines(x_total, y_total_1, 
+     type = "l", 
+     col = color_line_1, 
+     lty = type_line_1, 
+     lwd=width)
+
+lines(x_total, y_total_2, 
+     type = "l", 
+     col = color_line_2,
+     lty = type_line_2,
+     lwd=width)
+
+lines(x_total, y_total_3, 
+     type = "l", 
+     col = color_line_3,
+     lty = type_line_3,
+     lwd=width)
+
+############# plot rectangles
+rect(0, 0, nrow(data_training),1,
+     border = FALSE, 
+     col=rgb(1, 0, 0, alpha=alpha_channel))
+
+rect(nrow(data_training), 0, nrow(data_training)+nrow(data_test),1, 
+     border = FALSE, 
+     col=rgb(0, 0, 1, alpha=alpha_channel))
+
+############# plot text
+text(c(nrow(data_training)/2, (nrow(data_training)+nrow(data_test))/2 ),
+     c(0.95,0.95),
+     labels=c("Training","Test"),
+     font=2,
+     family="B",
+     col = c("red", "blue"))
+
+############# plot legend
+legend('topright',
+       c(expression(alpha~"=XX, "~beta~"=XX"), 
+         expression(alpha~"=XX, "~beta~"=XX"), 
+         expression(alpha~"=XX, "~beta~"=XX")),  
+       col=c(color_line_1, color_line_2, color_line_3),
+       lty=c(type_line_1, type_line_2, type_line_3),
+       lwd=2,
+       bty='o', # alternative n 
+       cex=.8) #size of legend
+
+```
+

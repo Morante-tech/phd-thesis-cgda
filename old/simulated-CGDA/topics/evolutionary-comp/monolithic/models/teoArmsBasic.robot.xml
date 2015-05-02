@@ -1,0 +1,14 @@
+<!-- teoProtoArm.robot.xml -->
+
+<Robot name="teoArmsBasicRobot">
+    <KinBody file="./teoArmsBasic.kinbody.xml"/>
+    <Manipulator name="teoArmsBasicRManipulator">
+        <effector>R9</effector>
+        <base>TRUNK</base>
+    </Manipulator>
+    <Manipulator name="teoArmsBasicLManipulator">
+        <effector>L9</effector>
+        <base>TRUNK</base>
+    </Manipulator>
+</Robot>
+

@@ -1,0 +1,171 @@
+---
+title: "Plot MSE Multiple Lines"
+author: "Santiago Morante"
+date: "03/19/2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+This file is intended to plot the Mean Square Error generated during a experiment (frame by frame). It is expected that you have 3 files for different alpha and beta parameters.
+
+To correctly see the plot, first set the working directory (change the next path to the one you want).
+
+```{r}
+setwd("../results")
+```
+
+Next, introduce the name of the files containing the MSE of your training experiment.
+
+```{r}
+filename_training_1 = "motion_results_26.Apr.2015_01:09:03.csv"
+alpha_1 = 0.05
+lambda_1 = 0.5
+filename_training_2 = "motion_results_26.Apr.2015_01:25:33.csv"
+alpha_2 = 0.5
+lambda_2 = 0.5
+filename_training_3 = "motion_results_26.Apr.2015_01:37:20.csv"
+alpha_3 = 0.005
+lambda_3 = 0.5
+filename_training_4 = "motion_results_26.Apr.2015_01:50:16.csv"
+alpha_4 = 0.05
+lambda_4 = 5
+filename_training_5 = "motion_results_26.Apr.2015_02:02:12.csv"
+alpha_5 = 0.05
+lambda_5 = 0.05
+
+```
+
+Now we define the types of lines and their colors. Also we define other parameters of the plot.
+
+```{r}
+
+# line type: http://www.cookbook-r.com/Graphs/Shapes_and_line_types/
+type_line_1=3
+type_line_2=2
+type_line_3=1
+type_line_4=4
+type_line_5=6
+
+
+# line colors: http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+color_line_1= 'dodgerblue4'
+color_line_2= 'black'
+color_line_3= 'darkgoldenrod1'
+color_line_4= 'firebrick3'
+color_line_5= 'forestgreen'
+
+# line width
+width = 3
+
+# rectangle transparency
+alpha_channel=0.3
+
+```
+
+
+That's all you need to you. If everything went ok, next chunk should show you the plot.
+
+```{r}
+data_training_1 = read.csv(filename_training_1, header = TRUE)
+data_training_2 = read.csv(filename_training_2, header = TRUE)
+data_training_3 = read.csv(filename_training_3, header = TRUE)
+data_training_4 = read.csv(filename_training_4, header = TRUE)
+data_training_5 = read.csv(filename_training_5, header = TRUE)
+
+
+# same for the 3 experiments (theoretically)
+x_total = 1:nrow(data_training_1)
+
+
+# change and final
+change = 200
+final = nrow(data_training_1)
+
+# different for each of the experiments
+y_total_1 = as.numeric(data_training_1$Mean.Square.Error)
+y_total_2 = as.numeric(data_training_2$Mean.Square.Error)
+y_total_3 = as.numeric(data_training_3$Mean.Square.Error)
+y_total_4 = as.numeric(data_training_4$Mean.Square.Error)
+y_total_5 = as.numeric(data_training_5$Mean.Square.Error)
+
+
+############# PLOT #########
+
+par(mar=c(4, 4.2, 1.5, 0.1))
+# declare device
+plot(0,0,
+     xaxs="i",yaxs="i", # to set axis to zero
+     xlim = c(0,final),
+     ylim = c(0,1),
+     type = "n",
+     xlab = "Frame", ylab = "Error", main = "Mean Square Error")
+
+############# plot rectangles
+rect(0, 0, change, 1,
+     border = FALSE, 
+     col=rgb(1, 0, 0, alpha=alpha_channel))
+
+rect(change, 0, final,1, 
+     border = FALSE, 
+     col=rgb(0, 0, 1, alpha=alpha_channel))
+
+############# plot text
+text(c(change/2, (final+change)/2 ),
+     c(0.5,0.5),
+     labels=c("Training","Test"),
+     font=2,
+     cex=2,
+     family="B",
+     col = c("white", "white"))
+
+############# plot lines
+lines(x_total, y_total_1, 
+     type = "l", 
+     col = color_line_1, 
+     lty = type_line_1, 
+     lwd=width)
+
+lines(x_total, y_total_2, 
+     type = "l", 
+     col = color_line_2,
+     lty = type_line_2,
+     lwd=width)
+
+lines(x_total, y_total_3, 
+     type = "l", 
+     col = color_line_3,
+     lty = type_line_3,
+     lwd=width)
+
+lines(x_total, y_total_4, 
+     type = "l", 
+     col = color_line_4,
+     lty = type_line_4,
+     lwd=width)
+
+lines(x_total, y_total_5, 
+     type = "l", 
+     col = color_line_5,
+     lty = type_line_5,
+     lwd=width)
+
+
+############# plot legend
+
+legend('topright',
+       legend = c(
+           paste("α=", bquote(.(alpha_1)), ", λ=", bquote(.(lambda_1))), 
+           paste("α=", bquote(.(alpha_2)), ", λ=", bquote(.(lambda_2))), 
+           paste("α=", bquote(.(alpha_3)), ", λ=", bquote(.(lambda_3))),
+           paste("α=", bquote(.(alpha_4)), ", λ=", bquote(.(lambda_4))),
+           paste("α=", bquote(.(alpha_5)), ", λ=", bquote(.(lambda_5))) ),  
+       col=c(color_line_1, color_line_2, color_line_3, color_line_4, color_line_5),
+       lty=c(type_line_1, type_line_2, type_line_3, type_line_4, type_line_5),
+       lwd=3,
+       bty='o', # alternative n /o
+       cex=0.75,
+       text.width=90) #size of legend
+
+```
+

@@ -1,0 +1,13 @@
+[success] ********** targetIdx[0] achieved!!! Reached [654.63,7.14372,-3.39016]. Cost: 16.4819 **********
+[success] ********** targetIdx[1] achieved!!! Reached [654.557,7.02944,-3.41729]. Cost: 15.644 **********
+[success] ********** targetIdx[2] achieved!!! Reached [682.673,81.2955,-15.2718]. Cost: 18.2582 **********
+[warning] ******* targetIdx[3] not found within defined maxDepth. Reached [776.834,136.273,19.4091]. Appending costOfLowestCostPath=21.1027 ******* 
+[warning] ******* targetIdx[4] not found within defined maxDepth. Reached [818.077,77.0919,58.2574]. Appending costOfLowestCostPath=72.9994 ******* 
+[warning] ******* targetIdx[5] not found within defined maxDepth. Reached [778.44,-22.5629,22.2327]. Appending costOfLowestCostPath=53.537 ******* 
+[success] ********** targetIdx[6] achieved!!! Reached [707.396,-64.2635,-9.02644]. Cost: 16.2243 **********
+[qtcoinviewer.cpp:2741] timeout of GetPublishedBodies
+[environment-core.h:2159] timeout of UpdatePublishedBodies
+[warning] ******* targetIdx[7] not found within defined maxDepth. Reached [646.081,-31.1199,-18.5643]. Appending costOfLowestCostPath=22.3622 ******* 
+[success] ********** targetIdx[8] achieved!!! Reached [650.921,-8.38271,5.09339]. Cost: 18.7699 **********
+Full sequence used: 10 28 28 0 1 5 21 4 4 13 5 2 4 2 2 8 17 10 10 1 11 19 
+

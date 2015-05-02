@@ -1,0 +1,101 @@
+---
+title: "Plot MSE Multiple Lines"
+author: "Santiago Morante"
+date: "03/19/2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+This file is intended to plot the Mean Square Error generated during a experiment (frame by frame). It is expected that you have 3 files for different alpha and beta parameters.
+
+To correctly see the plot, first set the working directory (change the next path to the one you want).
+
+```{r}
+setwd("../results")
+```
+
+Next, introduce the name of the files containing the MSE of your training experiment.
+
+```{r}
+filename = "nn_results_11.Apr.2015_13:25:09.csv"
+```
+
+Next, introduce the name of the files containing the MSE of your test experiment. They must be in the same order than the training files.
+
+```{r}
+CHANGE =200
+
+```
+
+Now we define the types of lines and their colors. Also we define other parameters of the plot.
+
+```{r}
+
+# line type: http://www.cookbook-r.com/Graphs/Shapes_and_line_types/
+type_line_1=1
+
+
+# line colors: http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+color_line_1= 'dodgerblue4'
+
+
+# line width
+width = 3
+
+# rectangle transparency
+alpha_channel=0.08
+
+```
+
+
+That's all you need to you. If everything went ok, next chunk should show you the plot.
+
+```{r}
+data = read.csv(filename, header = TRUE)
+data_training = data[1:CHANGE,]
+
+data_test = data[(CHANGE+1):nrow(data),]
+
+x_total = 1:nrow(data)
+
+# different for each of the experiments
+y_training = as.numeric(data_training)
+y_test = as.numeric(data_test)
+y_total = c(y_training, y_test)
+
+############# PLOT #########
+# declare device
+plot(0,0,
+     xlim = c(0,nrow(data)),
+     ylim = c(0,1),
+     type = "n",
+     xlab = "Frame", ylab = "Error", main = "Mean Square Error")
+
+
+
+############# plot rectangles
+rect(0, 0, CHANGE,1,
+     border = FALSE, 
+     col=rgb(1, 0, 0, alpha=alpha_channel))
+
+rect(CHANGE, 0, nrow(data),1, 
+     border = FALSE, 
+     col=rgb(0, 0, 1, alpha=alpha_channel))
+
+############# plot text
+text(c(CHANGE/2, CHANGE+(length(data_test))/2 ),
+     c(0.95,0.95),
+     labels=c("Training","Test"),
+     font=2,
+     family="B",
+     col = c("red", "blue"))
+
+############# plot lines
+lines(x_total, y_total, 
+     type = "l", 
+     col = color_line_1, 
+     lty = type_line_1, 
+     lwd=width)
+```
+

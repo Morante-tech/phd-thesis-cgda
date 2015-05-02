@@ -1,0 +1,34 @@
+---
+title: "Plot MSE Simple"
+author: "Santiago Morante"
+date: "03/19/2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+This file is intended to plot the Mean Square Error generated during a experiment (frame by frame).
+
+To correctly see the plot, first set the working directory (change the next path to the one you want).
+
+```{r}
+setwd("../results")
+```
+
+Next, introduce the name of the file containing the MSE of your experiment.
+
+```{r}
+filename = "motion_results_24.Apr.2015_11:39:47.csv"
+```
+
+
+That's all you need to you. If everything went ok, next chunk should show you the plot.
+
+```{r}
+data = read.csv(filename, header = TRUE, stringsAsFactors=FALSE)
+x= 1:nrow(data)
+y = as.numeric(data$Mean.Square.Error)
+plot(x, y, type = "l", col = "red", lwd=3, ylim = c(0,1), xlab = "Frame", 
+     ylab = "Normalized Error", main = "Normalized Mean Square Error")
+```
+

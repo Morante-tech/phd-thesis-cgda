@@ -1,0 +1,4 @@
+
+velocity > 0
+torque =  0.0159985244832 *velocity +  0.748349734218 
+
