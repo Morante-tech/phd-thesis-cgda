@@ -4,12 +4,14 @@ Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
 """
 
-import numpy as np
-
-from sklearn.cluster import DBSCAN
-from sklearn import metrics
+import libdbscan
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.preprocessing import StandardScaler
+
+
+def normalize(X):
+    return StandardScaler().fit_transform(X)
+
 
 def main():
     
@@ -19,19 +21,15 @@ def main():
     X, labels_true = make_blobs(n_samples=750, centers=centers, cluster_std=0.4,
                                 random_state=0)
     
-    X = StandardScaler().fit_transform(X)
+    # normalize
+    X = normalize(X)
     
-    ##############################################################################
-    # Compute DBSCAN
-    db = DBSCAN(eps=0.3, min_samples=10).fit(X)
-    core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
-    core_samples_mask[db.core_sample_indices_] = True
-    labels = db.labels_
-    print core_samples_mask
-    print labels
+    db = libdbscan.Dbscan()
+    db.create(eps=0.3, min_samples=10)
+    db.fit(X)
+    db.plot()
     
-    
-    
+
 ##############################################################################
 ##############################################################################
 
