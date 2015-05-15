@@ -53,7 +53,7 @@ class Mds:
             return False        
                    
 
-    def fit(self, similarities):
+    def compute(self, similarities):
         self.similarities=similarities
         
         if self.metric == True:
@@ -69,6 +69,8 @@ class Mds:
             return False
         
     def plot(self):
+        fig = plt.figure()
+        fig.canvas.set_window_title('MDS')
         ax = plt.axes([0., 0., 1., 1.])
         self.similarities = self.similarities.max() / self.similarities * 100
         self.similarities[np.isinf(self.similarities)] = 0
@@ -84,7 +86,7 @@ class Mds:
             print "[ERROR] metric in mds not recognized (accepts only True or False)!"
             return False        
     
-        plt.scatter(points[:, 0], points[:, 1], s=20, c='g')
+        plt.scatter(points[:, 0], points[:, 1], s=20, c='r')
 
         # Plot the edges
         start_idx, end_idx = np.where(points)

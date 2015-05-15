@@ -22,7 +22,7 @@ class Dbscan:
         
         return True
 
-    def fit(self, X):
+    def compute(self, X):
         self.X=X
         self.db.fit(self.X)
         
@@ -34,17 +34,23 @@ class Dbscan:
         
         
     def plot(self):
+        fig = plt.figure()
+        fig.canvas.set_window_title('DBSCAN')
         # Black removed and is used for noise instead.
         unique_labels = set(self.db.labels_)
+        print "[INFO] CLusters detected by DBSCAN: ", unique_labels 
         colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
         for k, col in zip(unique_labels, colors):
+            pointsize=9
+
             if k == -1:
                 # Black used for noise.
                 col = 'k'
+                pointsize=4
         
             xy = self.X[self.db.labels_ == k]
             plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=col,
-                     markeredgecolor='k', markersize=6)
+                     markeredgecolor='k', markersize=pointsize)
     
         
         plt.show()
