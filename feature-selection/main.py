@@ -55,16 +55,17 @@ def main():
         #    plt.xlim((-0.5, cost.shape[0]-0.5))
         #    plt.ylim((-0.5, cost.shape[1]-0.5))
             
-        #print dist
+        print "dist", dist
     ###########################################################################
     ###########################   MDS   ####################################
     ###########################################################################
 
     md = libmds.Mds()
-    md.create(n_components=1, metric=False, max_iter=3000, eps=1e-9, random_state=None,
+    md.create(n_components=2, metric=False, max_iter=3000, eps=1e-9, random_state=None,
                        dissimilarity="precomputed", n_jobs=1)
 
     points = md.compute(dist)
+    print "points", points
     md.plot()
     
     
