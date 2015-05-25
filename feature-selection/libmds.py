@@ -86,7 +86,7 @@ class Mds:
             print "[ERROR] metric in mds not recognized (accepts only True or False)!"
             return False        
     
-        plt.scatter(points[:, 0], points[:, 1], s=20, c='r')
+        plt.scatter(points[:, 0], points[:, 1], s=20, c='black')
 
         # Plot the edges
         start_idx, end_idx = np.where(points)

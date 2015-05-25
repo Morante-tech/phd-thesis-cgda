@@ -74,15 +74,15 @@ def main():
      ##########################################################################
      ##########################   DBSCAN   ####################################
      ##########################################################################
-    # normalize
-#    normalizedPoints = normalize(points)
-#    
-#    #    ########################## dbscan
-#    db = libdbscan.Dbscan()
-#    db.create(eps=0.8, min_samples=3)
-#    db.compute(normalizedPoints)
-#    db.plot()
-#    
+   #  normalize
+    normalizedPoints = normalize(points)
+    
+    #    ########################## dbscan
+    db = libdbscan.Dbscan()
+    db.create(eps=1.5, min_samples=2)
+    db.compute(normalizedPoints)
+    db.plot()
+    
 
 ##############################################################################
 ##############################################################################
