@@ -16,28 +16,35 @@ import libmds
 import libdbscan
 from sklearn.preprocessing import StandardScaler # to normalize
 
+import glob
+
+EXPERIMENT = "experiment1"
+PATH = "./datasets/" + EXPERIMENT +"/raw/*.csv"
 
 def normalize(X):
     return StandardScaler().fit_transform(X)
 
 def main():
     
+    demons=[]
+    demoNames = glob.glob(PATH)
+    print demoNames
+
+    for elem in demoNames:
+        tmp = np.loadtxt(elem)
+        demons.append(tmp[:,1:])
+
+    dist=np.zeros((len(demoNames),len(demoNames)))
+     
      ##########################################################################
      ##########################   DTW   ####################################
      ##########################################################################  
 
-    dist=np.zeros((5,5))
 
-    demons=[]
-    
-    # fill demonstrations
-    for i in range(5):
-        demons.append(np.matrix([ np.sin(np.arange(15+i)+i)  , np.sin(np.arange(15+i)+i)]))
-
-    
+       
     # fill distance matrix    
-    for i in range(5):
-        for j in range(5):
+    for i in range(len(demoNames)):
+        for j in range(len(demoNames)):
 
             mddtw = libmddtw.Mddtw()
             x,y = mddtw.collapseRows(demons[i],demons[j])
