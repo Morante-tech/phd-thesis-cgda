@@ -25,6 +25,9 @@ PATH = "./datasets/" + EXPERIMENT +"/raw/*.csv"
 def normalize(X):
     return StandardScaler().fit_transform(X)
 
+def standardize(X):
+    return preprocessing.scale(X)
+
 def main():
     
     demons=[]
@@ -34,7 +37,7 @@ def main():
     for elem in demoNames:
         tmp = np.loadtxt(elem)
         tmp_clean = tmp[:,1:]
-        tmp_clean = preprocessing.scale(tmp_clean)
+        tmp_clean = standardize(tmp_clean)
         demons.append(tmp_clean)
     
     dist=np.zeros((len(demoNames),len(demoNames)))
