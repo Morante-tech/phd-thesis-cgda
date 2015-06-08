@@ -18,12 +18,12 @@ class Mddtw:
 
     def collapseRows(self, demo1, demo2):
         
-        print "Shapes demo1,demo2: ", np.array(demo1).shape, "  , ",  np.array(demo2).shape
+    #    print "Shapes demo1,demo2: ", np.array(demo1).shape, "  , ",  np.array(demo2).shape
         if np.array(demo1).shape[0] > 1 and \
            np.array(demo2).shape[0] > 1 and \
            np.array(demo1).shape[1] == np.array(demo2).shape[1]:
                
-            print "[INFO] Collapsing rows"
+     #       print "[INFO] Collapsing rows"
             self.x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
             self.y = np.array(demo2).sum(axis=0)
             
@@ -32,7 +32,7 @@ class Mddtw:
             return False
 
         else:
-            print "[INFO] Rows==1, leaving them as they are"
+  #          print "[INFO] Rows==1, leaving them as they are"
 
             self.x = np.array(demo1).flatten()
             self.y = np.array(demo2).flatten()

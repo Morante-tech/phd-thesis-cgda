@@ -38,7 +38,7 @@ class Dbscan:
         fig.canvas.set_window_title('DBSCAN')
         # Black removed and is used for noise instead.
         unique_labels = set(self.db.labels_)
-        print "[INFO] CLusters detected by DBSCAN: ", unique_labels 
+        print "[INFO] Clusters detected by DBSCAN: ", unique_labels 
         colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
         for k, col in zip(unique_labels, colors):
             pointsize=9

@@ -13,6 +13,7 @@ class Mds:
     def __init__(self):
        self.mds=None
        self.n_components = None
+       self.n_init = None
        self.metric=None
        self.max_iter = None
        self.eps = None
@@ -25,7 +26,7 @@ class Mds:
 
 
     def create(self, n_components, metric, max_iter, eps, random_state, dissimilarity, 
-               n_jobs):
+               n_jobs, n_init):
         self.n_components = n_components
         self.metric=metric
         self.max_iter = max_iter
@@ -33,11 +34,12 @@ class Mds:
         self.random_state = random_state
         self.dissimilarity = dissimilarity
         self.n_jobs = n_jobs
+        self.n_init=n_init
         
         if self.metric == True:
             self.mds = MDS(n_components=self.n_components, max_iter=self.max_iter, 
                            eps=self.eps, random_state=self.random_state,
-                       dissimilarity=self.dissimilarity, n_jobs=self.n_jobs)
+                       dissimilarity=self.dissimilarity, n_jobs=self.n_jobs, n_init=self.n_init)
                        
             print self.mds.get_params()
             return True
@@ -45,7 +47,7 @@ class Mds:
         elif self.metric == False:
             self.mds = MDS(n_components=self.n_components, metric=self.metric, 
                            max_iter=self.max_iter, eps=self.eps, dissimilarity=self.dissimilarity, 
-                           random_state=self.random_state, n_jobs=self.n_jobs)
+                           random_state=self.random_state, n_jobs=self.n_jobs, n_init=self.n_init)
             return True
             
         else:
