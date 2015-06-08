@@ -37,8 +37,8 @@ class Mddtw:
             self.x = np.array(demo1).flatten()
             self.y = np.array(demo2).flatten()
              
-        print "Collapsed demo1: ", self.x
-        print "Collapsed demo2: ", self.y
+      #  print "Collapsed demo1: ", self.x
+      #  print "Collapsed demo2: ", self.y
 
         return self.x, self.y
 
