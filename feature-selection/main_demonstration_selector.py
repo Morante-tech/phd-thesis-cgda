@@ -28,7 +28,7 @@ def normalize(X):
 def main():
     
     demons=[]
-    demoNames = glob.glob(PATH)
+    demoNames = sorted(glob.glob(PATH))
     print demoNames
 
     for elem in demoNames:

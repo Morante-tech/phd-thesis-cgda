@@ -107,7 +107,8 @@ class Mds:
         
         plt.show()        
               
-        
+    def fit_transform(self, X):
+        return self.mds.fit_transform(X)
       
 
 
