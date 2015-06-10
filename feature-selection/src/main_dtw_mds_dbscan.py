@@ -17,23 +17,29 @@ import libdbscan
 from sklearn.preprocessing import StandardScaler # to normalize
 
 import glob
+from sklearn import preprocessing
 
 EXPERIMENT = "experiment1"
-PATH = "./datasets/" + EXPERIMENT +"/filtered/*.csv"
+PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
 def normalize(X):
     return StandardScaler().fit_transform(X)
 
+def standardize(X):
+    return preprocessing.scale(X)
+
 def main():
     
     demons=[]
-    demoNames = glob.glob(PATH)
+    demoNames = sorted(glob.glob(PATH))
     print demoNames
 
     for elem in demoNames:
         tmp = np.loadtxt(elem)
-        demons.append(tmp[:,1:])
-
+        tmp_clean = tmp[:,1:]
+        tmp_clean = standardize(tmp_clean)
+        demons.append(tmp_clean)
+    
     dist=np.zeros((len(demoNames),len(demoNames)))
      
      ##########################################################################
@@ -54,7 +60,7 @@ def main():
             #plt.plot(y)
             singleDist, singleCost, singlePath = mddtw.compute(demons[i],demons[j])
             dist[i][j]=singleDist
-            print 'Minimum distance found:', singleDist
+       #     print 'Minimum distance found:', singleDist
             #fig = plt.figure()
         
         #    plt.imshow(cost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
@@ -62,18 +68,18 @@ def main():
         #    plt.xlim((-0.5, cost.shape[0]-0.5))
         #    plt.ylim((-0.5, cost.shape[1]-0.5))
             
-     #   print "dist", dist
+  #  print "dist", dist
     ###########################################################################
     ###########################   MDS   ####################################
     ###########################################################################
 
     md = libmds.Mds()
-    md.create(n_components=2, metric=False, max_iter=3000, eps=1e-9, random_state=None,
-                       dissimilarity="precomputed", n_jobs=1)
+    md.create(n_components=2, metric=True, max_iter=3000, eps=1e-12, random_state=None,
+                       dissimilarity="precomputed", n_jobs=-1, n_init=100)
 
     points = md.compute(dist)
     print "points", points
-    md.plot()
+  #  md.plot()
     
     
     
@@ -89,6 +95,7 @@ def main():
     db.create(eps=1.5, min_samples=2)
     db.compute(normalizedPoints)
     db.plot()
+    print "[INFO] Detected outliers: ", db.getOutliers()
     
 
 ##############################################################################
