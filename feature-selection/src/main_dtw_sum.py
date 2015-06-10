@@ -26,8 +26,16 @@ def standardize(X):
 def minmaxscale(X):
    min_max_scaler = preprocessing.MinMaxScaler()
    return min_max_scaler.fit_transform(X)
-   
-   
+
+#def maxscale_precomputed(X, ranges):
+#    X_scaled = []
+#    for elem in X:
+#        temp= elem/ranges
+#        X_scaled.append(temp)
+#    return X_scaled     
+    
+#################################    
+    
 def main():
     
     demons=[]
@@ -35,19 +43,31 @@ def main():
 #    for elem in demoNames:
 #        print elem
 
+### for demonstration normalization
     for elem in demoNames:
         tmp = np.loadtxt(elem)
         tmp_clean = tmp[:,1:]
         tmp_clean = minmaxscale(tmp_clean)
         demons.append(tmp_clean)
+
+### for whole experiment normalization
+#    demons_temp =[]
+#    for elem in demoNames:
+#        tmp = np.loadtxt(elem)
+#        tmp_clean = tmp[:,1:]
+##        tmp_clean = minmaxscale(tmp_clean)
+#        demons.append(tmp_clean)
+#
+#        demons_temp.extend(tmp_clean.tolist())
+#    ranges = np.max(np.array(demons_temp), axis=0) 
+#    print "ranges", ranges     
+#    demons=maxscale_precomputed(demons, ranges)
     
-    dist=np.zeros((len(demoNames),len(demoNames)))
-     
      ##########################################################################
      ##########################   DTW   ####################################
      ##########################################################################  
 
-
+    dist=np.zeros((len(demoNames),len(demoNames)))
        
     # fill distance matrix    
     for i in range(len(demoNames)):
@@ -74,7 +94,7 @@ def main():
     ###########################   MDS   ####################################
     ###########################################################################
 
-    print "sum", dist.sum(axis=0)
+    print "sum", dist.sum(axis=0) / dist.sum(axis=0).sum()
     
     
     
