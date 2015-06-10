@@ -3,19 +3,22 @@
 Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
 """
-##########################   DTW   ####################################
+################### GENERAL ##############################
+import glob
+from sklearn import preprocessing
+import numpy as np
+
+##########################   DTW   ########################
 import libmddtw
 import matplotlib.pyplot as plt
 from dtw import dtw
-##########################   MDS   ####################################
-import numpy as np
+##########################   SUM   #######################
+
+##########################   ZSCORE   ######################
+from scipy import stats
+#########################################################
 
 
-##########################   DBSCAN   ####################################
-
-
-import glob
-from sklearn import preprocessing
 
 EXPERIMENT = "experiment1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
@@ -33,9 +36,26 @@ def minmaxscale(X):
 #        temp= elem/ranges
 #        X_scaled.append(temp)
 #    return X_scaled     
+
+# http://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
+def mad_based_outlier(points, thresh=3.5):
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+    return modified_z_score > thresh
+
+
+def get_outlier(points, thresh=2):
+    if len(points.shape) == 1:
+        points = points[:,None]
+    results = stats.zscore(points) 
+    return results.flatten() > thresh
     
-#################################    
-    
+#################################        
 def main():
     
     demons=[]
@@ -63,9 +83,9 @@ def main():
 #    print "ranges", ranges     
 #    demons=maxscale_precomputed(demons, ranges)
     
-     ##########################################################################
+     #######################################################################
      ##########################   DTW   ####################################
-     ##########################################################################  
+     ####################################################################### 
 
     dist=np.zeros((len(demoNames),len(demoNames)))
        
@@ -89,28 +109,22 @@ def main():
 #            plt.xlim((-0.5, singleCost.shape[0]-0.5))
 #            plt.ylim((-0.5, singleCost.shape[1]-0.5))
             
-#    print "dist", dist
-    ###########################################################################
-    ###########################   MDS   ####################################
-    ###########################################################################
+#    print "[INFO] Distance Matrix: ", dist
+    ########################################################################
+    ###########################   SUM   ####################################
+    ########################################################################
 
-    print "sum", dist.sum(axis=0) / dist.sum(axis=0).sum()
+    sumDiss = dist.sum(axis=0) / dist.sum(axis=0).sum()
+    print "[INFO] Sum of Dissimilarities: ", sumDiss
+        
+     #######################################################################
+     ##########################   ZSCORE   #################################
+     #######################################################################
     
-    
-    
-    
-     ##########################################################################
-     ##########################   DBSCAN   ####################################
-     ##########################################################################
-#   #  normalize
-#    normalizedPoints = normalize(points)
-#    
-#    #    ########################## dbscan
-#    db = libdbscan.Dbscan()
-#    db.create(eps=1.5, min_samples=2)
-#    db.compute(normalizedPoints)
-#    db.plot()
-#    print "[INFO] Detected outliers: ", db.getOutliers()
+    zscores = get_outlier(sumDiss, thresh=1.5)
+    zscores_mad = mad_based_outlier(sumDiss, thresh=10)
+    print "[INFO] Detected outliers: ", zscores
+    print "[INFO] Detected outliers MAD: ", zscores_mad
     
 
 ##############################################################################
