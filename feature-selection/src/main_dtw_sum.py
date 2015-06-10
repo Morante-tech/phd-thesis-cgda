@@ -21,19 +21,24 @@ EXPERIMENT = "experiment1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
 def standardize(X):
-    return preprocessing.scale(X)
+    return preprocessing.scale(X, axis=0)
 
+def minmaxscale(X):
+   min_max_scaler = preprocessing.MinMaxScaler()
+   return min_max_scaler.fit_transform(X)
+   
+   
 def main():
     
     demons=[]
     demoNames = sorted(glob.glob(PATH))
-    for elem in demoNames:
-        print elem
+#    for elem in demoNames:
+#        print elem
 
     for elem in demoNames:
         tmp = np.loadtxt(elem)
         tmp_clean = tmp[:,1:]
-        tmp_clean = standardize(tmp_clean)
+        tmp_clean = minmaxscale(tmp_clean)
         demons.append(tmp_clean)
     
     dist=np.zeros((len(demoNames),len(demoNames)))
@@ -57,19 +62,19 @@ def main():
             singleDist, singleCost, singlePath = mddtw.compute(demons[i],demons[j])
             dist[i][j]=singleDist
 #            print 'Minimum distance found:', singleDist
-            fig = plt.figure()
-            plt.title(str(i)+","+str(j))
-            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-            plt.plot(singlePath[0], singlePath[1], 'w')
-            plt.xlim((-0.5, singleCost.shape[0]-0.5))
-            plt.ylim((-0.5, singleCost.shape[1]-0.5))
+#            fig = plt.figure()
+#            plt.title(str(i)+","+str(j))
+#            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
+#            plt.plot(singlePath[0], singlePath[1], 'w')
+#            plt.xlim((-0.5, singleCost.shape[0]-0.5))
+#            plt.ylim((-0.5, singleCost.shape[1]-0.5))
             
 #    print "dist", dist
     ###########################################################################
     ###########################   MDS   ####################################
     ###########################################################################
 
-#    print "sum", dist.sum(axis=0) / dist.sum()
+    print "sum", dist.sum(axis=0)
     
     
     
