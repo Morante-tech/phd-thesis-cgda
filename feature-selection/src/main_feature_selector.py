@@ -19,9 +19,10 @@ from scipy import stats
 #########################################################
 
 
-
+SUBFOLDER = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
+NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment1"
-PATH = "../datasets/" + EXPERIMENT +"/clean/*.csv"
+PATH = "../datasets/" + EXPERIMENT +"/clean/" + SUBFOLDER +"/*.csv"
 
 def standardize(X):
     return preprocessing.scale(X, axis=0)
@@ -30,12 +31,12 @@ def minmaxscale(X):
    min_max_scaler = preprocessing.MinMaxScaler()
    return min_max_scaler.fit_transform(X)
 
-#def maxscale_precomputed(X, ranges):
-#    X_scaled = []
-#    for elem in X:
-#        temp= elem/ranges
-#        X_scaled.append(temp)
-#    return X_scaled     
+def maxscale_precomputed(X, ranges):
+    X_scaled = []
+    for elem in X:
+        temp= elem/ranges
+        X_scaled.append(temp)
+    return X_scaled     
 
 
 
@@ -50,29 +51,49 @@ def main():
     
     demons=[]
     demoNames = sorted(glob.glob(PATH))
-    for elem in demoNames:
-        print elem
-
-### for demonstration normalization
-    for elem in demoNames:
-        tmp = np.loadtxt(elem)
-        tmp_clean = tmp[:,1:]
-        tmp_clean = minmaxscale(tmp_clean)
-        demons.append(tmp_clean)
-
-### for whole experiment normalization
-#    demons_temp =[]
 #    for elem in demoNames:
-#        tmp = np.loadtxt(elem)
-#        tmp_clean = tmp[:,1:]
-##        tmp_clean = minmaxscale(tmp_clean)
-#        demons.append(tmp_clean)
-#
-#        demons_temp.extend(tmp_clean.tolist())
-#    ranges = np.max(np.array(demons_temp), axis=0) 
-#    print "ranges", ranges     
-#    demons=maxscale_precomputed(demons, ranges)
-    
+#        print elem
+
+    print "[INFO] Normalization: ", NORMALIZATION
+
+    if NORMALIZATION == "NONE":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                demons.append(tmp_clean)
+
+    elif NORMALIZATION == "MINMAX":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                tmp_clean = minmaxscale(tmp_clean)
+                demons.append(tmp_clean)
+                
+    elif NORMALIZATION == "STANDARDIZED":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                tmp_clean = standardize(tmp_clean)
+                demons.append(tmp_clean)     
+                
+    elif NORMALIZATION == "WHOLE_EXPERIMENT":
+        ### for whole experiment normalization
+            demons_temp =[]
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                demons.append(tmp_clean)
+                demons_temp.extend(tmp_clean.tolist())
+            ranges = np.max(np.array(demons_temp), axis=0) 
+            print "ranges", ranges     
+            demons=maxscale_precomputed(demons, ranges)
+    else:
+            print "[ERROR] Unrecognized normalization"
+            return False
+   
      #######################################################################
      ##########################   DTW  + SUM ####################################
      ####################################################################### 
@@ -86,7 +107,6 @@ def main():
                 mddtw = libmddtw.Mddtw()
                 singleDist, singleCost, singlePath = mddtw.compute(demons[i][:][f], demons[j][:][f])
               #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]        
-                print singCo
                 dist[f]+=singleDist
     #            print 'Minimum distance found:', singleDist
     #            fig = plt.figure()
