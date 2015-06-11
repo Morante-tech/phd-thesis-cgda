@@ -12,8 +12,6 @@ import os
 
 ##########################   DTW   ########################
 import libmddtw
-import matplotlib.pyplot as plt
-from dtw import dtw
 ##########################   SUM   #######################
 
 ##########################   ZSCORE   ######################
@@ -21,7 +19,7 @@ from scipy import stats
 #########################################################
 
 
-
+NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
@@ -32,12 +30,12 @@ def minmaxscale(X):
    min_max_scaler = preprocessing.MinMaxScaler()
    return min_max_scaler.fit_transform(X)
 
-#def maxscale_precomputed(X, ranges):
-#    X_scaled = []
-#    for elem in X:
-#        temp= elem/ranges
-#        X_scaled.append(temp)
-#    return X_scaled     
+def maxscale_precomputed(X, ranges):
+    X_scaled = []
+    for elem in X:
+        temp= elem/ranges
+        X_scaled.append(temp)
+    return X_scaled     
 
 def get_outlier(points, thresh=2):
     if len(points.shape) == 1:
@@ -53,26 +51,46 @@ def main():
 #    for elem in demoNames:
 #        print elem
 
-### for demonstration normalization
-    for elem in demoNames:
-        tmp = np.loadtxt(elem)
-        tmp_clean = tmp[:,1:]
-    #    tmp_clean = minmaxscale(tmp_clean)
-        demons.append(tmp_clean)
+    print "[INFO] Normalization: ", NORMALIZATION
 
-### for whole experiment normalization
-#    demons_temp =[]
-#    for elem in demoNames:
-#        tmp = np.loadtxt(elem)
-#        tmp_clean = tmp[:,1:]
-##        tmp_clean = minmaxscale(tmp_clean)
-#        demons.append(tmp_clean)
-#
-#        demons_temp.extend(tmp_clean.tolist())
-#    ranges = np.max(np.array(demons_temp), axis=0) 
-#    print "ranges", ranges     
-#    demons=maxscale_precomputed(demons, ranges)
-    
+    if NORMALIZATION == "NONE":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                demons.append(tmp_clean)
+
+    elif NORMALIZATION == "MINMAX":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                tmp_clean = minmaxscale(tmp_clean)
+                demons.append(tmp_clean)
+                
+    elif NORMALIZATION == "STANDARDIZED":
+        ## for demonstration normalization
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                tmp_clean = standardize(tmp_clean)
+                demons.append(tmp_clean)     
+                
+    elif NORMALIZATION == "WHOLE_EXPERIMENT":
+        ### for whole experiment normalization
+            demons_temp =[]
+            for elem in demoNames:
+                tmp = np.loadtxt(elem)
+                tmp_clean = tmp[:,1:]
+                demons.append(tmp_clean)
+                demons_temp.extend(tmp_clean.tolist())
+            ranges = np.max(np.array(demons_temp), axis=0) 
+            print "ranges", ranges     
+            demons=maxscale_precomputed(demons, ranges)
+    else:
+            print "[ERROR] Unrecognized normalization"
+            return False
+
      #######################################################################
      ##########################   DTW   ####################################
      ####################################################################### 
@@ -117,10 +135,13 @@ def main():
     for i in range(len(demoNames)):
         if len(demoNames) != len(zscores):
             print "[ERROR] len(demoNames) != len(zscores): "
-            break
+            return False
 
         if zscores[i]==False:
-            shutil.copy2(demoNames[i], "../datasets/experiment1/clean/" + os.path.basename(demoNames[i]))
+            if not os.path.exists("../datasets/experiment1/clean/" + NORMALIZATION):
+                os.makedirs("../datasets/experiment1/clean/" + NORMALIZATION)
+                
+            shutil.copy2(demoNames[i], "../datasets/experiment1/clean/" + NORMALIZATION +"/" + os.path.basename(demoNames[i]))
             print "[INFO] Copied ", os.path.basename(demoNames[i]), " to clean folder"
 
 ##############################################################################

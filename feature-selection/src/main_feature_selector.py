@@ -74,7 +74,7 @@ def main():
 #    demons=maxscale_precomputed(demons, ranges)
     
      #######################################################################
-     ##########################   DTW   ####################################
+     ##########################   DTW  + SUM ####################################
      ####################################################################### 
 
     dist=np.zeros((demons[0].shape[1]-1)) # one per feature. minus one because timestamp
@@ -85,7 +85,8 @@ def main():
     
                 mddtw = libmddtw.Mddtw()
                 singleDist, singleCost, singlePath = mddtw.compute(demons[i][:][f], demons[j][:][f])
-              #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]            
+              #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]        
+                print singCo
                 dist[f]+=singleDist
     #            print 'Minimum distance found:', singleDist
     #            fig = plt.figure()
@@ -96,21 +97,13 @@ def main():
     #            plt.ylim((-0.5, singleCost.shape[1]-0.5))
             
     print "[INFO] Feature Dists List: ", dist
-    ########################################################################
-    ###########################   SUM   ####################################
-    ########################################################################
-
-   # sumDiss = dist.sum(axis=0) / dist.sum(axis=0).sum()
-   # print "[INFO] Sum of Dissimilarities: ", sumDiss
         
      #######################################################################
      ##########################   ZSCORE   #################################
      #######################################################################
     
     zscores = get_outlier(dist, thresh=1)
-   # zscores_mad = mad_based_outlier(sumDiss, thresh=10)
     print "[INFO] Detected outliers: ", zscores
-    #print "[INFO] Detected outliers MAD: ", zscores_mad
     
 
 ##############################################################################
