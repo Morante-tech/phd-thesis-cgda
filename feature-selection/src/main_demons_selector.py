@@ -101,7 +101,7 @@ def main():
 #            fig = plt.figure()
 #            plt.plot(x)
 #            plt.plot(y)
-            singleDist, singleCost, singlePath = mddtw.compute(demons[i],demons[j])
+            singleDist, singleCost, singlePath = mddtw.compute(x,y)
             dist[i][j]=singleDist
 #            print 'Minimum distance found:', singleDist
 #            fig = plt.figure()

@@ -21,7 +21,7 @@ from scipy import stats
 
 
 EXPERIMENT = "experiment1"
-PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
+PATH = "../datasets/" + EXPERIMENT +"/clean/*.csv"
 
 def standardize(X):
     return preprocessing.scale(X, axis=0)
@@ -87,41 +87,37 @@ def main():
      ##########################   DTW   ####################################
      ####################################################################### 
 
-    dist=np.zeros((len(demoNames),len(demoNames)))
-       
-    # fill distance matrix    
-    for i in range(len(demoNames)):
-        for j in range(len(demoNames)):
-
-            mddtw = libmddtw.Mddtw()
-            x,y = mddtw.collapseRows(demons[i],demons[j])
+    dist=np.zeros((demons[0].shape[1]-1)) # one per feature. minus one because timestamp
+         
+    for f in range(demons[0].shape[1]-1): # number of columns minus 1 for timestamp
+        for i in range(len(demoNames)):
+            for j in range(len(demoNames)):
+    
+                mddtw = libmddtw.Mddtw()
+                singleDist, singleCost, singlePath = mddtw.compute(demons[i][:][f], demons[j][:][f])
+              #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]            
+                dist[f]+=singleDist
+    #            print 'Minimum distance found:', singleDist
+    #            fig = plt.figure()
+    #            plt.title(str(i)+","+str(j))
+    #            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
+    #            plt.plot(singlePath[0], singlePath[1], 'w')
+    #            plt.xlim((-0.5, singleCost.shape[0]-0.5))
+    #            plt.ylim((-0.5, singleCost.shape[1]-0.5))
             
-#            fig = plt.figure()
-#            plt.plot(x)
-#            plt.plot(y)
-            singleDist, singleCost, singlePath = mddtw.compute(demons[i],demons[j])
-            dist[i][j]=singleDist
-#            print 'Minimum distance found:', singleDist
-#            fig = plt.figure()
-#            plt.title(str(i)+","+str(j))
-#            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-#            plt.plot(singlePath[0], singlePath[1], 'w')
-#            plt.xlim((-0.5, singleCost.shape[0]-0.5))
-#            plt.ylim((-0.5, singleCost.shape[1]-0.5))
-            
-#    print "[INFO] Distance Matrix: ", dist
+    print "[INFO] Feature Dists List: ", dist
     ########################################################################
     ###########################   SUM   ####################################
     ########################################################################
 
-    sumDiss = dist.sum(axis=0) / dist.sum(axis=0).sum()
-    print "[INFO] Sum of Dissimilarities: ", sumDiss
+   # sumDiss = dist.sum(axis=0) / dist.sum(axis=0).sum()
+   # print "[INFO] Sum of Dissimilarities: ", sumDiss
         
      #######################################################################
      ##########################   ZSCORE   #################################
      #######################################################################
     
-    zscores = get_outlier(sumDiss, thresh=1.5)
+    zscores = get_outlier(dist, thresh=1)
    # zscores_mad = mad_based_outlier(sumDiss, thresh=10)
     print "[INFO] Detected outliers: ", zscores
     #print "[INFO] Detected outliers MAD: ", zscores_mad

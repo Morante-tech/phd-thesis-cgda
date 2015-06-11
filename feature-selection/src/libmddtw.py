@@ -8,11 +8,6 @@ from dtw import dtw
 
 class Mddtw:
 
-    def __init__(self):
-        self.x = None
-        self.y = None
-
-
     def create(self):
         return True
 
@@ -24,8 +19,8 @@ class Mddtw:
            np.array(demo1).shape[1] == np.array(demo2).shape[1]:
                
      #       print "[INFO] Collapsing rows"
-            self.x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
-            self.y = np.array(demo2).sum(axis=0)
+           x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
+           y = np.array(demo2).sum(axis=0)
             
         elif(np.array(demo1).shape[1] != np.array(demo2).shape[1]):
             print "[ERROR] NumberOfColumns(demo1) != NumberOfColumns(demo2) "
@@ -34,18 +29,17 @@ class Mddtw:
         else:
   #          print "[INFO] Rows==1, leaving them as they are"
 
-            self.x = np.array(demo1).flatten()
-            self.y = np.array(demo2).flatten()
+            x = np.array(demo1).flatten()
+            y = np.array(demo2).flatten()
              
-      #  print "Collapsed demo1: ", self.x
-      #  print "Collapsed demo2: ", self.y
+      #  print "Collapsed demo1: ", x
+      #  print "Collapsed demo2: ", y
 
-        return self.x, self.y
+        return x, y
 
     
     def compute(self, demo1, demo2):
-        self.collapseRows(demo1, demo2)
-        dist, cost, path = dtw(self.x, self.y)
+        dist, cost, path = dtw(demo1, demo2)
         return dist, cost, path
 
         
