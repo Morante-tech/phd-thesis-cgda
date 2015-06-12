@@ -19,8 +19,8 @@ from scipy import stats
 #########################################################
 
 
-NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
-EXPERIMENT = "experiment1"
+NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
+EXPERIMENT = "experiment2"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
 def standardize(X):
@@ -129,7 +129,7 @@ def main():
      ##########################   ZSCORE   #################################
      #######################################################################
     
-    zscores = get_outlier(sumDiss, thresh=2)
+    zscores = get_outlier(sumDiss, thresh=1)
     print "[INFO] Detected outliers: ", zscores
     
     for i in range(len(demoNames)):
@@ -138,10 +138,10 @@ def main():
             return False
 
         if zscores[i]==False:
-            if not os.path.exists("../datasets/experiment1/clean/" + NORMALIZATION):
-                os.makedirs("../datasets/experiment1/clean/" + NORMALIZATION)
+            if not os.path.exists("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION):
+                os.makedirs("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION)
                 
-            shutil.copy2(demoNames[i], "../datasets/experiment1/clean/" + NORMALIZATION +"/" + os.path.basename(demoNames[i]))
+            shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION +"/" + os.path.basename(demoNames[i]))
             print "[INFO] Copied ", os.path.basename(demoNames[i]), " to clean folder"
 
 ##############################################################################
