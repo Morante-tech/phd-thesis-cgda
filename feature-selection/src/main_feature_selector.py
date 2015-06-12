@@ -21,7 +21,7 @@ from scipy import stats
 
 SUBFOLDER = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
-EXPERIMENT = "experiment1"
+EXPERIMENT = "experiment2"
 PATH = "../datasets/" + EXPERIMENT +"/clean/" + SUBFOLDER +"/*.csv"
 
 def standardize(X):
@@ -84,11 +84,11 @@ def main():
             demons_temp =[]
             for elem in demoNames:
                 tmp = np.loadtxt(elem)
-                tmp_clean = tmp[:,1:]
+                tmp_clean = tmp[:,1:]               
                 demons.append(tmp_clean)
                 demons_temp.extend(tmp_clean.tolist())
             ranges = np.max(np.array(demons_temp), axis=0) 
-            print "ranges", ranges     
+          #  print "ranges", ranges     
             demons=maxscale_precomputed(demons, ranges)
     else:
             print "[ERROR] Unrecognized normalization"
@@ -98,9 +98,9 @@ def main():
      ##########################   DTW  + SUM ####################################
      ####################################################################### 
 
-    dist=np.zeros((demons[0].shape[1]-1)) # one per feature. minus one because timestamp
+    dist=np.zeros((demons[0].shape[1])) # one per feature. minus one because timestamp
          
-    for f in range(demons[0].shape[1]-1): # number of columns minus 1 for timestamp
+    for f in range(demons[0].shape[1]): # number of columns minus 1 for timestamp
         for i in range(len(demoNames)):
             for j in range(len(demoNames)):
     
