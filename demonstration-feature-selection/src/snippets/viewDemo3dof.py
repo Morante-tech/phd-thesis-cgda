@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 EXPERIMENT = "experiment2"
-PATH = "/home/teo/git/continuous-goal-directed-actions/feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
+PATH = "/home/smorante/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
 
 #################################        
 def main():
@@ -32,7 +32,7 @@ def main():
         tmp = np.loadtxt(elem)
         tmp_clean = tmp[:,1:4]
         #print tmp_clean
-        ax.plot(tmp_clean[:,0], tmp_clean[:,1], tmp_clean[:,2], label=elem.split('/')[-1])
+        ax.plot(tmp_clean[:,0], tmp_clean[:,1], tmp_clean[:,2], label=elem.split('/')[-1], lw=3,  c=np.random.rand(3,1))
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')

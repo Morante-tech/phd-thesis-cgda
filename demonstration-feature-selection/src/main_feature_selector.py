@@ -44,7 +44,7 @@ def get_outlier(points, thresh=2):
     if len(points.shape) == 1:
         points = points[:,None]
     results = stats.zscore(points) 
-    return results.flatten() > thresh
+    return results.flatten() > thresh, results
     
 #################################        
 def main():
@@ -122,8 +122,35 @@ def main():
      ##########################   ZSCORE   #################################
      #######################################################################
     
-    zscores = get_outlier(dist, thresh=1)
-    print "[INFO] Detected outliers: ", zscores
+    boolzscores, zscores = get_outlier(dist, thresh=1)
+    print "[INFO] Detected outliers: ", boolzscores, zscores
+    
+    
+    
+    
+##############    
+    
+    
+
+    fig = plt.figure()
+    opacity = 0.4
+   
+    plt.bar(np.arange(len(zscores)), zscores,
+                     alpha=opacity,
+                     color='b')
+    
+    plt.xlabel('Demonstration', fontsize=30)
+    plt.ylabel('Distances', fontsize=30)
+    plt.xticks( fontsize=20)
+    plt.xlim(0,len(zscores))
+    plt.yticks( fontsize=20)
+
+    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+        
+    
     
 
 ##############################################################################

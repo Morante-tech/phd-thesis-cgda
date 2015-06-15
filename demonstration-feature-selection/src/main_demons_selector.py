@@ -9,6 +9,7 @@ from sklearn import preprocessing
 import numpy as np
 import shutil
 import os
+import matplotlib.pyplot as plt
 
 ##########################   DTW   ########################
 import libmddtw
@@ -19,7 +20,7 @@ from scipy import stats
 #########################################################
 
 
-NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
+NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment2"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
@@ -110,13 +111,13 @@ def main():
             singleDist, singleCost, singlePath = mddtw.compute(x,y)
             dist[i][j]=singleDist
 #            print 'Minimum distance found:', singleDist
-#            fig = plt.figure()
+            fig = plt.figure()
 #            plt.title(str(i)+","+str(j))
-#            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-#            plt.plot(singlePath[0], singlePath[1], 'w')
-#            plt.xlim((-0.5, singleCost.shape[0]-0.5))
-#            plt.ylim((-0.5, singleCost.shape[1]-0.5))
-            
+            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
+            plt.plot(singlePath[0], singlePath[1], 'w')
+            plt.xlim((-0.5, singleCost.shape[0]-0.5))
+            plt.ylim((-0.5, singleCost.shape[1]-0.5))
+#            
 #    print "[INFO] Distance Matrix: ", dist
     ########################################################################
     ###########################   SUM   ####################################
@@ -132,17 +133,17 @@ def main():
     zscores = get_outlier(sumDiss, thresh=1)
     print "[INFO] Detected outliers: ", zscores
     
-    for i in range(len(demoNames)):
-        if len(demoNames) != len(zscores):
-            print "[ERROR] len(demoNames) != len(zscores): "
-            return False
-
-        if zscores[i]==False:
-            if not os.path.exists("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION):
-                os.makedirs("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION)
-                
-            shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION +"/" + os.path.basename(demoNames[i]))
-            print "[INFO] Copied ", os.path.basename(demoNames[i]), " to clean folder"
+#    for i in range(len(demoNames)):
+#        if len(demoNames) != len(zscores):
+#            print "[ERROR] len(demoNames) != len(zscores): "
+#            return False
+#
+#        if zscores[i]==False:
+#            if not os.path.exists("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION):
+#                os.makedirs("../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION)
+#                
+#            shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/clean/" + NORMALIZATION +"/" + os.path.basename(demoNames[i]))
+#            print "[INFO] Copied ", os.path.basename(demoNames[i]), " to clean folder"
 
 ##############################################################################
 ##############################################################################
