@@ -125,12 +125,7 @@ def main():
     boolzscores, zscores = get_outlier(dist, thresh=1)
     print "[INFO] Detected outliers: ", boolzscores, zscores
     
-    
-    
-    
-##############    
-    
-    
+##############      
 
     fig = plt.figure()
     opacity = 0.4
@@ -139,7 +134,7 @@ def main():
                      alpha=opacity,
                      color='b')
     
-    plt.xlabel('Demonstration', fontsize=30)
+    plt.xlabel('Features', fontsize=30)
     plt.ylabel('Distances', fontsize=30)
     plt.xticks( fontsize=20)
     plt.xlim(0,len(zscores))

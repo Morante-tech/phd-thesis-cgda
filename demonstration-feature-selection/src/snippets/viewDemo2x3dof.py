@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 EXPERIMENT = "experiment2"
-PATH = "/home/smorante/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
+PATH = "/home/santi/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
 
 #################################        
 def main():
