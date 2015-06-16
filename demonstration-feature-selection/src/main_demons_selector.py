@@ -23,6 +23,8 @@ from scipy import stats
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment2"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
+COLLAPSE = "cols"
+
 
 def standardize(X):
     return preprocessing.scale(X, axis=0)
@@ -103,7 +105,7 @@ def main():
         for j in range(len(demoNames)):
 
             mddtw = libmddtw.Mddtw()
-            x,y = mddtw.collapseRows(demons[i],demons[j])
+            x,y = mddtw.collapse(demons[i],demons[j], COLLAPSE)
             
 #            fig = plt.figure()
 #            plt.plot(x)
@@ -148,23 +150,23 @@ def main():
 ##############################################################################
 
 
-#    fig = plt.figure()
-#    opacity = 0.4
-#   
-#    plt.bar(np.arange(len(zscores)), zscores,
-#                     alpha=opacity,
-#                     color='b')
-#    
-#    plt.xlabel('Demonstration', fontsize=30)
-#    plt.ylabel('Distances', fontsize=30)
-#    plt.xticks( fontsize=20)
-#    plt.xlim(0,len(zscores))
-#    plt.yticks( fontsize=20)
-#    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
-#    plt.legend()
-#    plt.tight_layout()
-#    plt.show()
-#        
+    fig = plt.figure()
+    opacity = 0.4
+   
+    plt.bar(np.arange(len(zscores)), zscores,
+                     alpha=opacity,
+                     color='b')
+    
+    plt.xlabel('Demonstration', fontsize=30)
+    plt.ylabel('Distances', fontsize=30)
+    plt.xticks( fontsize=20)
+    plt.xlim(0,len(zscores))
+    plt.yticks( fontsize=20)
+    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+        
 
 
 ##############################################################################
