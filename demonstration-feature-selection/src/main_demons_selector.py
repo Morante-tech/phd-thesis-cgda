@@ -112,7 +112,7 @@ def main():
             dist[i][j]=singleDist
 #            print 'Minimum distance found:', singleDist
 #            fig = plt.figure()
-#            plt.title(str(i)+","+str(j))
+#         #   plt.title(str(i)+","+str(j))
 #            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
 #            plt.plot(singlePath[0], singlePath[1], 'w')
 #            plt.xlim((-0.5, singleCost.shape[0]-0.5))
@@ -148,23 +148,23 @@ def main():
 ##############################################################################
 
 
-    fig = plt.figure()
-    opacity = 0.4
-   
-    plt.bar(np.arange(len(zscores)), zscores,
-                     alpha=opacity,
-                     color='b')
-    
-    plt.xlabel('Demonstration', fontsize=30)
-    plt.ylabel('Distances', fontsize=30)
-    plt.xticks( fontsize=20)
-    plt.xlim(0,len(zscores))
-    plt.yticks( fontsize=20)
-    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-        
+#    fig = plt.figure()
+#    opacity = 0.4
+#   
+#    plt.bar(np.arange(len(zscores)), zscores,
+#                     alpha=opacity,
+#                     color='b')
+#    
+#    plt.xlabel('Demonstration', fontsize=30)
+#    plt.ylabel('Distances', fontsize=30)
+#    plt.xticks( fontsize=20)
+#    plt.xlim(0,len(zscores))
+#    plt.yticks( fontsize=20)
+#    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
+#    plt.legend()
+#    plt.tight_layout()
+#    plt.show()
+#        
 
 
 ##############################################################################

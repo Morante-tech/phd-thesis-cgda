@@ -109,12 +109,12 @@ def main():
               #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]        
                 dist[f]+=singleDist
     #            print 'Minimum distance found:', singleDist
-    #            fig = plt.figure()
-    #            plt.title(str(i)+","+str(j))
-    #            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-    #            plt.plot(singlePath[0], singlePath[1], 'w')
-    #            plt.xlim((-0.5, singleCost.shape[0]-0.5))
-    #            plt.ylim((-0.5, singleCost.shape[1]-0.5))
+                fig = plt.figure()
+                plt.title(str(i)+","+str(j))
+                plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
+                plt.plot(singlePath[0], singlePath[1], 'w')
+                plt.xlim((-0.5, singleCost.shape[0]-0.5))
+                plt.ylim((-0.5, singleCost.shape[1]-0.5))
             
     print "[INFO] Feature Dists List: ", dist
         

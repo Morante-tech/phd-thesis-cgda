@@ -5,18 +5,13 @@ Robotics Lab. Universidad Carlos III de Madrid
 """
 ################### GENERAL ##############################
 import glob
-from sklearn import preprocessing
 import numpy as np
-import shutil
-import os
 
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
 
 EXPERIMENT = "experiment2"
-PATH = "/home/santi/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
+PATH = "/home/smorante/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
 OBJECT = 2
 #################################        
 def main():
@@ -42,10 +37,11 @@ def main():
             print "[ERROR] Unknown object!"
         #print tmp_clean
         ax.plot(tmp_clean[:,0], tmp_clean[:,1], tmp_clean[:,2], label=elem.split('/')[-1], lw=3)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.legend()
+        plt.tick_params(axis='both', labelsize=25)
+        ax.set_xlabel('X', fontsize=30)
+        ax.set_ylabel('Y', fontsize=30)
+        ax.set_zlabel('Z', fontsize=30)
+        ax.legend(prop={'size':19})
 
     plt.show()
 
