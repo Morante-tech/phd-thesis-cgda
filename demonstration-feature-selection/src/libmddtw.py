@@ -20,12 +20,12 @@ class Mddtw:
                
                
             if method=="rows":
-                print "[INFO] Collapsing rows"
+  #              print "[INFO] Collapsing rows"
                 x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
                 y = np.array(demo2).sum(axis=0)
             elif method=="cols":
                 
-                print "[INFO] Collapsing cols"
+   #             print "[INFO] Collapsing cols"
                 x = np.array(demo1).sum(axis=1)  # zero collaps columns into single column
                 y = np.array(demo2).sum(axis=1)
             

@@ -23,7 +23,7 @@ from scipy import stats
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment2"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
-COLLAPSE = "cols"
+COLLAPSE = "rows"
 
 
 def standardize(X):
@@ -53,6 +53,18 @@ def main():
     demoNames = sorted(glob.glob(PATH))
 #    for elem in demoNames:
 #        print elem
+
+
+               
+    if COLLAPSE=="rows":
+        print "[INFO] Collapse: rows"
+
+    elif COLLAPSE=="cols":
+        print "[INFO] Collapse: cols"
+    else:
+        print "[ERROR] Unrecognized method for collapsing!"
+        return False
+
 
     print "[INFO] Normalization: ", NORMALIZATION
 
@@ -88,7 +100,7 @@ def main():
                 demons.append(tmp_clean)
                 demons_temp.extend(tmp_clean.tolist())
             ranges = np.max(np.array(demons_temp), axis=0) 
-            print "ranges", ranges     
+            print "[INFO] Maximum values per feature: ", ranges     
             demons=maxscale_precomputed(demons, ranges)
     else:
             print "[ERROR] Unrecognized normalization"
@@ -118,8 +130,9 @@ def main():
 #            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
 #            plt.plot(singlePath[0], singlePath[1], 'w')
 #            plt.xlim((-0.5, singleCost.shape[0]-0.5))
+#            plt.xticks( fontsize=20)
 #            plt.ylim((-0.5, singleCost.shape[1]-0.5))
-#            
+#            plt.yticks( fontsize=20)            
 #    print "[INFO] Distance Matrix: ", dist
     ########################################################################
     ###########################   SUM   ####################################
@@ -158,7 +171,7 @@ def main():
                      color='b')
     
     plt.xlabel('Demonstration', fontsize=30)
-    plt.ylabel('Distances', fontsize=30)
+    plt.ylabel('Score', fontsize=30)
     plt.xticks( fontsize=20)
     plt.xlim(0,len(zscores))
     plt.yticks( fontsize=20)

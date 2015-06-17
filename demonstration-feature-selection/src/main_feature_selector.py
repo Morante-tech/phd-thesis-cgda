@@ -133,8 +133,8 @@ def main():
                      alpha=opacity,
                      color='b')
     
-    plt.xlabel('Features', fontsize=30)
-    plt.ylabel('Distances', fontsize=30)
+    plt.xlabel('Feature', fontsize=30)
+    plt.ylabel('Score', fontsize=30)
     plt.xticks( fontsize=20)
     plt.xlim(0,len(zscores))
     plt.yticks( fontsize=20)
