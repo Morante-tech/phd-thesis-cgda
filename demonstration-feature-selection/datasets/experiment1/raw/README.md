@@ -14,6 +14,6 @@ The data delimiter used is the space character (' '), and decimals are separated
 - z1-z2
 - fabs(x1-x2)
 - fabs(y1-y2)
-- fabs(z1-z2),
+- fabs(z1-z2)
 - sqrt( pow((x1-x2),2) + pow((y1-y2),2) + pow((z1-z2),2) )
 
