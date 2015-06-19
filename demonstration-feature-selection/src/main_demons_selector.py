@@ -23,7 +23,7 @@ from scipy import stats
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
-COLLAPSE = "rows"
+COLLAPSE = "cols"
 
 
 def standardize(X):
@@ -175,7 +175,7 @@ def main():
     plt.xticks( fontsize=20)
     plt.xlim(0,len(zscores))
     plt.yticks( fontsize=20)
-    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
+    plt.axhline(y=0.7, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
     plt.legend()
     plt.tight_layout()
     plt.show()

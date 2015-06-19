@@ -9,12 +9,12 @@ The data delimiter used is the space character ('\ '), and decimals are separate
 The data is set in the following order, in plain text and no specific header:
 
 - Timestamp [s]
-- x1 (X coordinate of the position of the centroid of green object [m])
-- y1 (Y coordinate of the position of the centroid of green object [m])
-- z1 (Z coordinate of the position of the centroid of green object [m])
-- x2 (X coordinate of the position of the centroid of red object [m])
-- y2 (Y coordinate of the position of the centroid of red object [m])
-- z2 (Z coordinate of the position of the centroid of red object [m])
+- x1 (X coordinate of the position of the centroid of orange object [m])
+- y1 (Y coordinate of the position of the centroid of orange object [m])
+- z1 (Z coordinate of the position of the centroid of orange object [m])
+- x2 (X coordinate of the position of the centroid of green object [m])
+- y2 (Y coordinate of the position of the centroid of green object [m])
+- z2 (Z coordinate of the position of the centroid of green object [m])
 - x1-x2
 - y1-y2
 - z1-z2

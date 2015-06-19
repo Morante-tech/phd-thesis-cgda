@@ -21,7 +21,7 @@ from scipy import stats
 SUBFOLDER = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
 EXPERIMENT = "experiment-1"
-PATH = "../datasets/" + EXPERIMENT +"/clean/" + SUBFOLDER +"/*.csv"
+PATH = "../datasets/" + EXPERIMENT +"/selected-demonstrations/" + SUBFOLDER +"/*.csv"
 
 def standardize(X):
     return preprocessing.scale(X, axis=0)
