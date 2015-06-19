@@ -21,7 +21,7 @@ from scipy import stats
 
 
 NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
-EXPERIMENT = "experiment2"
+EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 COLLAPSE = "rows"
 

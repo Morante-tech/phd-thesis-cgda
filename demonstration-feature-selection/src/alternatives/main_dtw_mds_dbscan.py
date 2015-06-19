@@ -19,7 +19,7 @@ from sklearn.preprocessing import StandardScaler # to normalize
 import glob
 from sklearn import preprocessing
 
-EXPERIMENT = "experiment1"
+EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 
 def normalize(X):

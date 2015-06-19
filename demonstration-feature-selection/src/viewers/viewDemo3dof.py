@@ -10,8 +10,8 @@ import numpy as np
 import numpy as np
 import matplotlib.pyplot as plt
 
-EXPERIMENT = "experiment2"
-PATH = "/home/smorante/Repositories/continuous-goal-directed-actions/demonstration-feature-selection/datasets/" + EXPERIMENT +"/raw/*.csv"  # sorry (abs path)
+EXPERIMENT = "experiment-1"
+PATH = "../../datasets/" + EXPERIMENT +"/raw/*.csv"  
 OBJECT = 2
 #################################        
 def main():
