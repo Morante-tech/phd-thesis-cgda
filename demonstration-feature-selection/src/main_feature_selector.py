@@ -17,7 +17,7 @@ COLLAPSE_FOLDER = "cols" # rows cols
 EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/selected-demonstrations/" + NORM_FOLDER + "/" + COLLAPSE_FOLDER  +"/*.csv"
 
-NORMALIZATION = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
 ALPHA = 1
 
 #################################        

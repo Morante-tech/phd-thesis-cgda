@@ -14,7 +14,7 @@ import libtools
 import libmddtw
 #############################################################
 
-NORMALIZATION = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
 EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
 COLLAPSE = "cols" # rows cols
