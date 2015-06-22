@@ -57,11 +57,7 @@ def physical_limits(X):
     X_scaled=np.zeros((X.shape )) # one per feature. minus one because timestamp
     for i in range(X.shape[1]): # number of columns
         X_scaled[:,i] = (X[:,i] -  ranges[i,0] ) / ( ranges[i,1] -  ranges[i,0])
-
-  
     return X_scaled    
-
-
 
 def get_outlier(points, thresh=2):
     if len(points.shape) == 1:
