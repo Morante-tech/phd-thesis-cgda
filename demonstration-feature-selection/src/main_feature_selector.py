@@ -104,10 +104,10 @@ def main():
             for j in range(len(demoNames)):
     
                 mddtw = libmddtw.Mddtw()
-                singleDist, singleCost, singlePath = mddtw.compute(demons[i][:][f], demons[j][:][f])
+                singleDist, singleCost, singlePath = mddtw.compute(demons[i][:,f], demons[j][:,f])
               #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]        
                 dist[f]+=singleDist
-    #            print 'Minimum distance found:', singleDist
+                print 'Minimum distance found:', singleDist
 #                fig = plt.figure()
 #                plt.title(str(i)+","+str(j))
 #                plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
