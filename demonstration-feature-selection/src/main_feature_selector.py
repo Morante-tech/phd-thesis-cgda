@@ -20,7 +20,7 @@ EXPERIMENT_FOLDER = "experiment-1"
 PATH ="../datasets/"+ EXPERIMENT_FOLDER +"/selected-demonstrations/" + "NORM-"+ NORM_FOLDER+ "/SUM-" + SUM_FOLDER + "/ALPHA-" + str(ALPHA_FOLDER) +"/*.csv"
 
 ############### TO USE NOW #####################
-NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+NORMALIZATION = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 ALPHA = 0.5
 #################################        
 
