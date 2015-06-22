@@ -17,8 +17,8 @@ import libmddtw
 NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
-SUM = "rows" # rows cols
-ALPHA = 1
+SUM = "cols" # rows cols
+ALPHA = 0.5
 SAVE= False
 #############################################################
 

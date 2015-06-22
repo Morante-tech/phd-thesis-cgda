@@ -15,14 +15,13 @@ import libmddtw
 ########## TO READ FILES ###################
 NORM_FOLDER = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 SUM_FOLDER = "cols" # rows cols
-ALPHA_FOLDER=1
+ALPHA_FOLDER=0.5
 EXPERIMENT_FOLDER = "experiment-1"
 PATH ="../datasets/"+ EXPERIMENT_FOLDER +"/selected-demonstrations/" + "NORM-"+ NORM_FOLDER+ "/SUM-" + SUM_FOLDER + "/ALPHA-" + str(ALPHA_FOLDER) +"/*.csv"
 
-
 ############### TO USE NOW #####################
 NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
-ALPHA = 1
+ALPHA = 0.5
 #################################        
 
 def main():
