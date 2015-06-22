@@ -12,18 +12,25 @@ import libtools
 import libmddtw
 ###########################################################
 
-NORM_FOLDER = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
-COLLAPSE_FOLDER = "cols" # rows cols
-EXPERIMENT = "experiment-1"
-PATH = "../datasets/" + EXPERIMENT +"/selected-demonstrations/" + NORM_FOLDER + "/" + COLLAPSE_FOLDER  +"/*.csv"
+########## TO READ FILES ###################
+NORM_FOLDER = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
+SUM_FOLDER = "cols" # rows cols
+ALPHA_FOLDER=1
+EXPERIMENT_FOLDER = "experiment-1"
+PATH ="../datasets/"+ EXPERIMENT_FOLDER +"/selected-demonstrations/" + "NORM-"+ NORM_FOLDER+ "/SUM-" + SUM_FOLDER + "/ALPHA-" + str(ALPHA_FOLDER) +"/*.csv"
 
+
+############### TO USE NOW #####################
 NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
 ALPHA = 1
-
 #################################        
+
 def main():
     
     demoNames = sorted(glob.glob(PATH))
+    if not demoNames:
+        print "[ERROR] No files to read in PATH!"
+        return False
     demons=[]
     demons = libtools.normalize(NORMALIZATION,demoNames)
      

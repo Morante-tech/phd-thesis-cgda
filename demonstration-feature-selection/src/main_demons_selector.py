@@ -14,25 +14,19 @@ import libtools
 import libmddtw
 #############################################################
 
-NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 EXPERIMENT = "experiment-1"
 PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
-COLLAPSE = "cols" # rows cols
+SUM = "rows" # rows cols
 ALPHA = 1
 SAVE= False
 #############################################################
+
 def main():
-
-    if COLLAPSE=="rows":
-        print "[INFO] Collapse: rows"
-
-    elif COLLAPSE=="cols":
-        print "[INFO] Collapse: cols"
-    else:
-        print "[ERROR] Unrecognized method for collapsing!"
-        return False
-
     demoNames = sorted(glob.glob(PATH))
+    if not demoNames:
+        print "[ERROR] No files to read in PATH!"
+        return False
     demons=[]
     demons = libtools.normalize(NORMALIZATION,demoNames)
 
@@ -45,7 +39,7 @@ def main():
         for j in range(len(demoNames)):
 
             mddtw = libmddtw.Mddtw()
-            x,y = mddtw.collapse(demons[i],demons[j], COLLAPSE)
+            x,y = libtools.sumAll(demons[i],demons[j], SUM)
             singleDist, singleCost, singlePath = mddtw.compute(x,y)
             dist[i][j]=singleDist
             print 'Minimum distance found:', singleDist
@@ -75,8 +69,9 @@ def main():
     ########################  SAVE  ######################################
     
     if SAVE == True:
-        if not os.path.exists("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE):
-            os.makedirs("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE)
+        customPath="../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + "NORM-"+ NORMALIZATION + "/SUM-" + SUM + "/ALPHA-" + str(ALPHA)
+        if not os.path.exists(customPath):
+            os.makedirs(customPath)
         
         for i in range(len(demoNames)):
             if len(demoNames) != len(zscores):
@@ -84,10 +79,8 @@ def main():
                 return False
     
             if boolzscores[i]==False:         
-                print demoNames[i]
-                print "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i])
-                shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i]) )
-                print "[INFO] Copied ", os.path.basename(demoNames[i]), " to selected-demonstrations folder"
+                shutil.copy2(demoNames[i], customPath + "/" + os.path.basename(demoNames[i]) )
+                print "[INFO] Copied ", os.path.basename(demoNames[i]), " to ", customPath
     
     #######################################################################
 

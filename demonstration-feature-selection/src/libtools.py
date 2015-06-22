@@ -9,6 +9,40 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
+def sumAll(demo1, demo2, method):
+#    print "Shapes demo1,demo2: ", np.array(demo1).shape, "  , ",  np.array(demo2).shape
+    if np.array(demo1).shape[0] > 1 and \
+       np.array(demo2).shape[0] > 1 and \
+       np.array(demo1).shape[1] == np.array(demo2).shape[1]:
+           
+           
+        if method=="rows":
+  #              print "[INFO] Collapsing rows"
+            x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
+            y = np.array(demo2).sum(axis=0)
+        elif method=="cols":
+            
+   #             print "[INFO] Collapsing cols"
+            x = np.array(demo1).sum(axis=1)  # zero collaps columns into single column
+            y = np.array(demo2).sum(axis=1)
+        
+        else:
+            print "[ERROR] Unrecognized method for summing!"
+            return False
+        
+    elif(np.array(demo1).shape[1] != np.array(demo2).shape[1]):
+        print "[ERROR] NumberOfColumns(demo1) != NumberOfColumns(demo2) "
+        return False
+
+    else:
+        print "[ERROR] Unknown problem when summing rows or cols"
+        return False
+            
+        x = np.array(demo1).flatten()
+        y = np.array(demo2).flatten()
+
+    return x, y
+
 def plot_zscores(ALPHA, zscores):
     fig = plt.figure()
     plt.bar(np.arange(len(zscores)), zscores, alpha=0.4, color='b')
@@ -64,7 +98,7 @@ def normalize(normalization, demoNames):
                 demons.append(tmp_clean)  
             return demons
                 
-    elif normalization == "WHOLE_EXPERIMENT":
+    elif normalization == "WHOLE-EXPERIMENT":
         ### for whole experiment normalization
             demons_temp =[]
             for elem in demoNames:
