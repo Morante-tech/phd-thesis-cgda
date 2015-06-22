@@ -5,97 +5,29 @@ Robotics Lab. Universidad Carlos III de Madrid
 """
 ################### GENERAL ##############################
 import glob
-from sklearn import preprocessing
 import numpy as np
+import libtools
 
 ##########################   DTW   ########################
 import libmddtw
-import matplotlib.pyplot as plt
-##########################   SUM   #######################
+###########################################################
 
-##########################   ZSCORE   ######################
-from scipy import stats
-#########################################################
-
-
-SUBFOLDER = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
-NORMALIZATION = "WHOLE_EXPERIMENT" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT
+NORM_FOLDER = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+COLLAPSE_FOLDER = "cols" # rows cols
 EXPERIMENT = "experiment-1"
-PATH = "../datasets/" + EXPERIMENT +"/selected-demonstrations/" + SUBFOLDER +"/*.csv"
+PATH = "../datasets/" + EXPERIMENT +"/selected-demonstrations/" + NORM_FOLDER + "/" + COLLAPSE_FOLDER  +"/*.csv"
 
-def standardize(X):
-    return preprocessing.scale(X, axis=0)
+NORMALIZATION = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE_EXPERIMENT PHYSICAL
+ALPHA = 1
 
-def minmaxscale(X):
-   min_max_scaler = preprocessing.MinMaxScaler()
-   return min_max_scaler.fit_transform(X)
-
-def maxscale_precomputed(X, ranges):
-    X_scaled = []
-    for elem in X:
-        temp= elem/ranges
-        X_scaled.append(temp)
-    return X_scaled     
-
-
-
-def get_outlier(points, thresh=2):
-    if len(points.shape) == 1:
-        points = points[:,None]
-    results = stats.zscore(points) 
-    return results.flatten() > thresh, results
-    
 #################################        
 def main():
     
-    demons=[]
     demoNames = sorted(glob.glob(PATH))
-#    for elem in demoNames:
-#        print elem
-
-    print "[INFO] Normalization: ", NORMALIZATION
-
-    if NORMALIZATION == "NONE":
-        ## for demonstration normalization
-            for elem in demoNames:
-                tmp = np.loadtxt(elem)
-                tmp_clean = tmp[:,1:]
-                demons.append(tmp_clean)
-
-    elif NORMALIZATION == "MINMAX":
-        ## for demonstration normalization
-            for elem in demoNames:
-                tmp = np.loadtxt(elem)
-                tmp_clean = tmp[:,1:]
-                tmp_clean = minmaxscale(tmp_clean)
-                demons.append(tmp_clean)
-                
-    elif NORMALIZATION == "STANDARDIZED":
-        ## for demonstration normalization
-            for elem in demoNames:
-                tmp = np.loadtxt(elem)
-                tmp_clean = tmp[:,1:]
-                tmp_clean = standardize(tmp_clean)
-                demons.append(tmp_clean)     
-                
-    elif NORMALIZATION == "WHOLE_EXPERIMENT":
-        ### for whole experiment normalization
-            demons_temp =[]
-            for elem in demoNames:
-                tmp = np.loadtxt(elem)
-                tmp_clean = tmp[:,1:]               
-                demons.append(tmp_clean)
-                demons_temp.extend(tmp_clean.tolist())
-            ranges = np.max(np.array(demons_temp), axis=0) 
-          #  print "ranges", ranges     
-            demons=maxscale_precomputed(demons, ranges)
-    else:
-            print "[ERROR] Unrecognized normalization"
-            return False
-   
-     #######################################################################
-     ##########################   DTW  + SUM ####################################
-     ####################################################################### 
+    demons=[]
+    demons = libtools.normalize(NORMALIZATION,demoNames)
+     
+    ##########################   DTW  + SUM #############################
 
     dist=np.zeros((demons[0].shape[1])) # one per feature. minus one because timestamp
          
@@ -105,49 +37,29 @@ def main():
     
                 mddtw = libmddtw.Mddtw()
                 singleDist, singleCost, singlePath = mddtw.compute(demons[i][:,f], demons[j][:,f])
-              #  print "f,i,j   ;   singleDist, dist[f]: ", f,i,j,singleDist, dist[f]        
                 dist[f]+=singleDist
                 print 'Minimum distance found:', singleDist
-#                fig = plt.figure()
-#                plt.title(str(i)+","+str(j))
-#                plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-#                plt.plot(singlePath[0], singlePath[1], 'w')
-#                plt.xlim((-0.5, singleCost.shape[0]-0.5))
-#                plt.ylim((-0.5, singleCost.shape[1]-0.5))
+#               fig = plt.figure()
+#         #         plt.title(str(i)+","+str(j))
+#               plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
+#               plt.plot(singlePath[0], singlePath[1], 'w')
+#               plt.xlim((-0.5, singleCost.shape[0]-0.5))
+#               plt.xticks( fontsize=20)
+#               plt.ylim((-0.5, singleCost.shape[1]-0.5))
+#               plt.yticks( fontsize=20)  
             
     print "[INFO] Feature Dists List: ", dist
         
-     #######################################################################
      ##########################   ZSCORE   #################################
-     #######################################################################
     
-    boolzscores, zscores = get_outlier(dist, thresh=1)
+    boolzscores, zscores = libtools.get_outlier(dist, thresh=ALPHA)
     print "[INFO] Detected outliers: ", boolzscores, zscores
     
-##############      
+    #####################  PLOT  ###########################################
 
-    fig = plt.figure()
-    opacity = 0.4
-   
-    plt.bar(np.arange(len(zscores)), zscores,
-                     alpha=opacity,
-                     color='b')
-    
-    plt.xlabel('Feature', fontsize=30)
-    plt.ylabel('Score', fontsize=30)
-    plt.xticks( fontsize=20)
-    plt.xlim(0,len(zscores))
-    plt.yticks( fontsize=20)
-    plt.axhline(y=1, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-        
-    
-    
+    libtools.plot_zscores(ALPHA, zscores)
 
-##############################################################################
-##############################################################################
+    ########################################################################
 
 if __name__ == "__main__":
     main()
