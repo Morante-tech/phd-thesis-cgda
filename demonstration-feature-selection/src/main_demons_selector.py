@@ -64,7 +64,7 @@ def main():
 
     #####################  PLOT  ##########################################
 
-    libtools.plot_zscores(ALPHA, zscores)
+    libtools.plot_zscores(ALPHA, zscores, "Demonstrations")
     
     ########################  SAVE  ######################################
     

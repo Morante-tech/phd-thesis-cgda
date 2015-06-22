@@ -43,11 +43,11 @@ def sumAll(demo1, demo2, method):
 
     return x, y
 
-def plot_zscores(ALPHA, zscores):
+def plot_zscores(ALPHA, zscores, xtitle):
     fig = plt.figure()
     plt.bar(np.arange(len(zscores)), zscores, alpha=0.4, color='b')
 
-    plt.xlabel('Demonstration', fontsize=30)
+    plt.xlabel(xtitle, fontsize=30)
     plt.xticks( fontsize=20)
     plt.xlim(0,len(zscores))
     plt.ylabel('Score', fontsize=30)
