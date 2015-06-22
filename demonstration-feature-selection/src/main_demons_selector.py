@@ -175,19 +175,22 @@ def main():
     boolzscores, zscores  = get_outlier(sumDiss, thresh=ALPHA)
     print "[INFO] Detected outliers: ", boolzscores, zscores
 
-    if not os.path.exists("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE):
-        os.makedirs("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE)
-    
-    for i in range(len(demoNames)):
-        if len(demoNames) != len(zscores):
-            print "[ERROR] len(demoNames) != len(zscores): "
-            return False
 
-        if boolzscores[i]==False:         
-            print demoNames[i]
-            print "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i])
-            shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i]) )
-            print "[INFO] Copied ", os.path.basename(demoNames[i]), " to selected-demonstrations folder"
+     #######################################################################
+
+#    if not os.path.exists("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE):
+#        os.makedirs("../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE)
+#    
+#    for i in range(len(demoNames)):
+#        if len(demoNames) != len(zscores):
+#            print "[ERROR] len(demoNames) != len(zscores): "
+#            return False
+#
+#        if boolzscores[i]==False:         
+#            print demoNames[i]
+#            print "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i])
+#            shutil.copy2(demoNames[i], "../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + NORMALIZATION +"/" + COLLAPSE +"/" + os.path.basename(demoNames[i]) )
+#            print "[INFO] Copied ", os.path.basename(demoNames[i]), " to selected-demonstrations folder"
 
 ##############################################################################
 
