@@ -1,4 +1,4 @@
-This code is an implementation of a demonstration and feature eslector for robot learning paradigms
+This code is an implementation of a demonstration and feature selector for robot learning paradigms
 
 Copyright (C) 2015  Santiago Morante (smorante [at] ing.uc3m.es) and Juan G. Victores (jcgvicto [at] ing.uc3m.es). 
 Universidad Carlos III de Madrid
