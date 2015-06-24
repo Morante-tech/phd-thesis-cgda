@@ -1,7 +1,7 @@
 # Experiment 1
 
 ### raw folder
-The .csv files of this directory contain logs of the movements of the centroids of two objects: green, red. Recorded using https://github.com/roboticslab-uc3m/teo-head/blob/095d7e3497d2a0c1253082c53aeff66e989acbd9/share/cv1/scripts/cv1.xml
+The .csv files of this directory contain logs of the movements of the centroids of two objects: red, green. Recorded using https://github.com/roboticslab-uc3m/teo-head/blob/095d7e3497d2a0c1253082c53aeff66e989acbd9/share/cv1/scripts/cv1.xml
 
 The data delimiter used is the space character ('\ '), and decimals are separated by the point character ('.'). 
 
@@ -9,12 +9,12 @@ The data delimiter used is the space character ('\ '), and decimals are separate
 The data is set in the following order, in plain text and no specific header:
 
 - Timestamp [s]
-- x1 (X coordinate of the position of the centroid of orange object [m])
-- y1 (Y coordinate of the position of the centroid of orange object [m])
-- z1 (Z coordinate of the position of the centroid of orange object [m])
-- x2 (X coordinate of the position of the centroid of green object [m])
-- y2 (Y coordinate of the position of the centroid of green object [m])
-- z2 (Z coordinate of the position of the centroid of green object [m])
+- x1 (X coordinate of the position of the centroid of red object [mm])
+- y1 (Y coordinate of the position of the centroid of red object [mm])
+- z1 (Z coordinate of the position of the centroid of red object [mm])
+- x2 (X coordinate of the position of the centroid of green object [mm])
+- y2 (Y coordinate of the position of the centroid of green object [mm])
+- z2 (Z coordinate of the position of the centroid of green object [mm])
 - x1-x2
 - y1-y2
 - z1-z2
