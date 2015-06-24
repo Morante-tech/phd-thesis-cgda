@@ -19,7 +19,8 @@ You are free:
 
 As long as you:
 
-    Attribute: You must attribute any public use of the database, or works produced from the database, in the manner specified in the ODbL. For any use or redistribution of the database, or works produced from it, you must make clear to others the license of the database and keep intact any notices on the original database.
+    Attribute: You must attribute any public use of the database, or works produced from the database, in the manner specified in the ODbL. 
+    For any use or redistribution of the database, or works produced from it, you must make clear to others the license of the database and keep intact any notices on the original database.
 
     Share-Alike: If you publicly use any adapted version of this database, or works produced from an adapted database, you must also offer that adapted database under the ODbL.
 
