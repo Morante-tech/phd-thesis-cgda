@@ -5,8 +5,7 @@ Created on Wed Apr 15 12:13:32 2015
 @author: smorante
 """
 
-import numpy as np
-import cv2
+#import numpy as np
 import fileinput
 import bz2
 import os
@@ -16,25 +15,23 @@ class NeuralNetwork:
 
     def __init__(self):
         self.ann = libfann.neural_net()
-        self.input_rows = None
-        self.input_cols = None
-        self.output_rows = None
-        self.output_cols= None
+        self.input_neurons = None
+        self.hidden_neurons = None
+        self.output_neurons = None
 
 
-    def create(self, input_rows, input_cols, output_rows, output_cols, alpha_param, 
+    def create(self, input_neurons, hidden_neurons, output_neurons, alpha_param, 
                momentum_param, training_algorithm, train_error_function, 
                train_stop_function, activation_function_hidden, activation_function_output):
         
-        self.input_rows = input_rows
-        self.input_cols = input_cols
-        self.output_rows = output_rows
-        self.output_cols = output_cols
+        self.input_neurons = input_neurons
+        self.hidden_neurons = hidden_neurons
+        self.output_neurons = output_neurons
         
         # setting param
-        self.ann.create_standard_array([self.input_rows * self.input_cols ,
-                                        self.input_rows * self.input_cols, 
-                                        self.output_rows * self.output_cols])
+        self.ann.create_standard_array([self.input_neurons,
+                                        self.hidden_neurons, 
+                                        self.output_neurons])
         self.ann.set_activation_function_hidden(activation_function_hidden)
         self.ann.set_learning_rate(alpha_param)
         self.ann.set_learning_momentum(momentum_param)
@@ -45,16 +42,14 @@ class NeuralNetwork:
         self.ann.set_activation_function_output(activation_function_output)
 
            
-    def create_from_file(self, filename, input_rows, input_cols, output_rows, 
-                         output_cols, alpha_param, momentum_param, 
-                         training_algorithm, train_error_function, 
+    def create_from_file(self, filename, input_neurons, hidden_neurons, output_neurons, 
+                         alpha_param, momentum_param, training_algorithm, train_error_function, 
                          train_stop_function, activation_function_hidden, 
                          activation_function_output, compressed = True):     
         
-        self.input_rows = input_rows
-        self.input_cols = input_cols
-        self.output_rows = output_rows
-        self.output_cols = output_cols
+        self.input_neurons = input_neurons
+        self.hidden_neurons = hidden_neurons
+        self.output_neurons = output_neurons
         
 
         if compressed == True:
@@ -71,13 +66,13 @@ class NeuralNetwork:
         self.ann.create_from_file(filename)
 
 
-    def train(self, input_matrix, output_matrix):
-        self.ann.train(input_matrix.flatten(), output_matrix.flatten())
+    def train(self, input_array, output_array):
+        self.ann.train(input_array, output_array)
 
 
-    def predict(self, input_matrix, max_value=None):
-         predicted_output_matrix = self.ann.run(input_matrix.flatten()) 
-         return (np.array(predicted_output_matrix).reshape((self.output_rows, self.output_cols))).astype(np.float32)
+    def predict(self, input_array, max_value=None):
+         predicted_output_array = self.ann.run(input_array) 
+         return predicted_output_array
 
         
     def save_weights_to_file(self, filename, compress=True):
@@ -94,8 +89,4 @@ class NeuralNetwork:
         
             # remove decompressed file
             os.remove(filename)          
-        
-    def compute_mse(self, output_matrix, predicted_output_matrix):
-        mse_temp_1 = cv2.absdiff(output_matrix.flatten(), predicted_output_matrix.flatten())
-        mse_temp_2 = np.square(mse_temp_1) / (self.output_rows * self.output_cols)
-        return np.float32( sum( np.array(mse_temp_2).flatten() ) )
+    

@@ -2,9 +2,8 @@
 """
 Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
-About: This file (when finished) captures two videos, and trains weights
-to relate both images. After training (in fact, it is online, so I should say
-'when enough time has elapsed') it can predict movements between cameras.
+About: This file uses neural network to create an inverse model between the 
+feature space (network input) and the joint or cartesian space (netwrok output).
 """
 
 import numpy as np
@@ -18,7 +17,7 @@ from fann2 import _libfann
 
 
 ############################
-def extract_params_from_file(filename):
+def load_params(filename):
     #### REPRODUCE EXPERIMENT ####
     experiment_list=[]
     with open(filename, "rb") as csvfile:
@@ -57,24 +56,6 @@ def extract_params_from_file(filename):
     training_algorithm, train_error_function, train_stop_function, 
     activation_function_hidden, activation_function_output, actual_images, mvmnt_thres)
 
-
-def reduce_and_gray(image, desired_rows, desired_cols):
-    # note the changed axis in opencv
-    img  = cv2.resize(image,(desired_cols, desired_rows), interpolation = cv2.INTER_AREA)    
-    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-
-def normalize_matrix(raw_matrix, max_value):
-    return np.float32(raw_matrix) / max_value
-
-
-def save_results(filename, mse_list):
-    file_results = open(filename, "w")
-    file_results.write("Mean Square Error\n")
-    file_results.write("\n".join(map(lambda x: str(x), mse_list)))
-    file_results.write("\n")            
-    file_results.close()  
-
 def save_params(list_params_names, list_params_values):
     file_params = open(FILENAME_PARAMS, "w")           
     file_params.write(",".join(map(lambda x: str(x), list_params_names)))
@@ -85,7 +66,8 @@ def save_params(list_params_names, list_params_values):
 
 
 ############################
-
+###### CONFIGURATION #######
+############################
 REPRODUCE_EXPERIMENT = False 
 EXPERIMENT_PARAMS_FILENAME = ""
 SAVE_EXPERIMENT   = False
@@ -122,11 +104,7 @@ if REPRODUCE_EXPERIMENT == True:
 
     print "[INFO] Params extracted from file"
 
-    ##### CAMERA #####
-    cap1 = cv2.VideoCapture(SOURCE_1)
-    cap2 = cv2.VideoCapture(SOURCE_2)
-
-    # create network
+     # create network
     nn.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
                          OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
                          TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
@@ -136,40 +114,17 @@ if REPRODUCE_EXPERIMENT == True:
     
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
-    SOURCE_1 = "../../raws/videos/sintel.avi"
-    SOURCE_2 = "../../raws/videos/sintel.avi"
-
-    INPUT_ROWS = 20
-    OUTPUT_ROWS = 20
-    MVMNT_THRES = 10
-    ACTUAL_IMAGES = False
+    INPUT_SOURCE = "../../raws/videos/sintel.avi"
+    OUTPUT_SOURCE = "../../raws/videos/sintel.avi"
+    INPUT_NEURONS = 1
+    OUTPUT_NEURONS = 1
     ALPHA = 0.05
     MOMENTUM =  0.5
-    
-    
     TRAINING_ALGORITHM   = _libfann.TRAIN_INCREMENTAL
     TRAIN_ERROR_FUNCTION = _libfann.ERRORFUNC_TANH
     TRAIN_STOP_FUNCTION  =_libfann.STOPFUNC_MSE
     ACTIVATION_FUNCTION_HIDDEN =_libfann.SIGMOID
     ACTIVATION_FUNCTION_OUTPUT = _libfann.SIGMOID
-
-    ##### CAMERA #####
-    cap1 = cv2.VideoCapture(SOURCE_1)
-    cap2 = cv2.VideoCapture(SOURCE_2)
-
-    if not (cap1.isOpened() and cap2.isOpened()):
-        raise NameError("[ERROR] Cannot extract images from video")    
-        
-    ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
-    ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
-    frame1_rows = frame1.shape[0]
-    frame1_cols = frame1.shape[1]
-    frame2_rows = frame2.shape[0]
-    frame2_cols = frame2.shape[1]
-
-    ##### NON TUNNEABLE PARAMETERS ###########
-    INPUT_COLS = int(INPUT_ROWS * frame1_cols / frame1_rows)    
-    OUTPUT_COLS = int(OUTPUT_ROWS * frame2_cols / frame2_rows) 
     
     if EXTERNAL_WEIGHTS== True:
         nn.create_from_file(FILENAME_PRECOMPUTED_WEIGHTS, INPUT_ROWS, INPUT_COLS,
