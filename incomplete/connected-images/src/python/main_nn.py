@@ -8,7 +8,7 @@ to relate both images. After training (in fact, it is online, so I should say
 """
 
 import numpy as np
-import libnn
+import libnn_mat
 import cv2
 import time
 import csv
