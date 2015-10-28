@@ -90,7 +90,7 @@ for index,row in test_data.iterrows():
     input_array  = list(row[0:input_neurons_size])
 
     # predicting
-    print nn.predict(input_array)
+    print "[INFO] Prediction: ", nn.predict(input_array)
 
 
 ###########  END LOOP  ############
