@@ -1,10 +1,10 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-#include "EvMono.hpp"
+#include "Babbling.hpp"
 
 int main(int argc, char **argv) {
 
-    EvMono mod;
+    Babbling mod;
     return mod.init();
 }
 

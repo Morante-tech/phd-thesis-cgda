@@ -1,6 +1,6 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-#include "EvMono.hpp"
+#include "Babbling.hpp"
 
 /************************************************************************/
 
@@ -17,7 +17,7 @@ void SetViewer(EnvironmentBasePtr penv, const string& viewername) {
 
 /************************************************************************/
 
-bool EvMono::init() {
+bool Babbling::init() {
 
     RaveInitialize(true); // start openrave core
     penv = RaveCreateEnvironment(); // create the main environment
@@ -48,37 +48,29 @@ bool EvMono::init() {
     else printf("[WorldRpcResponder] good grab\n");
     probot->Grab(objPtr);
 
-	StateP state (new State);
 
-    // set the evaluation operator
-    FunctionMinEvalOp* functionMinEvalOp = new FunctionMinEvalOp; 
-    functionMinEvalOp->setPRobot(probot);
-    functionMinEvalOp->setPenv(penv);
-    functionMinEvalOp->setPcontrol(pcontrol);
-    state->setEvalOp(functionMinEvalOp);
 
-    //por aqui se muestran resultados
-    printf("---------------------------> ");
+    std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
+    dEncRaw[0+18] = rand() %100;  // simple
+    dEncRaw[1+18] = rand() %100;  // simple
+    dEncRaw[3+18] = rand() %100;  // simple
+    dEncRaw[4+18] = rand() %100;
 
-    int newArgc = 2;
-    char *newArgv[2] = { (char*)"unusedFirstParam", "../conf/evMono_ecf_params.xml" };
 
-    state->initialize(newArgc, newArgv);
-    state->run();
+    //probot->SetJointValues(dEncRaw);
+    pcontrol->SetDesired(dEncRaw); // This function "resets" physics
+    while(!pcontrol->IsDone()) {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+    }
 
-    vector<IndividualP> bestInd;
-    FloatingPoint::FloatingPoint* genBest;
-    vector<double> bestPoints;
+    penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
 
-    // final result
-    bestInd = state->getHoF()->getBest();
-    genBest = (FloatingPoint::FloatingPoint*) bestInd.at(0)->getGenotype().get();
-    bestPoints = genBest->realValue;
+    Transform T_base_object = objPtr->GetTransform();
+    double T_base_object_x = T_base_object.trans.x;
+    double T_base_object_y = T_base_object.trans.y;
+    double T_base_object_z = T_base_object.trans.z;
 
-    printf("-begin-\n");
-    for(unsigned int i=0;i<bestPoints.size();i++)
-        printf("%f, ",bestPoints[i]);
-    printf("\n-end-\n");
+    cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
 
     return true;
 }

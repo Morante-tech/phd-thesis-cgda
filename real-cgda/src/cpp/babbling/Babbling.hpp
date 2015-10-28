@@ -1,13 +1,17 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-#ifndef __EV_MONO_HPP__
-#define __EV_MONO_HPP__
 
-#include "FunctionMinEvalOp.hpp"
+#ifndef __BABBLING_HPP__
+#define __BABBLING_HPP__
 
-#define DEFAULT_FILE_NAME "evMono_ecf_params.xml"
 
-class EvMono  {
+#include <openrave-core.h>
+
+
+using namespace OpenRAVE;
+using namespace std;
+
+class Babbling  {
   private:
     RobotBasePtr probot;
     EnvironmentBasePtr penv;
@@ -17,5 +21,5 @@ class EvMono  {
     bool init();
 };
 
-#endif  // __EV_MONO_HPP__
+#endif  // __BABBLING_HPP__
 
