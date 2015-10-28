@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.6.0)
 
-project (motorbabbling)
+project (evmono6)
 
 FIND_PACKAGE(OpenRAVE REQUIRED)
-
+#FIND_PACKAGE( OpenCV REQUIRED )
 
 if( CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX )
   add_definitions("-fno-strict-aliasing -Wall")
@@ -18,9 +18,10 @@ endif()
 
 link_directories(${OpenRAVE_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 
-add_executable(babbling main.cpp babbling.cpp)
-set_target_properties(babbling PROPERTIES COMPILE_FLAGS "${OpenRAVE_CXXFLAGS}")
-set_target_properties(babbling PROPERTIES LINK_FLAGS "${OpenRAVE_LINK_FLAGS}")
-target_link_libraries(babbling ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} )
-install(TARGETS babbling DESTINATION . )
+add_executable(evMono main.cpp EvMono.cpp FunctionMinEvalOp.cpp)
+set_target_properties(evMono PROPERTIES COMPILE_FLAGS "${OpenRAVE_CXXFLAGS}")
+set_target_properties(evMono PROPERTIES LINK_FLAGS "${OpenRAVE_LINK_FLAGS}")
+target_link_libraries(evMono ${OpenCV_LIBS} ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ecf )
+#target_link_libraries(evMono ${OpenRAVE_LIBRARIES} ${OpenRAVE_CORE_LIBRARIES} ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ecf mpichcxx )  # dep on install
+install(TARGETS evMono DESTINATION . )
 
