@@ -43,10 +43,21 @@ bool Babbling::init() {
         probot->SetController(pcontrol,dofindices,1); // control everything
     }
 
-    KinBodyPtr objPtr = penv->GetKinBody("object");
-    if(!objPtr) printf("[WorldRpcResponder] fail grab\n");
-    else printf("[WorldRpcResponder] good grab\n");
-    probot->Grab(objPtr);
+    KinBodyPtr objGreenPtr = penv->GetKinBody("objectGreen");
+    if(!objGreenPtr) printf("[WorldRpcResponder] fail grab green object\n");
+    else printf("[WorldRpcResponder] good grab green object\n");
+    probot->Grab(objGreenPtr);
+
+
+    // por lo visto no se agarra asi. habria que elegir link al que se engancha
+    KinBodyPtr objRedPtr = penv->GetKinBody("objectRed");
+    if(!objRedPtr) printf("[WorldRpcResponder] fail grab red object\n");
+    else printf("[WorldRpcResponder] good grab red object\n");
+    probot->Grab(objRedPtr);
+
+    Transform T_base_green_object, T_base_red_object;
+    double T_base_green_object_x, T_base_green_object_y,T_base_green_object_z;
+    double T_base_red_object_x, T_base_red_object_y,T_base_red_object_z;
 
     while(1){
 
@@ -65,12 +76,19 @@ bool Babbling::init() {
 
         penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
 
-        Transform T_base_object = objPtr->GetTransform();
-        double T_base_object_x = T_base_object.trans.x;
-        double T_base_object_y = T_base_object.trans.y;
-        double T_base_object_z = T_base_object.trans.z;
+        // Green object
+        T_base_green_object = objGreenPtr->GetTransform();
+        T_base_green_object_x = T_base_green_object.trans.x;
+        T_base_green_object_y = T_base_green_object.trans.y;
+        T_base_green_object_z = T_base_green_object.trans.z;
 
-        cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
+        // Red object
+        T_base_red_object   = objRedPtr->GetTransform();
+        T_base_red_object_x = T_base_red_object.trans.x;
+        T_base_red_object_y = T_base_red_object.trans.y;
+        T_base_red_object_z = T_base_red_object.trans.z;
+
+        // cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
     }
     return true;
 }
