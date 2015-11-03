@@ -10,8 +10,8 @@ void SetViewer(EnvironmentBasePtr penv, const string& viewername) {
     // attach it to the environment:
     penv->AttachViewer(viewer);
     // finally you call the viewer's infinite loop (this is why you need a separate thread):
-   bool showgui = true;
- //   bool showgui = false;
+    bool showgui = true;
+    //   bool showgui = false;
     viewer->main(showgui);
 }
 
@@ -35,12 +35,12 @@ bool Babbling::init() {
     pcontrol = RaveCreateController(penv,"idealcontroller");
     // Create the controllers, make sure to lock environment! (prevents changes)
     {
-      EnvironmentMutex::scoped_lock lock(penv->GetMutex());
-      std::vector<int> dofindices(probot->GetDOF());
-      for(int i = 0; i < probot->GetDOF(); ++i) {
-        dofindices[i] = i;
-      }
-      probot->SetController(pcontrol,dofindices,1); // control everything
+        EnvironmentMutex::scoped_lock lock(penv->GetMutex());
+        std::vector<int> dofindices(probot->GetDOF());
+        for(int i = 0; i < probot->GetDOF(); ++i) {
+            dofindices[i] = i;
+        }
+        probot->SetController(pcontrol,dofindices,1); // control everything
     }
 
     KinBodyPtr objPtr = penv->GetKinBody("object");
@@ -48,30 +48,30 @@ bool Babbling::init() {
     else printf("[WorldRpcResponder] good grab\n");
     probot->Grab(objPtr);
 
+    while(1){
+
+        std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
+        dEncRaw[0+18] = rand() %100;  // simple
+        dEncRaw[1+18] = rand() %100;  // simple
+        dEncRaw[3+18] = rand() %100;  // simple
+        dEncRaw[4+18] = rand() %100;
 
 
-    std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
-    dEncRaw[0+18] = rand() %100;  // simple
-    dEncRaw[1+18] = rand() %100;  // simple
-    dEncRaw[3+18] = rand() %100;  // simple
-    dEncRaw[4+18] = rand() %100;
+        //probot->SetJointValues(dEncRaw);
+        pcontrol->SetDesired(dEncRaw); // This function "resets" physics
+        while(!pcontrol->IsDone()) {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        }
 
+        penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
 
-    //probot->SetJointValues(dEncRaw);
-    pcontrol->SetDesired(dEncRaw); // This function "resets" physics
-    while(!pcontrol->IsDone()) {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        Transform T_base_object = objPtr->GetTransform();
+        double T_base_object_x = T_base_object.trans.x;
+        double T_base_object_y = T_base_object.trans.y;
+        double T_base_object_z = T_base_object.trans.z;
+
+        cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
     }
-
-    penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
-
-    Transform T_base_object = objPtr->GetTransform();
-    double T_base_object_x = T_base_object.trans.x;
-    double T_base_object_y = T_base_object.trans.y;
-    double T_base_object_z = T_base_object.trans.z;
-
-    cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
-
     return true;
 }
 

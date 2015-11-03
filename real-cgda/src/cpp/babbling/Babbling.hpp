@@ -6,7 +6,7 @@
 
 
 #include <openrave-core.h>
-
+#include <cstdlib>
 
 using namespace OpenRAVE;
 using namespace std;
