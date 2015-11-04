@@ -2,7 +2,7 @@
 
 ##About
 
-This code repository contains the algorithms developed for my PhD thesis. It also contains the research paper generated and the slides used for presenting the information in conferences. The thesis was developed in the [Robotics Lab research group](http://roboticslab.uc3m.es) at [Universidad Carlos III de Madrid](http://www.uc3m.es).
+This code repository contains the algorithms developed for my PhD thesis. It also contains the research papers generated and the slides used for presenting the information in conferences. The thesis was developed in the [Robotics Lab research group](http://roboticslab.uc3m.es) at [Universidad Carlos III de Madrid](http://www.uc3m.es).
 
 
 ## License
