@@ -19,6 +19,7 @@ void SetViewer(EnvironmentBasePtr penv, const string& viewername) {
 
 bool Babbling::init() {
 
+    ///Openrave
     RaveInitialize(true); // start openrave core
     penv = RaveCreateEnvironment(); // create the main environment
     RaveSetDebugLevel(Level_Debug);
@@ -43,38 +44,71 @@ bool Babbling::init() {
         probot->SetController(pcontrol,dofindices,1); // control everything
     }
 
+
+    ///Green Object
     KinBodyPtr objGreenPtr = penv->GetKinBody("objectGreen");
     if(!objGreenPtr) printf("[WorldRpcResponder] fail grab green object\n");
     else printf("[WorldRpcResponder] good grab green object\n");
     probot->Grab(objGreenPtr);
 
-
+    ///Red Object
     // por lo visto no se agarra asi. habria que elegir link al que se engancha
     KinBodyPtr objRedPtr = penv->GetKinBody("objectRed");
     if(!objRedPtr) printf("[WorldRpcResponder] fail grab red object\n");
     else printf("[WorldRpcResponder] good grab red object\n");
     probot->Grab(objRedPtr);
 
+    ///Declaring transformations
     Transform T_base_green_object, T_base_red_object;
     double T_base_green_object_x, T_base_green_object_y,T_base_green_object_z;
     double T_base_red_object_x, T_base_red_object_y,T_base_red_object_z;
 
+
+    ///Opening CSV File
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    string filename= "FeatureDataFile_" + asctime (timeinfo) + ".csv";
+
+    ofstream dataFile;
+    dataFile.open (filename);
+    // joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right, t_green_x, ..., t_red_x...
+    dataFile << "IN,IN,IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT\n";
+
     while(1){
 
+
+        //cuidado con el orden de las joints al guardarlo en fichero, no confundas brazos!!
+
+        /// Right arm
         std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
         dEncRaw[0+18] = rand() %100;  // simple
         dEncRaw[1+18] = rand() %100;  // simple
         dEncRaw[3+18] = rand() %100;  // simple
         dEncRaw[4+18] = rand() %100;
-
-
-        //probot->SetJointValues(dEncRaw);
         pcontrol->SetDesired(dEncRaw); // This function "resets" physics
         while(!pcontrol->IsDone()) {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));
         }
 
+        // no se como se hace con el otro brazo
+        /// Left arm
+        std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
+        dEncRaw[0+18] = rand() %100;  // simple
+        dEncRaw[1+18] = rand() %100;  // simple
+        dEncRaw[3+18] = rand() %100;  // simple
+        dEncRaw[4+18] = rand() %100;
+        pcontrol->SetDesired(dEncRaw); // This function "resets" physics
+        while(!pcontrol->IsDone()) {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+        }
+
+
         penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
+
 
         // Green object
         T_base_green_object = objGreenPtr->GetTransform();
@@ -88,8 +122,20 @@ bool Babbling::init() {
         T_base_red_object_y = T_base_red_object.trans.y;
         T_base_red_object_z = T_base_red_object.trans.z;
 
-        // cout << dEncRaw[0+18] << dEncRaw[1+18] << dEncRaw[2+18] << dEncRaw[3+18] << T_base_object_x << T_base_object_y << T_base_object_z;
+
+        // numero de encoder y orden de parametros por definir!!
+        // cuando todo funcione, podemos/debemos meter variables compuestas
+        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
+                 << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
+                 << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
+                 << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
+                 <<  "\n";
+
     }
+
+
+    dataFile.close();
+
     return true;
 }
 

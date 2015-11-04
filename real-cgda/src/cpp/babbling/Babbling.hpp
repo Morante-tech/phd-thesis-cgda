@@ -7,6 +7,9 @@
 
 #include <openrave-core.h>
 #include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <time.h>       /* time_t, struct tm, time, localtime, asctime */
 
 using namespace OpenRAVE;
 using namespace std;
