@@ -34,7 +34,7 @@ bool Babbling::init() {
     probot = robots.at(0);
 
     pcontrol = RaveCreateController(penv,"idealcontroller");
-    // Create the controllers, make sure to lock environment! (prevents changes)
+    /// Create the controllers, make sure to lock environment! (prevents changes)
     {
         EnvironmentMutex::scoped_lock lock(penv->GetMutex());
         std::vector<int> dofindices(probot->GetDOF());
@@ -51,8 +51,8 @@ bool Babbling::init() {
     else printf("[WorldRpcResponder] good grab green object\n");
     probot->Grab(objGreenPtr);
 
-    ///Red Object
     // por lo visto no se agarra asi. habria que elegir link al que se engancha
+    ///Red Object
     KinBodyPtr objRedPtr = penv->GetKinBody("objectRed");
     if(!objRedPtr) printf("[WorldRpcResponder] fail grab red object\n");
     else printf("[WorldRpcResponder] good grab red object\n");
@@ -78,11 +78,12 @@ bool Babbling::init() {
     // joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right, t_green_x, ..., t_red_x...
     dataFile << "IN,IN,IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT\n";
 
-    while(1){
+    for(int i=0; i<10000; i++){
 
 
-        //cuidado con el orden de las joints al guardarlo en fichero, no confundas brazos!!
-
+        // cuidado con el orden de las joints al guardarlo en fichero, no confundas brazos!!
+        // limites de ejes
+        // que joints vamos a mover? cuales funcionan en teo?
         /// Right arm
         std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
         dEncRaw[0+18] = rand() %100;  // simple
@@ -124,7 +125,7 @@ bool Babbling::init() {
 
 
         // numero de encoder y orden de parametros por definir!!
-        // cuando todo funcione, podemos/debemos meter variables compuestas
+        // cuando todo funcione, podemos/debemos meter variables compuestas x1-x2, etc
         dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
                  << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
                  << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
