@@ -25,7 +25,7 @@ bool Babbling::init() {
     RaveSetDebugLevel(Level_Debug);
     string viewername = "qtcoin";
     boost::thread thviewer(boost::bind(SetViewer,penv,viewername));
-    string scenefilename = "../3dmodel/env/teo_two_cylinders.env.xml";
+    string scenefilename = "../../../../3dmodel/env/teo_two_cylinders.env.xml";
     penv->Load(scenefilename); // load the scene
     //-- Get Robot 0
     std::vector<RobotBasePtr> robots;
