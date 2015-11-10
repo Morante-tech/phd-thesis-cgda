@@ -44,6 +44,13 @@ bool Babbling::init() {
         probot->SetController(pcontrol,dofindices,1); // control everything
     }
 
+    std::vector<RobotBase::ManipulatorPtr> vectorOfManipulatorPtr = probot->GetManipulators();
+    for(size_t j=0;j<vectorOfManipulatorPtr.size();j++) {
+        std::cout << "* Manipulator[" << j << "]: " << vectorOfManipulatorPtr[j]->GetName() << std::endl;
+        std::vector< int > manipulatorIDs = vectorOfManipulatorPtr[j]->GetArmIndices();
+        for(size_t k=0;k<manipulatorIDs.size();k++)
+            std::cout << manipulatorIDs[k] << std::endl;
+    }
 
     ///Green Object
     KinBodyPtr objGreenPtr = penv->GetKinBody("objectGreen");
@@ -90,21 +97,20 @@ bool Babbling::init() {
         std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
         dEncRaw[0+18] = rand() %100;  // simple
         dEncRaw[1+18] = rand() %100;  // simple
-        dEncRaw[3+18] = rand() %100;  // simple
+        dEncRaw[2+18] = rand() %100;  // simple
+        dEncRaw[3+18] = rand() %100;
         dEncRaw[4+18] = rand() %100;
-        pcontrol->SetDesired(dEncRaw); // This function "resets" physics
-        while(!pcontrol->IsDone()) {
-            boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-        }
+        dEncRaw[5+18] = rand() %100;
 
         // no se como se hace con el otro brazo
         /// Left arm
-        std::vector<dReal> dEncRaw2(probot->GetDOF());  // NUM_MOTORS
-        dEncRaw2[0+18] = rand() %100;  // simple
-        dEncRaw2[1+18] = rand() %100;  // simple
-        dEncRaw2[3+18] = rand() %100;  // simple
-        dEncRaw2[4+18] = rand() %100;
-        pcontrol->SetDesired(dEncRaw2); // This function "resets" physics
+        dEncRaw[0+12] = rand() %100;  // simple
+        dEncRaw[1+12] = rand() %100;  // simple
+        dEncRaw[2+12] = rand() %100;  // simple
+        dEncRaw[3+12] = rand() %100;
+        dEncRaw[4+12] = rand() %100;
+        dEncRaw[5+12] = rand() %100;
+        pcontrol->SetDesired(dEncRaw); // This function "resets" physics
         while(!pcontrol->IsDone()) {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));
         }
@@ -128,11 +134,11 @@ bool Babbling::init() {
 
         // numero de encoder y orden de parametros por definir!!
         // cuando todo funcione, podemos/debemos meter variables compuestas x1-x2, etc
-        dataFile << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
-                 << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
+/*        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
+                 << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
                  << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
                  << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
-                 <<  "\n";
+                 <<  "\n";*/
 
     }
 
