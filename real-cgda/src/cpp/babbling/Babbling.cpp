@@ -71,10 +71,12 @@ bool Babbling::init() {
 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    string filename= "FeatureDataFile_" + asctime (timeinfo) + ".csv";
+    string filename("FeatureDataFile_");
+    filename += asctime (timeinfo);
+    filename += ".csv";
 
     ofstream dataFile;
-    dataFile.open (filename);
+    dataFile.open (filename.c_str());
     // joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right, t_green_x, ..., t_red_x...
     dataFile << "IN,IN,IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT\n";
 
@@ -97,12 +99,12 @@ bool Babbling::init() {
 
         // no se como se hace con el otro brazo
         /// Left arm
-        std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
-        dEncRaw[0+18] = rand() %100;  // simple
-        dEncRaw[1+18] = rand() %100;  // simple
-        dEncRaw[3+18] = rand() %100;  // simple
-        dEncRaw[4+18] = rand() %100;
-        pcontrol->SetDesired(dEncRaw); // This function "resets" physics
+        std::vector<dReal> dEncRaw2(probot->GetDOF());  // NUM_MOTORS
+        dEncRaw2[0+18] = rand() %100;  // simple
+        dEncRaw2[1+18] = rand() %100;  // simple
+        dEncRaw2[3+18] = rand() %100;  // simple
+        dEncRaw2[4+18] = rand() %100;
+        pcontrol->SetDesired(dEncRaw2); // This function "resets" physics
         while(!pcontrol->IsDone()) {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));
         }
@@ -126,8 +128,8 @@ bool Babbling::init() {
 
         // numero de encoder y orden de parametros por definir!!
         // cuando todo funcione, podemos/debemos meter variables compuestas x1-x2, etc
-        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
-                 << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw[0+18] << ","
+        dataFile << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
+                 << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
                  << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
                  << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
                  <<  "\n";
