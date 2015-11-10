@@ -56,14 +56,14 @@ bool Babbling::init() {
     KinBodyPtr objGreenPtr = penv->GetKinBody("objectGreen");
     if(!objGreenPtr) printf("[WorldRpcResponder] fail grab green object\n");
     else printf("[WorldRpcResponder] good grab green object\n");
-    probot->Grab(objGreenPtr);
+    probot->Grab(objGreenPtr,vectorOfManipulatorPtr[0]->GetEndEffector());  // 0 is rightArm
 
     // por lo visto no se agarra asi. habria que elegir link al que se engancha
     ///Red Object
     KinBodyPtr objRedPtr = penv->GetKinBody("objectRed");
     if(!objRedPtr) printf("[WorldRpcResponder] fail grab red object\n");
     else printf("[WorldRpcResponder] good grab red object\n");
-    probot->Grab(objRedPtr);
+    probot->Grab(objRedPtr,vectorOfManipulatorPtr[1]->GetEndEffector());  // 1 is leftArm
 
     ///Declaring transformations
     Transform T_base_green_object, T_base_red_object;
