@@ -58,7 +58,6 @@ bool Babbling::init() {
     else printf("[WorldRpcResponder] good grab green object\n");
     probot->Grab(objGreenPtr,vectorOfManipulatorPtr[0]->GetEndEffector());  // 0 is rightArm
 
-    // por lo visto no se agarra asi. habria que elegir link al que se engancha
     ///Red Object
     KinBodyPtr objRedPtr = penv->GetKinBody("objectRed");
     if(!objRedPtr) printf("[WorldRpcResponder] fail grab red object\n");
@@ -84,32 +83,28 @@ bool Babbling::init() {
 
     ofstream dataFile;
     dataFile.open (filename.c_str());
-    // joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right, t_green_x, ..., t_red_x...
-    dataFile << "IN,IN,IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT\n";
+    //  t_green_x, ..., t_red_x... joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right,
+    dataFile << "IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT\n";
 
     for(int i=0; i<10000; i++){
 
-
         // cuidado con el orden de las joints al guardarlo en fichero, no confundas brazos!!
-        // limites de ejes
-        // que joints vamos a mover? cuales funcionan en teo?
-        /// Right arm
+        // limites de ejes estan raros, yo creo que mal
         std::vector<dReal> dEncRaw(probot->GetDOF());  // NUM_MOTORS
-        dEncRaw[0+18] = rand() %100;  // simple
-        dEncRaw[1+18] = rand() %100;  // simple
-        dEncRaw[2+18] = rand() %100;  // simple
-        dEncRaw[3+18] = rand() %100;
-        dEncRaw[4+18] = rand() %100;
-        dEncRaw[5+18] = rand() %100;
-
-        // no se como se hace con el otro brazo
         /// Left arm
-        dEncRaw[0+12] = rand() %100;  // simple
-        dEncRaw[1+12] = rand() %100;  // simple
-        dEncRaw[2+12] = rand() %100;  // simple
-        dEncRaw[3+12] = rand() %100;
-        dEncRaw[4+12] = rand() %100;
-        dEncRaw[5+12] = rand() %100;
+        dEncRaw[0+12] = -180 + float(((180 + 180) * rand()) / (RAND_MAX + 1.0));  // -180 180
+        dEncRaw[1+12] = -10  + float(((100 + 10) * rand()) / (RAND_MAX + 1.0));  // -10 100
+        dEncRaw[2+12] = -30  + float(((30  + 30) * rand()) / (RAND_MAX + 1.0));  // -30 30
+        dEncRaw[3+12] = float(((135) * rand()) / (RAND_MAX + 1.0));  // 0 135
+        dEncRaw[4+12] = -90 + float(((90 + 90) * rand()) / (RAND_MAX + 1.0));  // -90 90
+        dEncRaw[5+12] = -90 + float(((90 + 90) * rand()) / (RAND_MAX + 1.0));  // -90 90
+        /// Right arm
+        dEncRaw[0+18] = -180 + float(((180 + 180) * rand()) / (RAND_MAX + 1.0));  // -180 180
+        dEncRaw[1+18] = -10  + float(((100 + 10) * rand()) / (RAND_MAX + 1.0));  // -10 100
+        dEncRaw[2+18] = -30  + float(((30  + 30) * rand()) / (RAND_MAX + 1.0));  // -30 30
+        dEncRaw[3+18] = float(((135) * rand()) / (RAND_MAX + 1.0));  // 0 135
+        dEncRaw[4+18] = -90 + float(((90 + 90) * rand()) / (RAND_MAX + 1.0));  // -90 90
+        dEncRaw[5+18] = -90 + float(((90 + 90) * rand()) / (RAND_MAX + 1.0));  // -90 90
         pcontrol->SetDesired(dEncRaw); // This function "resets" physics
         while(!pcontrol->IsDone()) {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));
@@ -118,6 +113,9 @@ bool Babbling::init() {
 
         penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
 
+        for(int i=0; i<6; i++){
+            cout << "joint " << i << ": " << dEncRaw[i+18] << "\n";
+        }
 
         // Green object
         T_base_green_object = objGreenPtr->GetTransform();
@@ -134,16 +132,15 @@ bool Babbling::init() {
 
         // numero de encoder y orden de parametros por definir!!
         // cuando todo funcione, podemos/debemos meter variables compuestas x1-x2, etc
-/*        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
-                 << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << dEncRaw2[0+18] << "," << dEncRaw2[0+18] << ","
-                 << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
-                 << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
-                 <<  "\n";*/
+//        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << ","
+//                 << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
+//                 << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
+//                 <<  "\n";
 
     }
 
 
-    dataFile.close();
+  //  dataFile.close();
 
     return true;
 }
