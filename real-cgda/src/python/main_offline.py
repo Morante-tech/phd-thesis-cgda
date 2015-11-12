@@ -16,7 +16,8 @@ from sklearn import preprocessing
 ##########################################################################
 ############################# PARAMETERS ##############################
 ##########################################################################
-source = "../../data/data.csv"
+#source = "../../data/FeatureDataFile_Thu Nov 12 00:11:23 2015.csv"
+source = "file:///home/santi/Repositorios/continuous-goal-directed-actions/real-cgda/data/FeatureDataFile_Thu%20Nov%2012%2001:02:05%202015%0A.csv"
 alpha_param = 0.1
 momentum_param = 0.5
 test_size_fraction = 0.2
@@ -27,7 +28,7 @@ activation_function_hidden =  _libfann.SIGMOID
 activation_function_output =  _libfann.SIGMOID
 
 ############ CONFIGURE NN ###############
-raw_data = pd.read_csv(source)
+raw_data = pd.read_csv(source, index_col=False)
 
 #extract column names
 list_column_names = list(raw_data.columns.values)
@@ -54,7 +55,6 @@ nn.create(input_neurons_size, hidden_neurons_size, output_neurons_size, alpha_pa
 
 
 ######### FEATURE SCALING #############
-
 # raw data
 raw_input_data = raw_data.ix[:,0:input_neurons_size].copy()
 #print "[INFO] Raw Input Data: \n", raw_input_data
@@ -64,16 +64,16 @@ raw_output_data = raw_data.ix[:,input_neurons_size:len(list_column_names)].copy(
 
 # scaled data
 scaled_input_data = pd.DataFrame(preprocessing.StandardScaler().fit_transform(raw_input_data), columns=raw_input_data.columns)
-#print "[INFO] Scaled Input Data: \n", pd.DataFrame(scaled_input_data)
+print "[INFO] Scaled Input Data: \n", pd.DataFrame(scaled_input_data)
 
 #concat
 scaled_data = pd.concat([scaled_input_data, raw_output_data], axis=1)
-#print "[INFO] Scaled Data: \n", scaled_data
+print "[INFO] Scaled Data: \n", scaled_data
 
 ############# SETTING SETS ############
 train_data, test_data = train_test_split(scaled_data, test_size = test_size_fraction)
 
-####### TRAINING ##########
+######## TRAINING ##########
 for index,row in train_data.iterrows():
     # selecting input columns
     input_array  = list(row[0:input_neurons_size])
@@ -84,14 +84,14 @@ for index,row in train_data.iterrows():
     # training
     nn.train(input_array, output_array)
 
-###### TESTING ##########
-for index,row in test_data.iterrows():
-    # selecting input columns
-    input_array  = list(row[0:input_neurons_size])
-
-    # predicting
-    print "[INFO] Prediction: ", nn.predict(input_array)
-
-
-###########  END LOOP  ############
-print "[INFO] Bye, bye!"
+######## TESTING ##########
+#for index,row in test_data.iterrows():
+#    # selecting input columns
+#    input_array  = list(row[0:input_neurons_size])
+#
+#    # predicting
+#    print "[INFO] Prediction: ", nn.predict(input_array)
+#
+#
+############  END LOOP  ############
+#print "[INFO] Bye, bye!"

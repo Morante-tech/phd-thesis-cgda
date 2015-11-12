@@ -27,6 +27,7 @@ bool Babbling::init() {
     boost::thread thviewer(boost::bind(SetViewer,penv,viewername));
     string scenefilename = "../../../../3dmodel/env/teo_two_cylinders.env.xml";
     penv->Load(scenefilename); // load the scene
+
     //-- Get Robot 0
     std::vector<RobotBasePtr> robots;
     penv->GetRobots(robots);
@@ -77,16 +78,16 @@ bool Babbling::init() {
 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    string filename("FeatureDataFile_");
+    string filename("../../../../data/FeatureDataFile_");
     filename += asctime (timeinfo);
     filename += ".csv";
 
     ofstream dataFile;
     dataFile.open (filename.c_str());
     //  t_green_x, ..., t_red_x... joint 1 left, ... joint 4 left, joint 1 right, ..., joint 4 right,
-    dataFile << "IN,IN,IN,IN,IN,IN,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT,OUT\n";
+    dataFile << "IN,IN_1,IN_2,IN_3,IN_4,IN_5,OUT,OUT_1,OUT_2,OUT_3,OUT_4,OUT_5,OUT_6,OUT_7,OUT_8,OUT_9,OUT_10,OUT_11\n";
 
-    for(int i=0; i<10000; i++){
+    for(int i=0; i<1000; i++){
 
         // cuidado con el orden de las joints al guardarlo en fichero, no confundas brazos!!
         // limites de ejes estan raros, yo creo que mal
@@ -110,12 +111,7 @@ bool Babbling::init() {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1));
         }
 
-
         penv->StepSimulation(0.0001);  // StepSimulation must be given in seconds
-
-        for(int i=0; i<6; i++){
-            cout << "joint " << i << ": " << dEncRaw[i+18] << "\n";
-        }
 
         // Green object
         T_base_green_object = objGreenPtr->GetTransform();
@@ -129,18 +125,18 @@ bool Babbling::init() {
         T_base_red_object_y = T_base_red_object.trans.y;
         T_base_red_object_z = T_base_red_object.trans.z;
 
-
         // numero de encoder y orden de parametros por definir!!
         // cuando todo funcione, podemos/debemos meter variables compuestas x1-x2, etc
-//        dataFile << dEncRaw[0+18] << "," << dEncRaw[0+18] << "," << ","
-//                 << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
-//                 << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
-//                 <<  "\n";
+        dataFile << T_base_green_object_x << "," << T_base_green_object_y << "," << T_base_green_object_z << ","
+                 << T_base_red_object_x << "," << T_base_red_object_y << "," << T_base_red_object_z << ","
+                 << dEncRaw[0+12] << "," << dEncRaw[1+12] << "," << dEncRaw[2+12] << "," << dEncRaw[3+12] << ","
+                 << dEncRaw[4+12] << "," << dEncRaw[5+12] << "," << dEncRaw[0+18] << "," << dEncRaw[1+18] << ","
+                 << dEncRaw[2+18] << "," << dEncRaw[3+18] << "," << dEncRaw[4+18] << "," << dEncRaw[5+18] << ","
+                 <<  "\n";
 
     }
 
-
-  //  dataFile.close();
+    dataFile.close();
 
     return true;
 }
