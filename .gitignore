@@ -5,4 +5,4 @@
 .Rhistory
 tags
 CMakeLists.txt.user
-/build/*
+build/
