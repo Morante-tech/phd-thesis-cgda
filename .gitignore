@@ -1,5 +1,3 @@
-/real-cgda/src/cpp/babbling/build
-/real-cgda/src/cpp/babbling/build/*
 *~
 *.swp
 *.orig
@@ -8,4 +6,3 @@
 tags
 CMakeLists.txt.user
 /build*/
-/real-cgda/src/cpp/babbling/build/*
