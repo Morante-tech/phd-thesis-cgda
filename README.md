@@ -14,7 +14,7 @@ Unless otherwise noted, all the code contained in this repository is open-source
 
 * [Robotics Lab profile](http://roboticslab.uc3m.es/roboticslab/people/s-morante)
 * [Twitter](https://twitter.com/santimorante)
-* [LinkedIn](https://es.linkedin.com/pub/santiago-morante/105/887/aab)
+* [LinkedIn](https://es.linkedin.com/in/santimorante)
 * [Dailymotion](http://www.dailymotion.com/santimorante)
 * [Google Scholar](http://scholar.google.es/citations?user=7_fJykAAAAAJ&hl=en)
 * [Coursera](https://www.coursera.org/user/i/86e993631015eb245c7401b6efee50b2)
