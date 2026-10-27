@@ -1,5 +1,13 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Guided motor primitives for the clean action (RO-MAN 2014): searches the combination of
+ * primitives, up to a maximum depth, whose effect is closest to the generalized trajectory.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs OpenRAVE.
+ */
+
 #include "MotorPrimitives.hpp"
 
 /************************************************************************/

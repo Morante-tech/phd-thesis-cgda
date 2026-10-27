@@ -1,5 +1,13 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Abandoned project. YARP module that reads images from two cameras and processes them
+ * in a rate thread (ProcessorRateThread) to connect movements between images.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs YARP and OpenCV.
+ */
+
 #include "ColorDebug.hpp"
 #include "ConnectedMatrices.hpp"
 

@@ -1,3 +1,9 @@
+"""
+Generalization by time slices that saves the query trajectories (generalized/*Query).
+Needs demonstration recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

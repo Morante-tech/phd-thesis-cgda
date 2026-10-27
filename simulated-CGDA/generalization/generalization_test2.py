@@ -1,3 +1,9 @@
+"""
+Variant of generalization_test1.py that prints the slices and variances. Needs
+demonstration recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

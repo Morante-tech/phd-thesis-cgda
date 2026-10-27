@@ -1,3 +1,9 @@
+"""
+Variant of generalization_old_test1.py with other DBSCAN parameters. Needs demonstration
+recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

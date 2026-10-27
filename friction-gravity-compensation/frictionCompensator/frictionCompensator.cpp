@@ -1,5 +1,13 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Friction compensator for one joint of the TEO arm: sends a current (--amps) through
+ * YARP that compensates the friction of the motor and gearbox.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs YARP and the robot (or its RaveBot simulator).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>

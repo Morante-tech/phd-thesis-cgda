@@ -1,3 +1,10 @@
+"""
+Generalization of the five actions: time is split into slices and each slice is
+summarized by a one-component Gaussian; also saves the variances. Needs demonstration
+recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

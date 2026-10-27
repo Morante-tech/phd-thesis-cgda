@@ -1,3 +1,10 @@
+"""
+Early generalization approach for the five actions: DBSCAN to remove noisy points, then
+a Gaussian Mixture Model chosen by BIC. Needs demonstration recordings that are not in
+this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

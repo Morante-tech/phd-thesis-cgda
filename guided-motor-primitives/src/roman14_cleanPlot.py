@@ -1,3 +1,9 @@
+"""
+3D plot of the RO-MAN 2014 paper: generalized trajectory of the clean action and its
+execution with different numbers of primitives.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

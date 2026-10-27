@@ -1,3 +1,8 @@
+"""
+Plot velocity over time for the torque recordings of a joint.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np

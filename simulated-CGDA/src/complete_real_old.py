@@ -1,3 +1,9 @@
+"""
+Early complete pipeline with a real Kinect: generalization, recognition with Dynamic
+Time Warping and communication through YARP ports. Needs YARP.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

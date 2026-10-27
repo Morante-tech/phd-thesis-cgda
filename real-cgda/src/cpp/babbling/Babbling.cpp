@@ -1,5 +1,13 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Motor babbling with the TEO robot model in OpenRAVE: moves the robot to explore which
+ * effects it can produce.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs OpenRAVE.
+ */
+
 #include "Babbling.hpp"
 
 /************************************************************************/

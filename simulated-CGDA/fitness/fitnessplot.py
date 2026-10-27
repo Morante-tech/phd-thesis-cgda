@@ -1,3 +1,9 @@
+"""
+Plot the fitness of each individual of the evolutionary search (fitnessData.txt) and
+mark the best one.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 import numpy as np

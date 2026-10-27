@@ -1,5 +1,13 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Applies a constant current (--amps) to one joint and records torque, time and velocity
+ * from the encoders; used to build the friction curves in ../friction.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs YARP and the robot (or its RaveBot simulator).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>

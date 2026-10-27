@@ -1,3 +1,11 @@
+/*
+ * First, monolithic version of the evolutionary search of CGDA: simulates the robot in
+ * OpenRAVE and communicates through YARP. Superseded by ../evMono*.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs OpenRAVE and YARP.
+ */
+
 #include <openrave-core.h>
 #include <vector>
 #include <cstring>

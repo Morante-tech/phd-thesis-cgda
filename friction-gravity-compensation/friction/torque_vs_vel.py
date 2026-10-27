@@ -1,3 +1,9 @@
+"""
+Plot torque against velocity for joint 22 and fit one regression line for positive and
+one for negative velocities (the friction model).
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 import os
 import matplotlib.pyplot as plt

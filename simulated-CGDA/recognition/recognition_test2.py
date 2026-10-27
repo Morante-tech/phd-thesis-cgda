@@ -1,3 +1,9 @@
+"""
+Recognition: compare a generalized action with a query (unnormalized data, normalized
+here) using Dynamic Time Warping, and plot both.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

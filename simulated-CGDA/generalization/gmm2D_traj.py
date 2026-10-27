@@ -1,3 +1,10 @@
+"""
+2D plot of a Gaussian Mixture Model fitted to the recordings of the wax action, one
+component per time slice. Needs demonstration recordings that are not in this
+repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 print(__doc__)
 
 import itertools
