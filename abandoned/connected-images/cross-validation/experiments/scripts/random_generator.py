@@ -14,9 +14,9 @@ cols=160
 
 ##################################
 # Define the codec and create VideoWriter object
-out = cv2.VideoWriter('output2.avi',cv2.cv.CV_FOURCC('X','V','I','D'), 20, (cols,rows), isColor=False)
+out = cv2.VideoWriter('output2.avi',cv2.VideoWriter_fourcc('X','V','I','D'), 20, (cols,rows), isColor=False)
 if not out:
-    print "Error in creating video writer"
+    print("Error in creating video writer")
     sys.exit(1)
 frame = np.zeros((rows,cols), dtype=np.uint8)
 

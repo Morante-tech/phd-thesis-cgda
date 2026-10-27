@@ -1,14 +1,15 @@
 
-from __future__ import division
 
+
+import os
 import pylab as pl
 import numpy as np
 import matplotlib as mpl
 from scipy import linalg
 
 
-vectorGen   = np.loadtxt('/home/yo/xgnitive/packs/ICRA14/data/unnormalized/waxGeneralized')
-vectorSim = np.loadtxt("waxEvolutionTraj2")
+vectorGen   = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "unnormalized", "waxGeneralized"))
+vectorSim = np.loadtxt(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "waxEvolutionTraj2"), usecols=range(4))  # row 5 of the file has a stray 5th value
 
 
 # scatter

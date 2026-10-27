@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 
 import pylab as pl
 import matplotlib as mpl
@@ -12,7 +12,7 @@ import numpy as np
 def fixedLength():
     ###
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
 
     # traj gen
     xGen = [6.38762472700000e+02,
@@ -91,7 +91,7 @@ def fixedLength():
 def varLength():
     ###
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
 
     # traj gen
     xGen = [6.38762472700000e+02,

@@ -1,8 +1,18 @@
 
-from __future__ import division
+
 
 import numpy as np
-import mlpy.dtwcore as md
+from dmf import dtw as dmf_dtw
+
+
+def dtw(x, y):
+    """Replacement for mlpy.dtwcore.dtw (mlpy is not available for Python 3).
+
+    Returns (distance, path_x, path_y, cost) like mlpy did, using the DTW of the
+    dmf package (Morante-tech/dissimilarity-mapping-filtering).
+    """
+    dist, cost, (px, py) = dmf_dtw(x, y, return_path=True)
+    return dist, px, py, cost
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -16,7 +26,7 @@ vectorOne = np.loadtxt("generalized/"+actionGeneral+"Generalized kin")
 vectorTwo = np.loadtxt("generalized/"+actionQuery+"Query kin")
 
 if vectorOne.shape[1] != vectorTwo.shape[1]:
-    print 'VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!'
+    print('VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!')
 
 ############################################
 ######## Theoretical Normalization #########
@@ -95,7 +105,7 @@ for i in range(1, vectorOne.shape[1]):
     #pl.show()
 
     #dtw distance
-    dist, px, py, cost = md.dtw(yi, yiQ)
+    dist, px, py, cost = dtw(yi, yiQ)
     distList.extend([dist])
     #print 'Distance (lower, better) for Dim. ', str(i), ' : ', dist
 
@@ -110,4 +120,4 @@ for i in range(1, vectorOne.shape[1]):
     #plt.show()
 
 # Total distance
-print 'Total distance: ', np.sum(distList)
+print('Total distance: ', np.sum(distList))

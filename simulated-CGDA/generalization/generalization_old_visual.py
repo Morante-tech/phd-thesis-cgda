@@ -26,15 +26,15 @@ X = np.r_[np.dot(np.random.randn(n_samples, 2), C), np.random.randn(n_samples, 2
     #X = np.vstack([X,newrow])
 
 # Normalizing
-print "1: ", X
+print("1: ", X)
 X /= np.max(np.abs(X), axis=0)
-print "2: ", X
+print("2: ", X)
 
 # Checking First-Last point
 
-poX, poY = zip(*X)
-poMinimX=np.infty
-poMaximX=-np.infty
+poX, poY = list(zip(*X))
+poMinimX=np.inf
+poMaximX=-np.inf
 
 for i in range(len(poX)):
     if poX[i] < poMinimX:
@@ -44,13 +44,13 @@ for i in range(len(poX)):
         poMaximX=poX[i]
         yOfMaximX=poY[i]
 
-print 'First point (x = time): ', poMinimX, yOfMinimX
-print 'Last point (x = time): ', poMaximX, yOfMaximX
+print('First point (x = time): ', poMinimX, yOfMinimX)
+print('Last point (x = time): ', poMaximX, yOfMaximX)
 difX = poMaximX-poMinimX
 difY = yOfMaximX-yOfMinimX
 redTraj= []
 redTraj.append([difX, difY])
-print 'Diff First-Last: ', redTraj
+print('Diff First-Last: ', redTraj)
 
 
 # Compute similarities
@@ -64,22 +64,22 @@ labels = db.labels_
 # Number of clusters in labels, ignoring noise if present.
 n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 
-print 'Estimated number of clusters: %d' % n_clusters_
+print('Estimated number of clusters: %d' % n_clusters_)
 
 # Initializing parameters
-lowest_bic = np.infty
+lowest_bic = np.inf
 bic = []
 
 # choose number of component to test
 componentToTest=2*(n_clusters_ + 1)
 
-print "Maximum components tested: ", componentToTest
-n_components_range = range(1, componentToTest+1)
+print("Maximum components tested: ", componentToTest)
+n_components_range = list(range(1, componentToTest+1))
 
 # this is a loop to test every component, choosing the lowest BIC at the end
 for n_components in n_components_range:
     # Fit a mixture of gaussians with EM
-    gmm = mixture.GMM(n_components=n_components, covariance_type='full')
+    gmm = mixture.GaussianMixture(n_components=n_components, covariance_type='full')
     gmm.fit(X)
     bic.append(gmm.bic(X))
     if bic[-1] < lowest_bic:
@@ -91,10 +91,10 @@ bic = np.array(bic)
 
 # one tested all components, here we choose the best
 clf = best_gmm
-print "Best result: ", clf
-print 'Weights: ', np.round(clf.weights_,2)
-print 'Means: ', np.round(clf.means_,2)
-print 'Covars: ', np.round(clf.covars_,2)
+print("Best result: ", clf)
+print('Weights: ', np.round(clf.weights_,2))
+print('Means: ', np.round(clf.means_,2))
+print('Covars: ', np.round(clf.covariances_,2))
 
 # From here, just graphics
 
@@ -113,7 +113,7 @@ spl.set_xlabel('Number of components')
 # Plot the winner
 splot = pl.subplot(3, 1, 2)
 Y_ = clf.predict(X)
-for i, (mean, covar) in enumerate(zip(clf.means_, clf.covars_)):
+for i, (mean, covar) in enumerate(zip(clf.means_, clf.covariances_)):
     v, w = linalg.eigh(covar)
     if not np.any(Y_ == i):
         continue
@@ -123,7 +123,7 @@ for i, (mean, covar) in enumerate(zip(clf.means_, clf.covars_)):
     angle = np.arctan2(w[0][1], w[0][0])
     angle = 180 * angle / np.pi  # convert to degrees
     v *= 4
-    ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color='red')
+    ell = mpl.patches.Ellipse(mean, v[0], v[1], angle=180 + angle, color='red')
     ell.set_clip_box(splot.bbox)
     ell.set_alpha(.5)
     splot.add_artist(ell)
@@ -135,11 +135,11 @@ pl.title('GMM-BIC. Gaussians: ' + str(len(clf.means_)))
 # interpolation
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
 
-meansX, meansY = zip(*clf.means_)
+meansX, meansY = list(zip(*clf.means_))
 
 if len(meansX) > 1:
-    minimX=np.infty
-    maximX=-np.infty
+    minimX=np.inf
+    maximX=-np.inf
 
     for i in range(len(meansX)):
         if meansX[i] < minimX:

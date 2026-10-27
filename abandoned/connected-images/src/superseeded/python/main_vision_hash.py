@@ -38,10 +38,10 @@ cap2 = cv2.VideoCapture('videos/tatup.mp4')
 
 # create dictionary (hash table)
 data={}
-ROWS_1_list = range(ROWS_1)
-COLS_1_list = range(COLS_1)
-ROWS_2_list = range(ROWS_2)
-COLS_2_list = range(COLS_2)
+ROWS_1_list = list(range(ROWS_1))
+COLS_1_list = list(range(COLS_1))
+ROWS_2_list = list(range(ROWS_2))
+COLS_2_list = list(range(COLS_2))
 
 combos = product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
 
@@ -97,7 +97,7 @@ while(cap1.isOpened() & cap2.isOpened()):
     Var_V2 = cv2.absdiff(image_2_t_0, image_2_t_1) 
     
     # update weights
-    for key, value in data.iteritems():
+    for key, value in data.items():
         chainStr= key.split()
         i=int(chainStr[0])  # X_1
         j=int(chainStr[1])  # Y_1

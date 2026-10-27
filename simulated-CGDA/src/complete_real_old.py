@@ -1,10 +1,20 @@
 
-from __future__ import division
+
 
 from sklearn import mixture, metrics
 import pylab as pl
 import numpy as np
-import mlpy.dtwcore as md
+from dmf import dtw as dmf_dtw
+
+
+def dtw(x, y):
+    """Replacement for mlpy.dtwcore.dtw (mlpy is not available for Python 3).
+
+    Returns (distance, path_x, path_y, cost) like mlpy did, using the DTW of the
+    dmf package (Morante-tech/dissimilarity-mapping-filtering).
+    """
+    dist, cost, (px, py) = dmf_dtw(x, y, return_path=True)
+    return dist, px, py, cost
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -25,7 +35,7 @@ def generalization(kinectTrajectory):
     numberOfGaussians = int(newTimeValue)
      ## Get the time range and rescale
     r = float(temp0[-1][1] - temp0[0][1])
-    temp0[:,1] = map(lambda x: (x - temp0[0][1]) / r, temp0[:,1])
+    temp0[:,1] = [(x - temp0[0][1]) / r for x in temp0[:,1]]
 
     # append
     realDataMatrix.append(temp0.tolist())
@@ -50,7 +60,7 @@ def generalization(kinectTrajectory):
         initial=(X.shape[0]/numberOfGaussians)*h
         final=(X.shape[0]/numberOfGaussians)*(h+1)
         #print X[initial:final].shape
-        best_gmm = mixture.GMM(n_components=1, covariance_type='full')
+        best_gmm = mixture.GaussianMixture(n_components=1, covariance_type='full')
         best_gmm.fit(X[initial:final])
         #print "Best : ", best_gmm
         #print "Best mean: ", best_gmm.means_.ravel().tolist()
@@ -67,7 +77,7 @@ def recognition(idealAction, realAction):
     vectorTwo=realAction
 
     if vectorOne.shape[1] != vectorTwo.shape[1]:
-        print 'VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!'
+        print('VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!')
 
     ########## DTW all dimensions #############
 
@@ -90,7 +100,7 @@ def recognition(idealAction, realAction):
         yiQ = testrbfQ(xiQ)
 
         #dtw distance
-        dist, px, py, cost = md.dtw(yi, yiQ)
+        dist, px, py, cost = dtw(yi, yiQ)
         distList.extend([dist])
         #print 'Distance (lower, better) for Dim. ', str(i), ' : ', dist
     return np.sum(distList)
@@ -99,7 +109,7 @@ def main():
 
     yarp.Network.init()
     if yarp.Network.checkNetwork() != True:
-        print '[fail] found no yarp network (try running "yarpserver &"), bye!'
+        print('[fail] found no yarp network (try running "yarpserver &"), bye!')
         quit()
     real_port = yarp.Port()
     ideal_port = yarp.Port()

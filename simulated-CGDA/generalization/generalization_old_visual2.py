@@ -42,7 +42,7 @@ labels = db.labels_
 # Number of clusters in labels, ignoring noise if present.
 n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 
-print 'Estimated number of clusters: %d' % n_clusters_
+print('Estimated number of clusters: %d' % n_clusters_)
 
 # Plotting DBSCAN
 # Black removed and is used for noise instead.
@@ -76,7 +76,7 @@ pl.yticks(())
 pl.title('DBSCAN. Estimated clusters: %d' % n_clusters_, size=20)
 
 # Initializing BIC parameters
-lowest_bic = np.infty
+lowest_bic = np.inf
 bic = []
 
 # choose number of component to test
@@ -85,13 +85,13 @@ if n_clusters_ ==0:
 else:
     componentToTest=2*n_clusters_
 
-print "Maximum components tested: ", componentToTest
-n_components_range = range(1, componentToTest+1)
+print("Maximum components tested: ", componentToTest)
+n_components_range = list(range(1, componentToTest+1))
 
 # this is a loop to test every component, choosing the lowest BIC at the end
 for n_components in n_components_range:
     # Fit a mixture of gaussians with EM
-    gmm = mixture.GMM(n_components=n_components, covariance_type='full')
+    gmm = mixture.GaussianMixture(n_components=n_components, covariance_type='full')
     gmm.fit(X)
     bic.append(gmm.bic(X))
     if bic[-1] < lowest_bic:
@@ -103,10 +103,10 @@ bic = np.array(bic)
 
 # one tested all components, here we choose the best
 clf = best_gmm
-print "Best result: ", clf
-print 'Weights: ', np.round(clf.weights_,2)
-print 'Means: ', np.round(clf.means_,2)
-print 'Covars: ', np.round(clf.covars_,2)
+print("Best result: ", clf)
+print('Weights: ', np.round(clf.weights_,2))
+print('Means: ', np.round(clf.means_,2))
+print('Covars: ', np.round(clf.covariances_,2))
 
 
 # Plot the BIC scores
@@ -124,7 +124,7 @@ spl.set_xlabel('Number of components', size=15)
 # Plot the winner
 splot = pl.subplot(4, 1, 3)
 Y_ = clf.predict(X)
-for i, (mean, covar) in enumerate(zip(clf.means_, clf.covars_)):
+for i, (mean, covar) in enumerate(zip(clf.means_, clf.covariances_)):
     v, w = linalg.eigh(covar)
     if not np.any(Y_ == i):
         continue
@@ -136,7 +136,7 @@ for i, (mean, covar) in enumerate(zip(clf.means_, clf.covars_)):
     angle = np.arctan2(w[0][1], w[0][0])
     angle = 180 * angle / np.pi  # convert to degrees
     v *= 4
-    ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color='b')
+    ell = mpl.patches.Ellipse(mean, v[0], v[1], angle=180 + angle, color='b')
     ell.set_clip_box(splot.bbox)
     ell.set_alpha(.6)
     splot.add_artist(ell)
@@ -149,11 +149,11 @@ pl.title('GMM-BIC. Components: ' + str(len(clf.means_)), size=20)
 # interpolation
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
 
-meansX, meansY = zip(*clf.means_)
+meansX, meansY = list(zip(*clf.means_))
 
 if len(meansX) > 1:
-    minimX=np.infty
-    maximX=-np.infty
+    minimX=np.inf
+    maximX=-np.inf
 
     for i in range(len(meansX)):
         if meansX[i] < minimX:
@@ -161,7 +161,7 @@ if len(meansX) > 1:
         if meansX[i] > maximX:
             maximX=meansX[i]
 
-    print minimX, maximX
+    print(minimX, maximX)
 
     xi = np.linspace(minimX, maximX, 10*len(meansX))
     testrbf = Rbf(meansX, meansY, function='gaussian')

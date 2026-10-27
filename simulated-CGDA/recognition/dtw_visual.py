@@ -12,7 +12,7 @@
 #xr=np.arange(0,4*np.pi,dt)
 #x = np.sin(xr)
 #y = np.sin((xr+1*np.pi)*.5)
-#dist, p1, p2, cost = md.dtw(x, y)
+#dist, p1, p2, cost = dtw(x, y)
 
 #cost.tofile("costmatrix.csv", sep=",")
 
@@ -27,7 +27,17 @@
 #plt.show()
 
 
-import mlpy.dtwcore as md
+from dmf import dtw as dmf_dtw
+
+
+def dtw(x, y):
+    """Replacement for mlpy.dtwcore.dtw (mlpy is not available for Python 3).
+
+    Returns (distance, path_x, path_y, cost) like mlpy did, using the DTW of the
+    dmf package (Morante-tech/dissimilarity-mapping-filtering).
+    """
+    dist, cost, (px, py) = dmf_dtw(x, y, return_path=True)
+    return dist, px, py, cost
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -64,26 +74,26 @@ vectorTwo = X2
 
 # DTW calculation for each dimension #
 
-print 'Dimensions of arrays: ', vectorOne.shape[1]
+print('Dimensions of arrays: ', vectorOne.shape[1])
 
 distList =[]
 totalCost=0
 for i in range(vectorOne.shape[1]):
     featureOne = vectorOne[:,i]
     featureTwo = vectorTwo[:,i]
-    dist, px, py, cost = md.dtw(featureOne, featureTwo)
+    dist, px, py, cost = dtw(featureOne, featureTwo)
     distList.extend([dist])
-    print 'Distance (lower, better) for Dim. ', str(i), ' : ', dist
-    print 'px: ', px
-    print 'py: ', py
-    print 'Cost Matrix: '
-    print cost
+    print('Distance (lower, better) for Dim. ', str(i), ' : ', dist)
+    print('px: ', px)
+    print('py: ', py)
+    print('Cost Matrix: ')
+    print(cost)
 
     for i in range(len(px)):
-        print 'Single Cost: ', cost[px[i]][py[i]]
+        print('Single Cost: ', cost[px[i]][py[i]])
         totalCost=totalCost + cost[px[i]][py[i]]
 
-    print 'Total Cost Estimated: ', cost[px[len(px)-1]][py[len(py)-1]] /(cost.shape[0]+cost.shape[1])
+    print('Total Cost Estimated: ', cost[px[len(px)-1]][py[len(py)-1]] /(cost.shape[0]+cost.shape[1]))
     # plot map of cost #
     fig = plt.figure(1)
     ax = fig.add_subplot(111)
@@ -96,5 +106,5 @@ for i in range(vectorOne.shape[1]):
     plt.show()
 
 # Average of distances #
-print 'List of normalized distances', distList
-print 'Averaged distance: ', np.mean(distList)
+print('List of normalized distances', distList)
+print('Averaged distance: ', np.mean(distList))

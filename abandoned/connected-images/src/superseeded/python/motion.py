@@ -36,7 +36,7 @@ elif len(sys.argv) == 2:
         sys.exit("[ERROR] File %s was not found!" % sys.argv[1])
     else:
         EXPERIMENT_PARAMS_FILENAME = sys.argv[1]
-        print "[INFO] Reproducing experiment with params: " + str(sys.argv[1])  
+        print("[INFO] Reproducing experiment with params: " + str(sys.argv[1]))  
         REPRODUCE_EXPERIMENT = True    
 
 #### SAVE EXPERIMENT PARAMS ####
@@ -61,7 +61,7 @@ if REPRODUCE_EXPERIMENT == True:
         reader = csv.reader(csvfile)
         for row in reader:
             experiment_list.append(row)
-    print "[INFO] Experiment raw data: ", experiment_list [1]
+    print("[INFO] Experiment raw data: ", experiment_list [1])
     
     SOURCE_1 = experiment_list [1][0]
     SOURCE_2 = experiment_list [1][1]
@@ -96,7 +96,7 @@ if REPRODUCE_EXPERIMENT == True:
     weightMatrix = np.load(decompressed_filename).astype(np.float32)  
     np.ascontiguousarray(weightMatrix)    
 
-    print "[INFO] Using loaded weight matrix"
+    print("[INFO] Using loaded weight matrix")
 
     
     ##### CAMERA ###############################
@@ -108,11 +108,11 @@ if REPRODUCE_EXPERIMENT == True:
         
     if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
         FPS = int(15)
-        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
-        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap1.set(cv2.CAP_PROP_FPS, FPS)
+        cap2.set(cv2.CAP_PROP_FPS, FPS)
         
-    print "FPS Cap 1: ", cap1.get(cv2.cv.CV_CAP_PROP_FPS)
-    print "FPS Cap 2: ", cap2.get(cv2.cv.CV_CAP_PROP_FPS)        
+    print("FPS Cap 1: ", cap1.get(cv2.CAP_PROP_FPS))
+    print("FPS Cap 2: ", cap2.get(cv2.CAP_PROP_FPS))        
     ############################################
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
@@ -136,11 +136,11 @@ else:
         
     if isinstance(SOURCE_1,int) and isinstance(SOURCE_2,int):
         FPS = int(15)
-        cap1.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
-        cap2.set(cv2.cv.CV_CAP_PROP_FPS, FPS)
+        cap1.set(cv2.CAP_PROP_FPS, FPS)
+        cap2.set(cv2.CAP_PROP_FPS, FPS)
     
-    print "FPS Cap 1: ", cap1.get(cv2.cv.CV_CAP_PROP_FPS)
-    print "FPS Cap 2: ", cap2.get(cv2.cv.CV_CAP_PROP_FPS)
+    print("FPS Cap 1: ", cap1.get(cv2.CAP_PROP_FPS))
+    print("FPS Cap 2: ", cap2.get(cv2.CAP_PROP_FPS))
 
     ret1, frame1 = cap1.read() # read = grab + retrieve (processing)
     ret2, frame2 = cap2.read() # read = grab + retrieve (processing)
@@ -170,7 +170,7 @@ else:
         # assign values to weights matrix
         weightMatrix = np.load(decompressed_filename).astype(np.float32)  
         np.ascontiguousarray(weightMatrix)   
-        print "[INFO] Using loaded weight matrix"
+        print("[INFO] Using loaded weight matrix")
 
     else:
         weightMatrix = np.zeros((ROWS_1*ROWS_2, COLS_1*COLS_2), np.float32) # weight img
@@ -182,8 +182,8 @@ else:
     
     
 #### INITIALIZATION #########
-ROWS_1_list = range(ROWS_1)
-COLS_1_list = range(COLS_1)
+ROWS_1_list = list(range(ROWS_1))
+COLS_1_list = list(range(COLS_1))
 image_1_t_1  =  np.zeros((ROWS_1, COLS_1), np.uint8) # image 1 previous time
 image_2_t_1  =  np.zeros((ROWS_2, COLS_2), np.uint8) # image 2 previous time
 error_image = np.zeros((ROWS_2,COLS_2), np.uint8) # first error map 2
@@ -203,7 +203,7 @@ while(cap1.isOpened() and cap2.isOpened()):
     ret2, frame2 = cap2.retrieve()
  
     if(ret1==False or ret2==False):
-        print "[ERROR] No stream of images (or end of file)"
+        print("[ERROR] No stream of images (or end of file)")
         break
     
     # note the changed axis in opencv
@@ -327,11 +327,11 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
     
     if k == ord('f'):
         fix_weights_matrix = True        
-        print "[INFO] WeightsMatrix Fixed"
+        print("[INFO] WeightsMatrix Fixed")
 
     if k == ord('s'):
         fix_weights_matrix = True        
-        print "[INFO] Saving Images"
+        print("[INFO] Saving Images")
         if ACTUAL_IMAGES == True:
             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_frame1_" \
             + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", image_1_t_0);
@@ -359,22 +359,22 @@ j*COLS_2:(j*COLS_2+COLS_2)].astype(np.float32)
 #####################   END LOOP   #####################
 
 if REPRODUCE_EXPERIMENT == True:
-    print "[INFO] Removing decompressed file"
+    print("[INFO] Removing decompressed file")
     os.remove(decompressed_filename)  
 
 if(SAVE_EXPERIMENT == True):
-    print "[INFO] Saving experiment"         
+    print("[INFO] Saving experiment")         
     
-    print "[INFO] Saving results"
+    print("[INFO] Saving results")
     
     # save results
     file_results = open(FILENAME_RESULTS, "w")
     file_results.write("Mean Square Error\n")
-    file_results.write("\n".join(map(lambda x: str(x), mse)))
+    file_results.write("\n".join([str(x) for x in mse]))
     file_results.write("\n")            
     file_results.close()  
 
-    print "[INFO] Saving params"
+    print("[INFO] Saving params")
     
     # save params
     file_params = open(FILENAME_PARAMS, "w")
@@ -388,13 +388,13 @@ if(SAVE_EXPERIMENT == True):
                          COLS_1, ROWS_2, COLS_2, ALPHA, LAMBDA, 
                          ACTUAL_IMAGES, INTERPOLATION_TYPE]
                          
-    file_params.write(",".join(map(lambda x: str(x), list_params_names)))
+    file_params.write(",".join([str(x) for x in list_params_names]))
     file_params.write("\n")
-    file_params.write(",".join(map(lambda x: str(x), list_params_values)))
+    file_params.write(",".join([str(x) for x in list_params_values]))
     file_params.write("\n")
     file_params.close()           
     
-    print "[INFO] Saving weights"
+    print("[INFO] Saving weights")
     
     # save weights matrix
     np.save(FILENAME_WEIGHTS, weightMatrix)            
@@ -408,7 +408,7 @@ if(SAVE_EXPERIMENT == True):
 
     os.remove(FILENAME_WEIGHTS)          
     
-print "[INFO] Quitting program!"
+print("[INFO] Quitting program!")
 
 
 cap1.release()
