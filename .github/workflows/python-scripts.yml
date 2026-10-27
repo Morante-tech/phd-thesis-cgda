@@ -1,0 +1,19 @@
+name: python-scripts
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Run the scripts that have their data in the repository
+        run: ./run_python_scripts.sh

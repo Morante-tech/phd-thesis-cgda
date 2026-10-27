@@ -1,0 +1,13 @@
+# Python dependencies of the scripts in this repository (Python 3.10+).
+# pip install -r requirements.txt
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3
+matplotlib>=3.7
+pandas>=2.0
+opencv-python-headless>=4.8
+# Dynamic Time Warping (replaces mlpy and the old `dtw` library)
+dissimilarity-mapping-filtering @ git+https://github.com/Morante-tech/dissimilarity-mapping-filtering
+# Not installable from pip, only needed by a few scripts:
+#   yarp  - robot middleware (simulated-CGDA/src), see https://www.yarp.it
+#   fann2 - needs the FANN C library (real-cgda, abandoned/connected-images)
