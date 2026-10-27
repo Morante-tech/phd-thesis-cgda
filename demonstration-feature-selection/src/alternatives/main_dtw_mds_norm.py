@@ -2,61 +2,49 @@
 """
 Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
+
+Alternative demonstration selector (not used in the paper), on synthetic data:
+DTW between demonstrations -> non-metric MDS to 1D -> fit a normal distribution
+and print how probable each demonstration is.
 """
-##########################   DTW   ####################################
-import libmddtw
-import matplotlib.pyplot as plt
-from dtw import dtw
-##########################   MDS   ####################################
+import os
+import sys
+
 import numpy as np
-from sklearn.metrics import euclidean_distances
-import libmds
+import matplotlib.pyplot as plt
+from scipy.stats import norm
 
-##########################   DBSCAN   ####################################
-import libdbscan
-from sklearn.preprocessing import StandardScaler # to normalize
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, ".."))
+import libmddtw  # noqa: E402
+import libmds  # noqa: E402
 
-
-def normalize(X):
-    return StandardScaler().fit_transform(X)
 
 def main():
-    
+
     NUMBER_OF_DEMONSTRATIONS=5
      ##########################################################################
      ##########################   DTW   ####################################
-     ##########################################################################  
+     ##########################################################################
 
     dist=np.zeros((NUMBER_OF_DEMONSTRATIONS,NUMBER_OF_DEMONSTRATIONS))
 
     demons=[]
-    
-    # fill demonstrations
-    for i in range(NUMBER_OF_DEMONSTRATIONS):
-        demons.append(np.matrix([ np.sin(np.arange(15+i)+i)  , np.sin(np.arange(15+i)+i)]))
 
-    
-    # fill distance matrix    
+    # fill demonstrations: sine waves of different length and phase, two features each
+    # (one row per time step, one column per feature)
+    for i in range(NUMBER_OF_DEMONSTRATIONS):
+        wave = np.sin(np.arange(15+i)+i)
+        demons.append(np.column_stack([wave, wave]))
+
+    # fill distance matrix
     for i in range(NUMBER_OF_DEMONSTRATIONS):
         for j in range(NUMBER_OF_DEMONSTRATIONS):
 
             mddtw = libmddtw.Mddtw()
-            x,y = mddtw.collapseRows(demons[i],demons[j])
-            
-            #fig = plt.figure()
-            #plt.plot(x)
-            #plt.plot(y)
             singleDist, singleCost, singlePath = mddtw.compute(demons[i],demons[j])
             dist[i][j]=singleDist
-#            print 'Minimum distance found:', singleDist
-            #fig = plt.figure()
-        
-        #    plt.imshow(cost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
-        #    plt.plot(path[0], path[1], 'w')
-        #    plt.xlim((-0.5, cost.shape[0]-0.5))
-        #    plt.ylim((-0.5, cost.shape[1]-0.5))
-            
-#        print "dist", dist
+
     ###########################################################################
     ###########################   MDS   ####################################
     ###########################################################################
@@ -66,39 +54,30 @@ def main():
                        dissimilarity="precomputed", n_jobs=1)
 
     points = md.compute(dist)
-    print "points", points.flatten()
-  #  md.plot()
-    
-    
-    
-    
+    print("points", points.flatten())
+
      ##########################################################################
      ##########################   norm   ####################################
      ##########################################################################
-    from scipy.stats import norm
-    from numpy import linspace
-    from pylab import plot,show,hist,figure,title
-    
+
     param = norm.fit(points.flatten()) # distribution fitting
-    x = linspace(np.min(points),np.max(points),NUMBER_OF_DEMONSTRATIONS)
-    
+    x = np.linspace(np.min(points),np.max(points),NUMBER_OF_DEMONSTRATIONS)
+
     pdf_fitted = norm.pdf(x, loc=param[0],scale=param[1])
 
-    
-    fig = plt.figure()
-    title('Normal distribution')    
-    plot(x,pdf_fitted,'r-')
-    hist(points.flatten(),normed=1,alpha=.3)
-    show()
+    plt.figure()
+    plt.title('Normal distribution')
+    plt.plot(x,pdf_fitted,'r-')
+    plt.hist(points.flatten(),density=True,alpha=.3)
+    plt.show()
 
+    for elem in points.flatten():
 
-    for elem in points:
+        if elem <= np.mean(points):
+            print("probability of point ", str(elem), ": ", norm.cdf(elem, loc=param[0],scale=param[1]))
 
-        if elem <= np.mean(points):        
-            print "probability of point ", str(elem), ": ", norm.cdf(elem, loc=param[0],scale=param[1])
-            
-        if elem > np.mean(points):        
-            print "probability of point ", str(elem), ": ", 1-norm.cdf(elem, loc=param[0],scale=param[1])
+        if elem > np.mean(points):
+            print("probability of point ", str(elem), ": ", 1-norm.cdf(elem, loc=param[0],scale=param[1]))
 
 
 ##############################################################################

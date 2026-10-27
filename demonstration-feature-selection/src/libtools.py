@@ -10,36 +10,25 @@ import matplotlib.pyplot as plt
 
 
 def sumAll(demo1, demo2, method):
-#    print "Shapes demo1,demo2: ", np.array(demo1).shape, "  , ",  np.array(demo2).shape
-    if np.array(demo1).shape[0] > 1 and \
-       np.array(demo2).shape[0] > 1 and \
-       np.array(demo1).shape[1] == np.array(demo2).shape[1]:
-           
-           
-        if method=="rows":
-  #              print "[INFO] Collapsing rows"
-            x = np.array(demo1).sum(axis=0)  # zero collaps rows into single row
-            y = np.array(demo2).sum(axis=0)
-        elif method=="cols":
-            
-   #             print "[INFO] Collapsing cols"
-            x = np.array(demo1).sum(axis=1)  # zero collaps columns into single column
-            y = np.array(demo2).sum(axis=1)
-        
-        else:
-            print "[ERROR] Unrecognized method for summing!"
-            return False
-        
-    elif(np.array(demo1).shape[1] != np.array(demo2).shape[1]):
-        print "[ERROR] NumberOfColumns(demo1) != NumberOfColumns(demo2) "
+    """Collapse two demonstrations into one value per row ("cols") or per column ("rows")."""
+    demo1 = np.array(demo1)
+    demo2 = np.array(demo2)
+    if demo1.ndim != 2 or demo2.ndim != 2 or demo1.shape[0] < 2 or demo2.shape[0] < 2:
+        print("[ERROR] Demonstrations must be tables with at least two rows")
+        return False
+    if demo1.shape[1] != demo2.shape[1]:
+        print("[ERROR] NumberOfColumns(demo1) != NumberOfColumns(demo2) ")
         return False
 
+    if method == "rows":
+        x = demo1.sum(axis=0)  # collapse rows into a single row
+        y = demo2.sum(axis=0)
+    elif method == "cols":
+        x = demo1.sum(axis=1)  # collapse columns into a single column
+        y = demo2.sum(axis=1)
     else:
-        print "[ERROR] Unknown problem when summing rows or cols"
+        print("[ERROR] Unrecognized method for summing!")
         return False
-            
-        x = np.array(demo1).flatten()
-        y = np.array(demo2).flatten()
 
     return x, y
 
@@ -53,8 +42,7 @@ def plot_zscores(ALPHA, zscores, xtitle):
     plt.ylabel('Score', fontsize=30)
     plt.yticks( fontsize=20)
 
-    plt.axhline(y=ALPHA, xmin=0, xmax=1, hold=None, color='red', lw=4, linestyle='--')
-    plt.legend()
+    plt.axhline(y=ALPHA, xmin=0, xmax=1, color='red', lw=4, linestyle='--')
     plt.tight_layout()
     plt.show()
 
@@ -62,7 +50,7 @@ def plot_zscores(ALPHA, zscores, xtitle):
 def normalize(normalization, demoNames):
     
     demons=[]
-    print "[INFO] Normalization: ", normalization
+    print("[INFO] Normalization: ", normalization)
 
     if normalization == "NONE":
         ## for demonstration normalization
@@ -107,11 +95,11 @@ def normalize(normalization, demoNames):
                 demons.append(tmp_clean)
                 demons_temp.extend(tmp_clean.tolist())
             ranges = np.max(np.array(demons_temp), axis=0) 
-            print "[INFO] Maximum values per feature: ", ranges     
+            print("[INFO] Maximum values per feature: ", ranges)
             demons=maxscale_precomputed(demons, ranges)
             return demons
     else:
-            print "[ERROR] Unrecognized normalization"
+            print("[ERROR] Unrecognized normalization")
             return False
 
 
@@ -154,4 +142,5 @@ def get_outlier(points, thresh=2):
     if len(points.shape) == 1:
         points = points[:,None]
     results = stats.zscore(points) 
-    return results.flatten() > thresh, results
+    results = results.flatten()
+    return results > thresh, results

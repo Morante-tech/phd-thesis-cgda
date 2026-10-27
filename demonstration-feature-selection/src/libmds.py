@@ -26,7 +26,7 @@ class Mds:
 
 
     def create(self, n_components, metric, max_iter, eps, random_state, dissimilarity, 
-               n_jobs, n_init):
+               n_jobs, n_init=1):
         self.n_components = n_components
         self.metric=metric
         self.max_iter = max_iter
@@ -37,21 +37,22 @@ class Mds:
         self.n_init=n_init
         
         if self.metric == True:
-            self.mds = MDS(n_components=self.n_components, max_iter=self.max_iter, 
-                           eps=self.eps, random_state=self.random_state,
-                       dissimilarity=self.dissimilarity, n_jobs=self.n_jobs, n_init=self.n_init)
-                       
-            print self.mds.get_params()
+            self.mds = MDS(n_components=self.n_components, max_iter=self.max_iter,
+                           eps=self.eps, random_state=self.random_state, init="random",
+                           metric=self.dissimilarity, n_jobs=self.n_jobs, n_init=self.n_init)
+
+            print(self.mds.get_params())
             return True
 
         elif self.metric == False:
-            self.mds = MDS(n_components=self.n_components, metric=self.metric, 
-                           max_iter=self.max_iter, eps=self.eps, dissimilarity=self.dissimilarity, 
-                           random_state=self.random_state, n_jobs=self.n_jobs, n_init=self.n_init)
+            self.mds = MDS(n_components=self.n_components, metric_mds=self.metric,
+                           max_iter=self.max_iter, eps=self.eps, metric=self.dissimilarity,
+                           random_state=self.random_state, n_jobs=self.n_jobs, n_init=self.n_init,
+                           init="random")
             return True
             
         else:
-            print "[ERROR] metric in mds not recognized (accepts only True or False)!"
+            print("[ERROR] metric in mds not recognized (accepts only True or False)!")
             return False        
                    
 
@@ -67,12 +68,12 @@ class Mds:
             return self.npos
 
         else:
-            print "[ERROR] metric in mds not recognized (accepts only True or False)!"
+            print("[ERROR] metric in mds not recognized (accepts only True or False)!")
             return False
         
     def plot(self):
         fig = plt.figure()
-        fig.canvas.set_window_title('MDS')
+        fig.canvas.manager.set_window_title('MDS')
         ax = plt.axes([0., 0., 1., 1.])
         self.similarities = self.similarities.max() / self.similarities * 100
         self.similarities[np.isinf(self.similarities)] = 0
@@ -85,7 +86,7 @@ class Mds:
             points=self.npos
 
         else:
-            print "[ERROR] metric in mds not recognized (accepts only True or False)!"
+            print("[ERROR] metric in mds not recognized (accepts only True or False)!")
             return False        
     
         plt.scatter(points[:, 0], points[:, 1], s=20, c='black')

@@ -16,7 +16,8 @@ import libmddtw
 
 NORMALIZATION = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 EXPERIMENT = "experiment-1"
-PATH = "../datasets/" + EXPERIMENT +"/raw/*.csv"
+DATASETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "datasets")
+PATH = DATASETS + "/" + EXPERIMENT +"/raw/*.csv"
 SUM = "cols" # rows cols
 ALPHA = 0.5
 SAVE= False
@@ -25,7 +26,7 @@ SAVE= False
 def main():
     demoNames = sorted(glob.glob(PATH))
     if not demoNames:
-        print "[ERROR] No files to read in PATH!"
+        print("[ERROR] No files to read in PATH!")
         return False
     demons=[]
     demons = libtools.normalize(NORMALIZATION,demoNames)
@@ -42,7 +43,7 @@ def main():
             x,y = libtools.sumAll(demons[i],demons[j], SUM)
             singleDist, singleCost, singlePath = mddtw.compute(x,y)
             dist[i][j]=singleDist
-            print 'Minimum distance found:', singleDist
+            print('Minimum distance found:', singleDist)
 #            fig = plt.figure()
 #         #   plt.title(str(i)+","+str(j))
 #            plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
@@ -55,12 +56,12 @@ def main():
     ###########################   SUM   ####################################
 
     sumDiss = dist.sum(axis=0) / dist.sum(axis=0).sum()
-    print "[INFO] Sum of Dissimilarities: ", sumDiss
+    print("[INFO] Sum of Dissimilarities: ", sumDiss)
         
      ##########################   ZSCORE   #################################
         
     boolzscores, zscores = libtools.get_outlier(sumDiss, thresh=ALPHA)
-    print "[INFO] Detected outliers: ", boolzscores, zscores
+    print("[INFO] Detected outliers: ", boolzscores, zscores)
 
     #####################  PLOT  ##########################################
 
@@ -69,18 +70,18 @@ def main():
     ########################  SAVE  ######################################
     
     if SAVE == True:
-        customPath="../datasets/"+ EXPERIMENT +"/selected-demonstrations/" + "NORM-"+ NORMALIZATION + "/SUM-" + SUM + "/ALPHA-" + str(ALPHA)
+        customPath=DATASETS + "/"+ EXPERIMENT +"/selected-demonstrations/" + "NORM-"+ NORMALIZATION + "/SUM-" + SUM + "/ALPHA-" + str(ALPHA)
         if not os.path.exists(customPath):
             os.makedirs(customPath)
         
         for i in range(len(demoNames)):
             if len(demoNames) != len(zscores):
-                print "[ERROR] len(demoNames) != len(zscores): "
+                print("[ERROR] len(demoNames) != len(zscores): ")
                 return False
     
             if boolzscores[i]==False:         
                 shutil.copy2(demoNames[i], customPath + "/" + os.path.basename(demoNames[i]) )
-                print "[INFO] Copied ", os.path.basename(demoNames[i]), " to ", customPath
+                print("[INFO] Copied ", os.path.basename(demoNames[i]), " to ", customPath)
     
     #######################################################################
 
