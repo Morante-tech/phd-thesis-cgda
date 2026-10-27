@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 
 import itertools
 from sklearn import mixture, metrics
@@ -15,7 +15,7 @@ import numpy as np
 # reading file
 for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     actionName=action
-    print "Action: ", actionName
+    print("Action: ", actionName)
     # 6
     reader=csv.reader(open("/home/santi/Repositories/cognitive/xgnitive/main/app/record/recorded3/"+actionName+"_6/data.log","rb"),delimiter=' ')
     x=list(reader)
@@ -23,7 +23,7 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     # Get the time range and rescale
     # change made here
     r = float(temp4[-1][1] - temp4[0][1])
-    temp4[:,1] = map(lambda x: (x - temp4[0][1]) / r, temp4[:,1])
+    temp4[:,1] = [(x - temp4[0][1]) / r for x in temp4[:,1]]
 
     ##normalize (optional)
     #temp4 /= np.max(np.abs(temp4), axis=0)
@@ -84,7 +84,7 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     # Number of clusters in labels, ignoring noise if present.
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 
-    print 'Estimated number of clusters: %d' % n_clusters_
+    print('Estimated number of clusters: %d' % n_clusters_)
 
     # Plotting DBSCAN (but also outlier detection)
     core_samples = db.core_sample_indices_
@@ -117,7 +117,7 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     X = np.array(X)
 
     # Initializing BIC parameters
-    lowest_bic = np.infty
+    lowest_bic = np.inf
     bic = []
 
     # choose number of clusters to test
@@ -126,13 +126,13 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     else:
         componentToTest=2*n_clusters_
 
-    print "Maximum components tested: ", componentToTest
-    n_components_range = range(1, componentToTest+1)
+    print("Maximum components tested: ", componentToTest)
+    n_components_range = list(range(1, componentToTest+1))
 
     # this is a loop to test every component, choosing the lowest BIC at the end
     for n_components in n_components_range:
         # Fit a mixture of gaussians with EM
-        gmm = mixture.GMM(n_components=n_components, covariance_type='full')
+        gmm = mixture.GaussianMixture(n_components=n_components, covariance_type='full')
         gmm.fit(X)
         bic.append(gmm.bic(X))
         if bic[-1] < lowest_bic:
@@ -140,13 +140,13 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
             best_gmm = gmm
 
     # over loading if compoenents = 1
-    print best_gmm
+    print(best_gmm)
     if len(best_gmm.means_)==1:
-        best_gmm = mixture.GMM(n_components=2, covariance_type='full')
+        best_gmm = mixture.GaussianMixture(n_components=2, covariance_type='full')
         best_gmm.fit(X)
 
     ## OVERLOAD A ELIMINAR
-    #best_gmm = mixture.GMM(n_components=12, covariance_type='full')
+    #best_gmm = mixture.GaussianMixture(n_components=12, covariance_type='full')
     #best_gmm.fit(X)
 
     # array of BIC for the graphic table column
@@ -154,8 +154,8 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
 
     # one tested all components, here we choose the best
     clf = best_gmm
-    print "Best result: ", clf
-    print 'Means: ', np.round(clf.means_,4)
+    print("Best result: ", clf)
+    print('Means: ', np.round(clf.means_,4))
 
     ## Plot the BIC scores
     #bars = []
@@ -172,7 +172,7 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
     ## Plot the winner
     #splot = pl.subplot(4, 1, 3)
     #Y_ = clf.predict(X)
-    #for i, (mean, covar) in enumerate(zip(clf.means_, clf.covars_)):
+    #for i, (mean, covar) in enumerate(zip(clf.means_, clf.covariances_)):
         #v, w = linalg.eigh(covar)
         #if not np.any(Y_ == i):
             #continue
@@ -183,7 +183,7 @@ for action in ['wax', 'rotate', 'move', 'fold', 'paint']:
         #angle = np.arctan2(w[0][1], w[0][0])
         #angle = 180 * angle / np.pi  # convert to degrees
         #v *= 4
-        #ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color='b')
+        #ell = mpl.patches.Ellipse(mean, v[0], v[1], angle=180 + angle, color='b')
         #ell.set_clip_box(splot.bbox)
         #ell.set_alpha(.6)
         #splot.add_artist(ell)

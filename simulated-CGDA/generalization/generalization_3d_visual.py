@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 
 import pylab as pl
 import matplotlib as mpl
@@ -30,7 +30,7 @@ vectorSix = np.loadtxt("/home/santi/Repositories/cognitive/xgnitive/main/app/rec
 
 ###
 fig = plt.figure()
-ax = fig.gca(projection='3d')
+ax = fig.add_subplot(projection='3d')
 
 
 # scatter

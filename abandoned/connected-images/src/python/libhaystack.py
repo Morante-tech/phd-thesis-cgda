@@ -75,7 +75,7 @@ class Network:
 
 
     def train(self, input_matrix, output_matrix):
-        for (i,j) in product(range(self.input_rows), range(self.input_cols)):
+        for (i,j) in product(list(range(self.input_rows)), list(range(self.input_cols))):
        
             # find submatrix in DB and change currentweight value
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
@@ -108,7 +108,7 @@ class Network:
         self.block_sum_weights=0
         self.predicted_output_matrix=0
         
-        for (i,j) in product(range(self.input_rows), range(self.input_cols)):
+        for (i,j) in product(list(range(self.input_rows)), list(range(self.input_cols))):
             # find submatrix in DB
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
                                               (self.output_cols * j):(self.output_cols * (j+1))]
@@ -117,7 +117,7 @@ class Network:
             self.block_sum_weights= cv2.add(self.block_sum_weights, block_matrix)
             
             
-        for (i,j) in product(range(self.input_rows), range(self.input_cols)):
+        for (i,j) in product(list(range(self.input_rows)), list(range(self.input_cols))):
             # find submatrix in DB
             block_matrix = self.weight_matrix[(self.output_rows * i):(self.output_rows * (i+1)) ,
                                               (self.output_cols * j):(self.output_cols * (j+1))]

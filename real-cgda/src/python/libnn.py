@@ -37,7 +37,7 @@ class NeuralNetwork:
 #############################################
     def train(self, input_array, output_array):
         self.ann.train(input_array, output_array)
-        print "[INFO] Mean Square Error: ", self.ann.get_MSE()
+        print("[INFO] Mean Square Error: ", self.ann.get_MSE())
 
 #############################################
     def predict(self, input_array):

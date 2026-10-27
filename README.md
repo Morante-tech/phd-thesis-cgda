@@ -6,6 +6,28 @@ This code repository contains the algorithms developed for my PhD thesis. It als
 
 The PhD defense video is available [online](http://www.dailymotion.com/video/x3w7qw0_defensa-tesis-doctoral-uc3m-santiago-morante_tech).
 
+## Python scripts
+
+The Python scripts were ported from Python 2 to Python 3 in 2026. `mlpy` and the old
+`dtw` library no longer exist, so Dynamic Time Warping now comes from
+[dissimilarity-mapping-filtering](https://github.com/Morante-tech/dissimilarity-mapping-filtering).
+The C++ code (YARP, OpenRAVE) was not updated and documents how the experiments were run.
+
+```bash
+pip install -r requirements.txt
+./run_python_scripts.sh   # runs every script whose data is in this repository
+```
+
+| Status | Scripts |
+|---|---|
+| Run with the data in this repository (checked by CI) | `demonstration-feature-selection/`, `friction-gravity-compensation/friction/`, `guided-motor-primitives/src/roman14_cleanPlot.py` and `roman14_paintPlot.py`, `simulated-CGDA/fitness/`, `simulated-CGDA/recognition/` (except `recognition_test3.py`), `simulated-CGDA/generalization/generalization_old_visual.py` |
+| Need recordings that were never in this repository | the rest of `simulated-CGDA/generalization/`, `simulated-CGDA/recognition/recognition_test3.py`, `guided-motor-primitives/src/roman14_primitive.py`, `abandoned/` (videos removed from the history) |
+| Need the robot middleware YARP | `simulated-CGDA/src/` |
+| Need the FANN C library (`fann2`) | `real-cgda/src/python/`, `abandoned/connected-images/src/python/main_nn.py` |
+
+`friction-gravity-compensation/friction/vel_vs_time.py` also runs, but appends its results to
+`curves/leftArm/joint22/torques22.txt`.
+
 ## Related repositories and removed files
 
 * The demonstration and feature selection algorithm (`demonstration-feature-selection/`) is also maintained as a standalone project in [dissimilarity-mapping-filtering](https://github.com/Morante-tech/dissimilarity-mapping-filtering).

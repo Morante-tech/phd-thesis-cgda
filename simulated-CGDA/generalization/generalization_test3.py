@@ -1,5 +1,5 @@
 
-from __future__ import division
+
 
 from sklearn import mixture, metrics
 import pylab as pl
@@ -10,7 +10,7 @@ import numpy as np
 for action in ['move', 'rotate', 'wax', 'fold', 'paint']:
     numberOfGaussians=0
     actionName=action
-    print "Action: ", actionName
+    print("Action: ", actionName)
     realDataMatrix=[]
     partialResults=[]
     reader=csv.reader(open("/home/santi/Repositories/cognitive/xgnitive/main/app/record/recorded3/"+actionName+"_"+str(6)+"/data.log","rb"),delimiter=' ')
@@ -22,7 +22,7 @@ for action in ['move', 'rotate', 'wax', 'fold', 'paint']:
     numberOfGaussians = int(newTimeValue)
      ## Get the time range and rescale
     r = float(temp0[-1][1] - temp0[0][1])
-    temp0[:,1] = map(lambda x: (x - temp0[0][1]) / r, temp0[:,1])
+    temp0[:,1] = [(x - temp0[0][1]) / r for x in temp0[:,1]]
 
     # append
     realDataMatrix.append(temp0.tolist())
@@ -47,13 +47,13 @@ for action in ['move', 'rotate', 'wax', 'fold', 'paint']:
         initial=(X.shape[0]/numberOfGaussians)*h
         final=(X.shape[0]/numberOfGaussians)*(h+1)
         #print X[initial:final].shape
-        best_gmm = mixture.GMM(n_components=1, covariance_type='full')
+        best_gmm = mixture.GaussianMixture(n_components=1, covariance_type='full')
         best_gmm.fit(X[initial:final])
         #print "Best : ", best_gmm
         #print "Best mean: ", best_gmm.means_.ravel().tolist()
         partialResults.append(best_gmm.means_.ravel().tolist())
 
-    print 'slices: ', len(partialResults)
+    print('slices: ', len(partialResults))
     # saving centers
     sortedPoints = sorted(partialResults, key=lambda point: point[0])
     np.savetxt("generalized/"+actionName+"Query", sortedPoints,  fmt='%.14e')

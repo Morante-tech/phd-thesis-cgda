@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 
 from sklearn import mixture, metrics
 import pylab as pl
 import numpy as np
-import mlpy.dtwcore as md
+from dmf import dtw as dmf_dtw
+
+
+def dtw(x, y):
+    """Replacement for mlpy.dtwcore.dtw (mlpy is not available for Python 3).
+
+    Returns (distance, path_x, path_y, cost) like mlpy did, using the DTW of the
+    dmf package (Morante-tech/dissimilarity-mapping-filtering).
+    """
+    dist, cost, (px, py) = dmf_dtw(x, y, return_path=True)
+    return dist, px, py, cost
 from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -29,7 +39,7 @@ def generalization(kinectTrajectory):
 
      ## Get the time range and rescale
     r = float(temp0[-1][0] - temp0[0][0])
-    temp0[:,0] = map(lambda x: (x - temp0[0][0]) / r, temp0[:,0])
+    temp0[:,0] = [(x - temp0[0][0]) / r for x in temp0[:,0]]
 
     # append
     realDataMatrix.append(temp0.tolist())
@@ -47,11 +57,11 @@ def generalization(kinectTrajectory):
         initial=(X.shape[0]/numberOfSlices)*h
         final=(X.shape[0]/numberOfSlices)*(h+1)
         if X[initial:final].shape[0] == 0:
-            print 'NO POINTS IN THIS SET. PROBABLY NUMBEROFPOINTS < NUMBEROFSLICES'
+            print('NO POINTS IN THIS SET. PROBABLY NUMBEROFPOINTS < NUMBEROFSLICES')
         if X[initial:final].shape[0] == 1:
             partialResults.append(X[initial:final].ravel().tolist())
         else:
-            #best_gmm = mixture.GMM(n_components=1, covariance_type='full')
+            #best_gmm = mixture.GaussianMixture(n_components=1, covariance_type='full')
             #best_gmm.fit(X[initial:final])
             #partialResults.append(best_gmm.means_.ravel().tolist())
 
@@ -66,7 +76,7 @@ def recognition(idealAction, realAction):
     vectorOne=np.array(idealAction)
     vectorTwo=np.array(realAction)
     if vectorOne.shape[1] != vectorTwo.shape[1]:
-        print 'VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!'
+        print('VECTOR ONE AND TWO DONT HAVE SAME NUMBER OF COLUMNS (DIMENSIONS)!')
 
     ########## DTW all dimensions #############
 
@@ -95,16 +105,16 @@ def recognition(idealAction, realAction):
 class FittingResponder(yarp.PortReader):
     def read(self,connection):
         if not(connection.isValid()):
-            print '[fail] FittingResponder connection shutting down.'
+            print('[fail] FittingResponder connection shutting down.')
             return False
         writer = connection.getWriter()
         if writer==None:
-            print '[fail] FittingResponder no one to reply to.'
+            print('[fail] FittingResponder no one to reply to.')
             return True
         bIn = yarp.Bottle()
         bOut = yarp.Bottle()
         if not( bIn.read(connection) ):
-            print '[fail] FittingResponder failed to read input.'
+            print('[fail] FittingResponder failed to read input.')
             return False
         #print '[success] Got: ', bIn.toString()
         kinectVector = []
@@ -126,7 +136,7 @@ class FittingResponder(yarp.PortReader):
         idealVector = np.array(idealVector).astype('float')
 
         fitness = recognition(idealVector, realButGeneralized)
-        print fitness
+        print(fitness)
 
         bOut.addDouble(round(fitness,1))
         return bOut.write(writer)
@@ -136,7 +146,7 @@ def main():
 
     yarp.Network.init()
     if yarp.Network.checkNetwork() != True:
-        print '[fail] found no yarp network (try running "yarpserver &"), bye!'
+        print('[fail] found no yarp network (try running "yarpserver &"), bye!')
         quit()
 
     ########################################

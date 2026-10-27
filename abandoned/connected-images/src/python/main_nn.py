@@ -25,7 +25,7 @@ def extract_params_from_file(filename):
         reader = csv.reader(csvfile)
         for row in reader:
             experiment_list.append(row)
-    print "[INFO] Experiment raw data: ", experiment_list [1]
+    print("[INFO] Experiment raw data: ", experiment_list [1])
     
     input_matrix = experiment_list [1][0]
     output_matrix = experiment_list [1][1]
@@ -71,15 +71,15 @@ def normalize_matrix(raw_matrix, max_value):
 def save_results(filename, mse_list):
     file_results = open(filename, "w")
     file_results.write("Mean Square Error\n")
-    file_results.write("\n".join(map(lambda x: str(x), mse_list)))
+    file_results.write("\n".join([str(x) for x in mse_list]))
     file_results.write("\n")            
     file_results.close()  
 
 def save_params(list_params_names, list_params_values):
     file_params = open(FILENAME_PARAMS, "w")           
-    file_params.write(",".join(map(lambda x: str(x), list_params_names)))
+    file_params.write(",".join([str(x) for x in list_params_names]))
     file_params.write("\n")
-    file_params.write(",".join(map(lambda x: str(x), list_params_values)))
+    file_params.write(",".join([str(x) for x in list_params_values]))
     file_params.write("\n")
     file_params.close()           
 
@@ -103,7 +103,7 @@ elif len(sys.argv) == 2:
         sys.exit("[ERROR] File %s was not found!" % sys.argv[1])
     else:
         EXPERIMENT_PARAMS_FILENAME = sys.argv[1]
-        print "[INFO] Reproducing experiment with params: " + str(sys.argv[1])  
+        print("[INFO] Reproducing experiment with params: " + str(sys.argv[1]))  
         REPRODUCE_EXPERIMENT = True    
 
 
@@ -120,7 +120,7 @@ if REPRODUCE_EXPERIMENT == True:
     ACTIVATION_FUNCTION_OUTPUT, ACTUAL_IMAGES, \
     MVMNT_THRES = extract_params_from_file(EXPERIMENT_PARAMS_FILENAME)
 
-    print "[INFO] Params extracted from file"
+    print("[INFO] Params extracted from file")
 
     ##### CAMERA #####
     cap1 = cv2.VideoCapture(SOURCE_1)
@@ -132,7 +132,7 @@ if REPRODUCE_EXPERIMENT == True:
                          TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                          ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
 
-    print "[INFO] Using loaded weight matrix"
+    print("[INFO] Using loaded weight matrix")
     
 else:         
     ##### CONFIGURE NEW EXPERIMENT ###########  
@@ -176,20 +176,20 @@ else:
                              OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, TRAINING_ALGORITHM, 
                              TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                              ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT, False)
-        print "[INFO] Using loaded weight matrix"
+        print("[INFO] Using loaded weight matrix")
 
     else:
         nn.create(INPUT_ROWS, INPUT_COLS, OUTPUT_ROWS, OUTPUT_COLS, ALPHA, MOMENTUM, 
                    TRAINING_ALGORITHM, TRAIN_ERROR_FUNCTION, TRAIN_STOP_FUNCTION, 
                    ACTIVATION_FUNCTION_HIDDEN, ACTIVATION_FUNCTION_OUTPUT)
 
-        print "[INFO] Created new weight matrix"
+        print("[INFO] Created new weight matrix")
 
     # Getting info from NN
-    print "[INFO] sizes ann: ", nn.ann.get_num_input(), " and ",  nn.ann.get_num_output()
-    print "[INFO] total number of neurons: " , nn.ann.get_total_neurons()
-    print "[INFO] total number of connections: " , nn.ann.get_total_connections()
-    print "[INFO] ann params: ", nn.ann.print_parameters()  
+    print("[INFO] sizes ann: ", nn.ann.get_num_input(), " and ",  nn.ann.get_num_output())
+    print("[INFO] total number of neurons: " , nn.ann.get_total_neurons())
+    print("[INFO] total number of connections: " , nn.ann.get_total_connections())
+    print("[INFO] ann params: ", nn.ann.print_parameters())  
     
 #### INITIALIZATION #########
 image_1_t_1  =  np.zeros((INPUT_ROWS, INPUT_COLS), np.uint8) # image 1 previous time
@@ -207,7 +207,7 @@ while(True):
     ret2, frame2 = cap2.retrieve()
  
     if(ret1==False or ret2==False):
-        print "[ERROR] No stream of images (or end of file)"
+        print("[ERROR] No stream of images (or end of file)")
         break
     
     # reduced and gray
@@ -287,10 +287,10 @@ while(True):
   
     if k == ord('f'):
         fix_weights_matrix = True        
-        print "[INFO] WeightsMatrix Fixed"
+        print("[INFO] WeightsMatrix Fixed")
 
     if k == ord('s'):
-        print "[INFO] Saving Images"
+        print("[INFO] Saving Images")
         if ACTUAL_IMAGES == True:
             cv2.imwrite( "../../cross-validation/experiments/outputs/motion_input_" \
             + DATE + "_" +  time.strftime("%H:%M:%S") +  ".png", image_1_t_0);
@@ -314,10 +314,10 @@ cap2.release()
 cv2.destroyAllWindows()
 
 if SAVE_EXPERIMENT == True:
-    print "[INFO] Saving experiment"         
+    print("[INFO] Saving experiment")         
 
     # save results
-    print "[INFO] Saving results"    
+    print("[INFO] Saving results")    
     FILENAME_RESULTS = "../../cross-validation/experiments/results/nn_results_" \
     + DATE + "_" + TIME + ".csv"
     
@@ -330,7 +330,7 @@ if SAVE_EXPERIMENT == True:
    # nn.save_weights_to_file(FILENAME_WEIGHTS, False)      
 
     # save params
-    print "[INFO] Saving params"
+    print("[INFO] Saving params")
     FILENAME_PARAMS = "../../cross-validation/experiments/params/nn_params_"   \
     + DATE + "_" + TIME  + ".csv"       
     
@@ -356,4 +356,4 @@ if SAVE_EXPERIMENT == True:
 #    temp = FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", "")
 #    os.remove(FILENAME_PRECOMPUTED_WEIGHTS.replace(".bz2", ""))  
     
-print "[INFO] Bye, bye!"
+print("[INFO] Bye, bye!")

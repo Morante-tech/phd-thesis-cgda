@@ -1,4 +1,5 @@
 
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -14,7 +15,7 @@ torque_zero=[]
 jointName="21"
 
 # file
-with open("/home/smorante/Repositories/manipulation/snippets/friction/curves/leftArm/joint22/torques22_noGrav_comp.txt", 'r') as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "curves", "leftArm", "joint22", "torques22_noGrav_comp.txt"), 'r') as f:
 
 #with open("./curves/leftArm/joint" + jointName + "/torques" + jointName + ".txt", 'r') as f:
     data = f.readlines()
@@ -39,23 +40,23 @@ plt.scatter(velocity_zero, torque_zero, s=500, lw=1, color="blue", edgecolor="bl
 
 #labels
 plt.xlabel('velocity [degrees/s]', size=30)
-plt.ylabel("I [A] " +  u"\u03B1" + " torque [Nm]", size=30)
+plt.ylabel("I [A] " +  "\u03B1" + " torque [Nm]", size=30)
 
 #regression (one for positive values, one for negative values)
 regression_plus = np.polyfit(velocity_plus, torque_plus, 1)
 regression_minus = np.polyfit(velocity_minus, torque_minus, 1)
 
 #print "velocity > 0"
-print "torque = " , regression_plus[0] , "*velocity + " , regression_plus[1] , "\n"
+print("torque = " , regression_plus[0] , "*velocity + " , regression_plus[1] , "\n")
 
 #print "velocity < 0"
-print "torque = " , regression_minus[0] , "*velocity + " , regression_minus[1] , "\n"
+print("torque = " , regression_minus[0] , "*velocity + " , regression_minus[1] , "\n")
 
 # To visualize we need to generate actual values for the regression line.
-r_x_p, r_y_p = zip(*((i, i*regression_plus[0] + regression_plus[1]) for i in range(60)))
+r_x_p, r_y_p = list(zip(*((i, i*regression_plus[0] + regression_plus[1]) for i in range(60))))
 plt.plot(r_x_p, r_y_p, lw=4, color="red")
 
-r_x_m, r_y_m = zip(*((i, i*regression_minus[0] + regression_minus[1]) for i in range(-60,0)))
+r_x_m, r_y_m = list(zip(*((i, i*regression_minus[0] + regression_minus[1]) for i in range(-60,0))))
 #plt.plot(np.array(r_x_m)-np.array(r_x_m)[-1], np.array(r_y_m)+2*np.array(r_y_m)[0], lw=4, color="green")
 plt.plot(np.array(r_x_m), np.array(r_y_m), lw=4, color="green")
 

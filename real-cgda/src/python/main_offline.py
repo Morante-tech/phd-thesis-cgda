@@ -56,19 +56,19 @@ nn.create(input_neurons_size, hidden_neurons_size, output_neurons_size, alpha_pa
 
 ######### FEATURE SCALING #############
 # raw data
-raw_input_data = raw_data.ix[:,0:input_neurons_size].copy()
+raw_input_data = raw_data.iloc[:,0:input_neurons_size].copy()
 #print "[INFO] Raw Input Data: \n", raw_input_data
 
-raw_output_data = raw_data.ix[:,input_neurons_size:len(list_column_names)].copy()
+raw_output_data = raw_data.iloc[:,input_neurons_size:len(list_column_names)].copy()
 #print "[INFO] Raw Output Data: \n", raw_output_data
 
 # scaled data
 scaled_input_data = pd.DataFrame(preprocessing.StandardScaler().fit_transform(raw_input_data), columns=raw_input_data.columns)
-print "[INFO] Scaled Input Data: \n", pd.DataFrame(scaled_input_data)
+print("[INFO] Scaled Input Data: \n", pd.DataFrame(scaled_input_data))
 
 #concat
 scaled_data = pd.concat([scaled_input_data, raw_output_data], axis=1)
-print "[INFO] Scaled Data: \n", scaled_data
+print("[INFO] Scaled Data: \n", scaled_data)
 
 ############# SETTING SETS ############
 train_data, test_data = train_test_split(scaled_data, test_size = test_size_fraction)

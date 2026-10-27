@@ -38,10 +38,10 @@ cap2 = cv2.VideoCapture('videos/tatup.mp4')
 
 # create dataframe                  
 data={}
-ROWS_1_list = range(ROWS_1)
-COLS_1_list = range(COLS_1)
-ROWS_2_list = range(ROWS_2)
-COLS_2_list = range(COLS_2)
+ROWS_1_list = list(range(ROWS_1))
+COLS_1_list = list(range(COLS_1))
+ROWS_2_list = list(range(ROWS_2))
+COLS_2_list = list(range(COLS_2))
 
 combos = product(ROWS_1_list, COLS_1_list, ROWS_2_list, COLS_2_list)
 

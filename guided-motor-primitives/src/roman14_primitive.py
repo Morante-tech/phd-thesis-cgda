@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
@@ -27,11 +27,11 @@ def comparison(trajOne, trajTwo):
 def plotTraj(jointTrajectory):
 
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.tick_params(labelsize=28)
-    ax.set_xlabel("$\Theta_{1}$ [deg]", size=30)
-    ax.set_ylabel("$\Theta_{2}$ [deg]", size=30)
-    ax.set_zlabel("$\Theta_{3}$ [deg]", size=30)
+    ax.set_xlabel(r"$\Theta_{1}$ [deg]", size=30)
+    ax.set_ylabel(r"$\Theta_{2}$ [deg]", size=30)
+    ax.set_zlabel(r"$\Theta_{3}$ [deg]", size=30)
    # ax.plot(jointTrajectory[:,2], jointTrajectory[:,3], jointTrajectory[:,4],  lw=2,color='red',label='Human-Guided Random Trajectory')
     ax.plot(jointTrajectory[:,2], jointTrajectory[:,3], jointTrajectory[:,4],  lw=2,color='red',label='Human-Guided Random Trajectory .')
     ax.legend(prop={'size':30})
@@ -47,11 +47,11 @@ def plotDistances(trajOne, trajTwo):
         segmentTwo[:,i]= segmentTwo[:,i] - segmentTwo[0,i]
 
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.tick_params(labelsize=30)
-    ax.set_xlabel("$\Theta_{1}$ [deg]", size=30)
-    ax.set_ylabel("$\Theta_{2}$ [deg]", size=30)
-    ax.set_zlabel("$\Theta_{3}$ [deg]", size=30)
+    ax.set_xlabel(r"$\Theta_{1}$ [deg]", size=30)
+    ax.set_ylabel(r"$\Theta_{2}$ [deg]", size=30)
+    ax.set_zlabel(r"$\Theta_{3}$ [deg]", size=30)
     ax.set_xticklabels('')
     ax.set_yticklabels('')
     ax.set_zticklabels('')
@@ -69,7 +69,7 @@ def plotDistances(trajOne, trajTwo):
 def plotSingle(trajOne):
     segmentOne=np.array(trajOne)
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.set_xticklabels('')
     ax.set_yticklabels('')
     ax.set_zticklabels('')
@@ -83,7 +83,7 @@ def plot2DXiP():
     plt.ylim([0,94])
     plt.xlim([0,170])
 
-    plt.xlabel(u"\u03BE", fontsize=30)
+    plt.xlabel("\u03BE", fontsize=30)
     plt.ylabel('Number of Primitives', fontsize=30)
     plt.tick_params(labelsize=25)
     #plt.title('Relation between ' + u'\u03BE' + ' and primitives', fontsize=30)
@@ -132,7 +132,7 @@ def main():
         initial=(X.shape[0]/numberOfSlices)*h
         final=(X.shape[0]/numberOfSlices)*(h+1)
         if X[initial:final].shape[0] == 0:
-            print 'NO POINTS IN THIS SET. PROBABLY NUMBEROFPOINTS < NUMBEROFSLICES'
+            print('NO POINTS IN THIS SET. PROBABLY NUMBEROFPOINTS < NUMBEROFSLICES')
         else:
             slicesList.append(X[initial:final].tolist())
     plotDistances(slicesList[20],slicesList[50])
@@ -149,9 +149,9 @@ def main():
                 #print 'Adding segment', i,'to database'
                 primitives.append(slicesList[i])
 
-    print 'xi:', xi
-    print 'tau:', tau
-    print 'number of primitives:', len(primitives)
+    print('xi:', xi)
+    print('tau:', tau)
+    print('number of primitives:', len(primitives))
 
     # making a copy to be modified
     relativePrims=copy.deepcopy(primitives)

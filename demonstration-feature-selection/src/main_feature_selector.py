@@ -5,6 +5,7 @@ Robotics Lab. Universidad Carlos III de Madrid
 """
 ################### GENERAL ##############################
 import glob
+import os
 import numpy as np
 import libtools
 
@@ -17,7 +18,8 @@ NORM_FOLDER = "NONE" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
 SUM_FOLDER = "cols" # rows cols
 ALPHA_FOLDER=0.5
 EXPERIMENT_FOLDER = "experiment-1"
-PATH ="../datasets/"+ EXPERIMENT_FOLDER +"/selected-demonstrations/" + "NORM-"+ NORM_FOLDER+ "/SUM-" + SUM_FOLDER + "/ALPHA-" + str(ALPHA_FOLDER) +"/*.csv"
+DATASETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "datasets")
+PATH = DATASETS + "/"+ EXPERIMENT_FOLDER +"/selected-demonstrations/" + "NORM-"+ NORM_FOLDER+ "/SUM-" + SUM_FOLDER + "/ALPHA-" + str(ALPHA_FOLDER) +"/*.csv"
 
 ############### TO USE NOW #####################
 NORMALIZATION = "PHYSICAL" # NONE MINMAX STANDARDIZED WHOLE-EXPERIMENT PHYSICAL
@@ -28,7 +30,7 @@ def main():
     
     demoNames = sorted(glob.glob(PATH))
     if not demoNames:
-        print "[ERROR] No files to read in PATH!"
+        print("[ERROR] No files to read in PATH!")
         return False
     demons=[]
     demons = libtools.normalize(NORMALIZATION,demoNames)
@@ -44,7 +46,7 @@ def main():
                 mddtw = libmddtw.Mddtw()
                 singleDist, singleCost, singlePath = mddtw.compute(demons[i][:,f], demons[j][:,f])
                 dist[f]+=singleDist
-                print 'Minimum distance found:', singleDist
+                print('Minimum distance found:', singleDist)
 #               fig = plt.figure()
 #         #         plt.title(str(i)+","+str(j))
 #               plt.imshow(singleCost.T, origin='lower', cmap=plt.cm.gray, interpolation='nearest')
@@ -54,12 +56,12 @@ def main():
 #               plt.ylim((-0.5, singleCost.shape[1]-0.5))
 #               plt.yticks( fontsize=20)  
             
-    print "[INFO] Feature Dists List: ", dist
+    print("[INFO] Feature Dists List: ", dist)
         
      ##########################   ZSCORE   #################################
     
     boolzscores, zscores = libtools.get_outlier(dist, thresh=ALPHA)
-    print "[INFO] Detected outliers: ", boolzscores, zscores
+    print("[INFO] Detected outliers: ", boolzscores, zscores)
     
     #####################  PLOT  ###########################################
 
