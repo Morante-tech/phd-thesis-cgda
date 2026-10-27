@@ -24,4 +24,4 @@ The data is set in the following order, in plain text and no specific header:
 - sqrt( pow((x1-x2),2) + pow((y1-y2),2) + pow((z1-z2),2) )
 
 ### selected-demonstrations folder
-The .csv files of this directory are a selection of those in the raw folder, using different algorithms (the file implementing the demonstration selector is in https://github.com/smorante/continuous-goal-directed-actions/blob/master/demonstration-feature-selection/src/main_demons_selector.py). The .csv files are unmodified version of those in raw folder. Each algorithm just selects those it believes relevant, and place a copy in the corresponcet folder.
+The .csv files of this directory are a selection of those in the raw folder, using different algorithms (the file implementing the demonstration selector is in ../../src/main_demons_selector.py). The .csv files are unmodified version of those in raw folder. Each algorithm just selects those it believes relevant, and place a copy in the corresponding folder.
