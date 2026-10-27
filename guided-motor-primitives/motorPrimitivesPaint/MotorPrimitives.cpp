@@ -1,5 +1,14 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
+/*
+ * Guided motor primitives for the paint action (RO-MAN 2014): searches the combination of
+ * primitives, up to a maximum depth, whose effect (percentage of painted wall) is closest
+ * to the generalized one.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs OpenRAVE.
+ */
+
 #include "MotorPrimitives.hpp"
 
 /************************************************************************/

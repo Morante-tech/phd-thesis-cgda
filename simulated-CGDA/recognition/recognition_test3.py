@@ -1,3 +1,10 @@
+"""
+Recognition with skeleton (kinematic) trajectories, using Dynamic Time Warping. Needs
+the generalized/*kin files written by generalization_test5.py and
+generalization_test6.py.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

@@ -1,3 +1,9 @@
+"""
+Plot velocity and acceleration over time for the torque recordings of a joint, to check
+when the movement becomes stable.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np

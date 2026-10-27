@@ -1,3 +1,9 @@
+"""
+Plot of the RO-MAN 2014 paper: percentage of painted wall over time for the generalized
+action and its execution with different numbers of primitives.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
  #from pylab import *
 import pylab as pl
 import numpy as np

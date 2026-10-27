@@ -1,3 +1,9 @@
+"""
+Compare two trajectories feature by feature with Dynamic Time Warping and print the
+distance, the alignment and the cost matrix.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 #import numpy as np
 #import mlpy.dtwcore as md

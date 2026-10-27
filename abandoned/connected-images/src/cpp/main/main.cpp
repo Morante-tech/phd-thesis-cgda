@@ -1,4 +1,12 @@
 /*
+ * Abandoned project. Reads two videos frame by frame with OpenCV (optionally on CUDA)
+ * and trains a network that connects movements between the images.
+ *
+ * Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+ * Not updated since 2016: needs OpenCV with CUDA.
+ */
+
+/*
 Author: Santiago Morante
 Robotics Lab. Universidad Carlos III de Madrid
 

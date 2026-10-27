@@ -1,3 +1,9 @@
+"""
+Early generalization approach on synthetic data, with plots: DBSCAN to remove noisy
+points, then a Gaussian Mixture Model chosen by BIC.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 import numpy as np
 import itertools

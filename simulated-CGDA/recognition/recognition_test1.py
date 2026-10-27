@@ -1,3 +1,9 @@
+"""
+Recognition: compare a generalized action with a query (normalized data) using Dynamic
+Time Warping, and plot the cost matrix.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

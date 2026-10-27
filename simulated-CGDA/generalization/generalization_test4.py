@@ -1,3 +1,9 @@
+"""
+Variant of generalization_test3.py that saves the query trajectories. Needs
+demonstration recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

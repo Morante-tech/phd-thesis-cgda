@@ -6,18 +6,23 @@ About: This file uses neural network to create an inverse model between the
 feature space (network input) and the joint or cartesian space (network output).
 """
 
+import glob
+import os
+
 import libnn
 from fann2 import _libfann
 import pandas as pd
 import numpy as np
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
 ##########################################################################
 ############################# PARAMETERS ##############################
 ##########################################################################
 #source = "../../data/FeatureDataFile_Thu Nov 12 00:11:23 2015.csv"
-source = "file:///home/santi/Repositorios/continuous-goal-directed-actions/real-cgda/data/FeatureDataFile_Thu%20Nov%2012%2001:02:05%202015%0A.csv"
+# the recorded file name ends with a newline before ".csv", so it is found with a pattern
+source = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data",
+                                "FeatureDataFile_Thu Nov 12 01:02:05 2015*.csv"))[0]
 alpha_param = 0.1
 momentum_param = 0.5
 test_size_fraction = 0.2

@@ -1,3 +1,9 @@
+"""
+Generalization by time slices of skeleton (kinematic) recordings; saves
+generalized/*Query kin. Needs demonstration recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

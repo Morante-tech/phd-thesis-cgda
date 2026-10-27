@@ -1,3 +1,9 @@
+"""
+Early generalization approach on one recording of the move action, with plots (DBSCAN +
+Gaussian Mixture Model). Needs demonstration recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 import csv
 import numpy as np

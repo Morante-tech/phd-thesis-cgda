@@ -1,3 +1,9 @@
+"""
+3D plot of the repetitions of an action and their generalization. Needs demonstration
+recordings that are not in this repository.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 

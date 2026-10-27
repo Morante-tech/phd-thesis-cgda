@@ -1,3 +1,9 @@
+"""
+Plot the generalized trajectory of the wax action against the one found by the
+evolutionary search.
+
+Part of the PhD thesis of Santiago Morante (Robotics Lab, Universidad Carlos III de Madrid).
+"""
 
 
 
